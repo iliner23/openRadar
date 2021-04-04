@@ -7,6 +7,13 @@ windowChapters::windowChapters(QWidget *parent) :
 {
     ui->setupUi(this);
     _codec = QTextCodec::codecForName("system");
+    auto stacked = new QStackedLayout;
+    auto page1 = new QWidget(this);
+    auto page2 = new QWidget(this);
+    page1->setLayout(ui->verticalLayout_2);
+    stacked->addWidget(page1);
+    stacked->addWidget(page2);
+
     ui->groupBox->setLayout(ui->horizontalLayout_3);
     setLayout(ui->verticalLayout);
     connect(ui->comboBox, QOverload<int>::of(&QComboBox::activated), this, &windowChapters::windowChanged);
@@ -17,6 +24,13 @@ windowChapters::windowChapters(QWidget *parent) :
     ui->tableWidget->setShowGrid(false);
     ui->tableWidget->setItemDelegate(new delegate);
     ui->tableWidget->setEditTriggers(QTableWidget::NoEditTriggers);
+    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->verticalLayout->addLayout(stacked);
+    setFixedSize(700, 700);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+
+    connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
+    connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
 }
 
 windowChapters::~windowChapters()
@@ -94,4 +108,17 @@ void windowChapters::show(){
         windowChanged(ui->comboBox->currentIndex());
 
     QWidget::show();
+}
+void windowChapters::textFilter(const QString & text){
+    auto items = ui->tableWidget->findItems(text, Qt::MatchFlag::MatchContains);
+
+    if(!items.isEmpty())
+        ui->tableWidget->setCurrentItem(items.at(0));
+}
+void windowChapters::selectedItem(QTableWidgetItem * item){
+    if(item == nullptr || item->text().isEmpty()){
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    }
+    else
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
