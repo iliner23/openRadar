@@ -26,17 +26,20 @@ public:
     explicit windowChapters(QWidget *parent = nullptr);
     ~windowChapters();
     void getWindows(QList<QMdiSubWindow*>, QMdiSubWindow*);
-    void show();
+public slots:
+    void show(bool chapter = true);
 private:
     void windowChanged(int);
 private slots:
     void textFilter(const QString &);
     void selectedItem(QTableWidgetItem *);
+    void accept_1();
 
 private:
     Ui::windowChapters *ui;
     std::vector<QDir> _dirPaths;
     QTextCodec * _codec;
+    QStackedLayout * _layout;
 };
 
 #endif // WINDOWCHAPTERS_H

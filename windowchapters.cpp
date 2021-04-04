@@ -7,12 +7,13 @@ windowChapters::windowChapters(QWidget *parent) :
 {
     ui->setupUi(this);
     _codec = QTextCodec::codecForName("system");
-    auto stacked = new QStackedLayout;
+    _layout = new QStackedLayout;
     auto page1 = new QWidget(this);
     auto page2 = new QWidget(this);
     page1->setLayout(ui->verticalLayout_2);
-    stacked->addWidget(page1);
-    stacked->addWidget(page2);
+    page2->setLayout(ui->verticalLayout_3);
+    _layout->addWidget(page1);
+    _layout->addWidget(page2);
 
     ui->groupBox->setLayout(ui->horizontalLayout_3);
     setLayout(ui->verticalLayout);
@@ -25,12 +26,14 @@ windowChapters::windowChapters(QWidget *parent) :
     ui->tableWidget->setItemDelegate(new delegate);
     ui->tableWidget->setEditTriggers(QTableWidget::NoEditTriggers);
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    ui->verticalLayout->addLayout(stacked);
+    ui->verticalLayout->addLayout(_layout);
     setFixedSize(700, 700);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    ui->groupBox_2->setLayout(ui->horizontalLayout_5);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
 }
 
 windowChapters::~windowChapters()
@@ -53,6 +56,9 @@ void windowChapters::getWindows(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSu
     }
 }
 void windowChapters::windowChanged(int index){
+    if(_layout->currentIndex() != 0)
+        _layout->setCurrentIndex(0);//TODO: clear list viewer's model
+
     const int mx = 8;
     std::vector<QTableWidgetItem*> items;
     ui->tableWidget->clear();
@@ -103,7 +109,12 @@ void windowChapters::windowChanged(int index){
         ++x;
     }
 }
-void windowChapters::show(){
+void windowChapters::show(bool chapter){
+    if(chapter)
+        _layout->setCurrentIndex(0);
+    else
+        _layout->setCurrentIndex(1);
+
     if(ui->comboBox->count() != 0)
         windowChanged(ui->comboBox->currentIndex());
 
@@ -121,4 +132,7 @@ void windowChapters::selectedItem(QTableWidgetItem * item){
     }
     else
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+}
+void windowChapters::accept_1(){
+    _layout->setCurrentIndex(1);
 }
