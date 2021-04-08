@@ -41,7 +41,7 @@ openCtree::index_header::~index_header(){
     if(altSeq != nullptr)
         delete [] altSeq;
 }
-std::string openCtree::gtData() const{
+std::string openCtree::gtData(){
     uint8_t sig[2];
     _dat.read((char *) &sig, 2);
 
@@ -72,7 +72,7 @@ openCtree::openCtree(const std::string & filename){
 
 void openCtree::open(const std::string & filename){
     if(is_open())
-        throw std::logic_error("database is already open");
+        close();
 
     _idx.open(filename + ".idx", std::ios::in | std::ios::binary);
     _dat.open(filename + ".dat", std::ios::in | std::ios::binary);
@@ -217,7 +217,7 @@ int32_t openCtree::dataEntries() const{
 
     return  _header[_index].active_entries;
 }
-std::string openCtree::next() const{
+std::string openCtree::next(){
     if(!is_open())
         throw std::logic_error("Database isn't open");
 
@@ -328,7 +328,7 @@ std::string openCtree::next() const{
     }
 }
 
-std::string openCtree::getData(const uint32_t index) const{
+std::string openCtree::getData(const uint32_t index){
     if(!is_open())
         throw std::logic_error("Database isn't open");
 
@@ -472,7 +472,7 @@ std::string openCtree::getData(const uint32_t index) const{
         }
     }
 }
-std::string openCtree::getData(std::string key) const{//if key is dublicate than input key size == full key size - 4
+std::string openCtree::getData(std::string key){//if key is dublicate than input key size == full key size - 4
     if(!is_open())
         throw std::logic_error("Database isn't open");
 

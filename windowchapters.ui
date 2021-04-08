@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>861</width>
-    <height>425</height>
+    <width>1087</width>
+    <height>602</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -141,9 +141,9 @@
   <widget class="QWidget" name="verticalLayoutWidget_3">
    <property name="geometry">
     <rect>
-     <x>460</x>
-     <y>20</y>
-     <width>371</width>
+     <x>470</x>
+     <y>30</y>
+     <width>520</width>
      <height>381</height>
     </rect>
    </property>
@@ -165,15 +165,22 @@
         <widget class="QWidget" name="horizontalLayoutWidget_4">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>30</y>
-           <width>71</width>
-           <height>26</height>
+           <x>0</x>
+           <y>20</y>
+           <width>127</width>
+           <height>27</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QLineEdit" name="lineEdit_2"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>&lt;-</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -216,22 +223,6 @@
     <hint type="destinationlabel">
      <x>349</x>
      <y>349</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox_2</sender>
-   <signal>rejected()</signal>
-   <receiver>windowChapters</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>690</x>
-     <y>39</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>442</x>
-     <y>297</y>
     </hint>
    </hints>
   </connection>

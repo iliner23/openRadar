@@ -34,6 +34,7 @@ windowChapters::windowChapters(QWidget *parent) :
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
+    connect(ui->tableWidget, &QTableWidget::itemDoubleClicked, this, &windowChapters::accept_1);
 }
 
 windowChapters::~windowChapters()
@@ -59,17 +60,20 @@ void windowChapters::windowChanged(int index){
     if(_layout->currentIndex() != 0)
         _layout->setCurrentIndex(0);//TODO: clear list viewer's model
 
+    ui->lineEdit->clear();
+
     const int mx = 8;
     std::vector<QTableWidgetItem*> items;
     ui->tableWidget->clear();
     ui->tableWidget->setColumnCount(mx);
-    openCtree read(_dirPaths.at(index).filePath("symptom").toStdString());
-    read.setMember(4);
+
+    _db.open(_dirPaths.at(index).filePath("symptom").toStdString());
+    _db.setMember(4);
     const std::string compr(6, '\0');
     quint16 x = 0, y = 0;
 
     while(true){
-        auto temp = read.next();
+        auto temp = _db.next();
 
         if(x > mx){
             ++y;
@@ -77,14 +81,16 @@ void windowChapters::windowChanged(int index){
         }
 
         if(temp.substr(12, 6) == compr){
-            auto iter = std::find(temp.cbegin() + read.getReclen(), temp.cend(), '\0');
-            std::string textOriginal(temp.cbegin() + read.getReclen(), iter);
+            auto iter = std::find(temp.cbegin() + _db.getReclen(), temp.cend(), '\0');
+            std::string textOriginal(temp.cbegin() + _db.getReclen(), iter);
             ++iter;
             std::string textLocalize(iter, std::find(iter, temp.cend(), '\0'));
-
-            items.push_back(new QTableWidgetItem(QIcon(QPixmap(48, 48)),
-                        QString::fromStdString(textOriginal + "\n") + _codec->toUnicode(textLocalize.c_str()) ));
-            (*(--items.end()))->setTextAlignment(Qt::AlignHCenter);
+            auto item_t = new QTableWidgetItem(QIcon(QPixmap(48, 48)),
+                    QString::fromStdString(textOriginal + "\n") +
+                    _codec->toUnicode(textLocalize.c_str()) );
+            item_t->setTextAlignment(Qt::AlignHCenter);
+            item_t->setData(Qt::UserRole, QByteArray::fromStdString(_db.getLastKey()));
+            items.push_back(item_t);
             //TODO : picture add for debug only
             ++x;
         }
@@ -135,4 +141,12 @@ void windowChapters::selectedItem(QTableWidgetItem * item){
 }
 void windowChapters::accept_1(){
     _layout->setCurrentIndex(1);
+    ui->lineEdit->clear();
+    showListChapter(ui->tableWidget->currentItem()->data(Qt::UserRole).toByteArray());
+}
+void windowChapters::reject_2(){
+    _layout->setCurrentIndex(0);
+}
+void windowChapters::showListChapter(const QByteArray key){
+    _root = key;
 }

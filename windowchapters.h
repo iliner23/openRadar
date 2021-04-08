@@ -30,16 +30,20 @@ public slots:
     void show(bool chapter = true);
 private:
     void windowChanged(int);
+    void showListChapter(const QByteArray);
 private slots:
     void textFilter(const QString &);
     void selectedItem(QTableWidgetItem *);
     void accept_1();
+    void reject_2();
 
 private:
     Ui::windowChapters *ui;
     std::vector<QDir> _dirPaths;
     QTextCodec * _codec;
     QStackedLayout * _layout;
+    QByteArray _root;
+    openCtree _db;
 };
 
 #endif // WINDOWCHAPTERS_H

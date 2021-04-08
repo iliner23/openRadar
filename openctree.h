@@ -31,12 +31,12 @@ private:
         ~index_header();
     };
 
-    mutable std::ifstream _dat;
-    mutable std::ifstream _idx;
+    std::ifstream _dat;
+    std::ifstream _idx;
     std::vector<index_header> _header;
     int16_t _index = 0;
     uint16_t _reclen = 0;
-    mutable std::string _lastKey;
+    std::string _lastKey;
 
     struct{
         uint32_t _nextHope = 0;
@@ -45,7 +45,7 @@ private:
         uint64_t _basePtr = 0;
     } mutable _navigate;
 
-    std::string gtData() const;
+    std::string gtData();
 public:
     openCtree(const std::string&);
     openCtree() = default;
@@ -58,14 +58,11 @@ public:
     void setMember(const int16_t);
     int32_t dataEntries() const;
     uint16_t getReclen() const;
-    std::string getData(const uint32_t) const;
-    std::string getData(std::string) const;
-    std::string next() const;
+    std::string getData(const uint32_t);
+    std::string getData(std::string);
+    std::string next();
     std::string getLastKey() const;
     std::string convertString(const std::string&) const;
     char getPaddingChar() const;
 };
-
-
-
 #endif // OPENCTREE_H
