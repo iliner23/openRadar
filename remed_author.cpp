@@ -89,7 +89,7 @@ void remed_author::rendering(){
 
         quint16 prevRem = 0;
         qint8 type = 0;
-        const auto symptom = _sym.getData(_pos);
+        const auto symptom = _sym.at(_pos);
         auto secondIt = symptom.cbegin() + _localPos;
 
         for(auto it = std::find_if(secondIt, symptom.cend(), pred); it != symptom.cend(); ++secondIt){
@@ -175,13 +175,13 @@ void remed_author::rendering(){
             quint8 caption = 0;
 
             if(fis)
-                text = _sym.getData(_pos);
+                text = _sym.at(_pos);
             else
-                text = _sym.getData(ind);
+                text = _sym.at(ind);
 
-            auto first = std::find(text.cbegin() + _sym.getReclen(), text.cend(), '\0');
+            auto first = std::find(text.cbegin() + _sym.serviceDataLenght(), text.cend(), '\0');
             auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
-            orig.push_back(codec->toUnicode(std::string(text.cbegin() + _sym.getReclen(), first).c_str()));
+            orig.push_back(codec->toUnicode(std::string(text.cbegin() + _sym.serviceDataLenght(), first).c_str()));
 
             if(!localize.empty())
                 loz.push_back(codec->toUnicode(localize.c_str()));

@@ -29,7 +29,7 @@ RepChose::RepChose(const QStringList & repertories, QWidget *parent) :
         case 2:
             view.open(QDir::toNativeSeparators(it + "/view").toStdString());
 
-            if(view.dataEntries() != 0)
+            if(view.size() != 0)
                 _rLevels.push_back(QDir::toNativeSeparators(it + "/view"));
             else
                 _rLevels.push_back("");

@@ -68,7 +68,7 @@ void windowChapters::windowChanged(int index){
     ui->tableWidget->setColumnCount(mx);
 
     _db.open(_dirPaths.at(index).filePath("symptom").toStdString());
-    _db.setMember(4);
+    _db.setIndex(4);
     const std::string compr(6, '\0');
     quint16 x = 0, y = 0;
 
@@ -81,15 +81,15 @@ void windowChapters::windowChanged(int index){
         }
 
         if(temp.substr(12, 6) == compr){
-            auto iter = std::find(temp.cbegin() + _db.getReclen(), temp.cend(), '\0');
-            std::string textOriginal(temp.cbegin() + _db.getReclen(), iter);
+            auto iter = std::find(temp.cbegin() + _db.serviceDataLenght(), temp.cend(), '\0');
+            std::string textOriginal(temp.cbegin() + _db.serviceDataLenght(), iter);
             ++iter;
             std::string textLocalize(iter, std::find(iter, temp.cend(), '\0'));
             auto item_t = new QTableWidgetItem(QIcon(QPixmap(48, 48)),
                     QString::fromStdString(textOriginal + "\n") +
                     _codec->toUnicode(textLocalize.c_str()) );
             item_t->setTextAlignment(Qt::AlignHCenter);
-            item_t->setData(Qt::UserRole, QByteArray::fromStdString(_db.getLastKey()));
+            item_t->setData(Qt::UserRole, QByteArray::fromStdString(_db.key()));
             items.push_back(item_t);
             //TODO : picture add for debug only
             ++x;

@@ -61,9 +61,9 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
 
     auto mask = 1;
 
-    for(auto it = 0; it != view.dataEntries(); ++it){
+    for(auto it = 0; it != view.size(); ++it){
         auto str = view.next();
-        auto ps = _menu->addAction(_codec->toUnicode(str.substr(view.getReclen(), str.find('0', view.getReclen())).c_str()));
+        auto ps = _menu->addAction(_codec->toUnicode(str.substr(view.serviceDataLenght(), str.find('0', view.serviceDataLenght())).c_str()));
         ps->setData(mask);
         ps->setCheckable(true);
 
@@ -77,7 +77,7 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
 
     _bar = new QScrollBar(Qt::Vertical, this);
     _bar->setMinimum(0);
-    _bar->setMaximum(_symptom.dataEntries() - 1);
+    _bar->setMaximum(_symptom.size() - 1);
 
     hlayout->addWidget(_viewLeft);
     hlayout->addWidget(_viewRight);
@@ -116,7 +116,7 @@ void repertory::rendering(){
     QPointF pos;
     bool localize = false;
 
-    for(auto str = _index; str != _symptom.dataEntries(); ++str){
+    for(auto str = _index; str != _symptom.size(); ++str){
         if(pos.y() + size.height() >= _viewLeft->height() * 2){
             break;
         }
@@ -126,7 +126,7 @@ void repertory::rendering(){
         std::string full, label1, label2;
 
         if(str == _index){
-            full = _symptom.getData(str);
+            full = _symptom.at(str);
         }
         else
             full = _symptom.next();
@@ -148,11 +148,11 @@ void repertory::rendering(){
 
         bool hideLabel = !(_remFilter == (quint16)-1 || (filter & _remFilter) != 0);
 
-        auto firstIt = std::find(full.cbegin() + _symptom.getReclen(), full.cend(), '\0');
+        auto firstIt = std::find(full.cbegin() + _symptom.serviceDataLenght(), full.cend(), '\0');
         auto secondIt = std::find(firstIt + 1, full.cend(), '\0');
         {//Label subfunction
             label2 = std::string(firstIt + 1, secondIt);
-            label1 = std::string(full.cbegin() + _symptom.getReclen(), firstIt);
+            label1 = std::string(full.cbegin() + _symptom.serviceDataLenght(), firstIt);
 
             for(auto i = 0; i != 2; ++i)
             {
@@ -622,13 +622,13 @@ void repertory::changedPos(const int pos){
     while(true){
         quint8 caption = 0;
         if(fis){
-            text = _symptom.getData(_index);
+            text = _symptom.at(_index);
         }
         else{
-            text = _symptom.getData(ind);
-            auto first = std::find(text.cbegin() + _symptom.getReclen(), text.cend(), '\0');
+            text = _symptom.at(ind);
+            auto first = std::find(text.cbegin() + _symptom.serviceDataLenght(), text.cend(), '\0');
             auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
-            orig.push_back(_codec->toUnicode(std::string(text.cbegin() + _symptom.getReclen(), first).c_str()));
+            orig.push_back(_codec->toUnicode(std::string(text.cbegin() + _symptom.serviceDataLenght(), first).c_str()));
 
             if(!localize.empty())
                 loz.push_back(_codec->toUnicode(localize.c_str()));

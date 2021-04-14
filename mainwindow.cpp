@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     auto keysDirs = QDir("../data/keynotes").entryInfoList(QDir::Files);
     const QStringList tpCmp = {"view", "word1", "word2", "chapter", "extract", "symptom"};
 
-    for(auto it = 0; it != _catalog.dataEntries(); ++it){
+    for(auto it = 0; it != _catalog.size(); ++it){
         auto str = _catalog.next();
 
         if(str.at(4) == 1){
@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
                 dir = QDir::toNativeSeparators(QString::fromStdString(st));
 
                 if(dir.compare(QDir::toNativeSeparators(ir.filePath()), Qt::CaseInsensitive) == 0){
-                    const auto reclen = _catalog.getReclen();
+                    const auto reclen = _catalog.serviceDataLenght();
                     const auto tp = str.find('\0', reclen);
                     bool exit = false;
 
@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
                 dir = QDir::toNativeSeparators(QString::fromStdString(st));
 
                 if(QString::compare(dir + ".dat", QDir::toNativeSeparators(ir.filePath()), Qt::CaseInsensitive) == 0){
-                    const auto reclen = _catalog.getReclen();
+                    const auto reclen = _catalog.serviceDataLenght();
                     const auto tp = str.find('\0', reclen);
                     _keys.append(QString::fromStdString(str.substr(tp + 1, str.find('\0', tp + 1) - tp - 1)));
                     _keys.append(QString::fromStdString(str.substr(reclen, tp - reclen)));
@@ -76,24 +76,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
-    _cache._lenRem = remed.getReclen();
-    _cache._lenAuthor = author.getReclen();
+    _cache._lenRem = remed.serviceDataLenght();
+    _cache._lenAuthor = author.serviceDataLenght();
 
-    _cache._cacheRemed.reserve(remed.dataEntries());
-    _cache._cacheAuthor.reserve(author.dataEntries());
+    _cache._cacheRemed.reserve(remed.size());
+    _cache._cacheAuthor.reserve(author.size());
 
-    for(auto it = 0; it != remed.dataEntries(); ++it){
+    for(auto it = 0; it != remed.size(); ++it){
         auto tp = remed.next();
-        auto key = remed.getLastKey();
+        auto key = remed.key();
         quint16 kt;
         ((char *)&kt)[0] = key[1];
         ((char *)&kt)[1] = key[0];
         _cache._cacheRemed[kt] = std::move(tp);
     }
 
-    for(auto it = 0; it != author.dataEntries(); ++it){
+    for(auto it = 0; it != author.size(); ++it){
         auto tp = author.next();
-        auto key = author.getLastKey();
+        auto key = author.key();
         quint16 kt;
         ((char *)&kt)[0] = key[1];
         ((char *)&kt)[1] = key[0];
