@@ -12,6 +12,7 @@
 #include <QTextCodec>
 #include <QPushButton>
 #include <QTableWidgetItem>
+#include "searchmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -43,7 +44,7 @@ private:
     QTextCodec * _codec;
     QStackedLayout * _layout;
     QByteArray _root;
-    openCtree _db;
+    searchModel * _model;
 };
 
 #endif // WINDOWCHAPTERS_H

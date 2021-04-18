@@ -28,6 +28,7 @@ SOURCES += \
     remed_author.cpp \
     repchose.cpp \
     repertory.cpp \
+    searchmodel.cpp \
     windowchapters.cpp
 
 HEADERS += \
@@ -43,6 +44,7 @@ HEADERS += \
     remed_author.h \
     repchose.h \
     repertory.h \
+    searchmodel.h \
     windowchapters.h
 
 FORMS += \

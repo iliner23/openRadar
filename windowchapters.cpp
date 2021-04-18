@@ -30,6 +30,8 @@ windowChapters::windowChapters(QWidget *parent) :
     setFixedSize(700, 700);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->groupBox_2->setLayout(ui->horizontalLayout_5);
+    _model = new searchModel();
+    ui->listView->setModel(_model);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
@@ -66,14 +68,14 @@ void windowChapters::windowChanged(int index){
     std::vector<QTableWidgetItem*> items;
     ui->tableWidget->clear();
     ui->tableWidget->setColumnCount(mx);
-
-    _db.open(_dirPaths.at(index).filePath("symptom").toStdString());
-    _db.setIndex(4);
+    openCtree db;
+    db.open(_dirPaths.at(index).filePath("symptom").toStdString());
+    db.setIndex(4);
     const std::string compr(6, '\0');
     quint16 x = 0, y = 0;
 
     while(true){
-        auto temp = _db.next();
+        auto temp = db.next();
 
         if(x > mx){
             ++y;
@@ -81,15 +83,15 @@ void windowChapters::windowChanged(int index){
         }
 
         if(temp.substr(12, 6) == compr){
-            auto iter = std::find(temp.cbegin() + _db.serviceDataLenght(), temp.cend(), '\0');
-            std::string textOriginal(temp.cbegin() + _db.serviceDataLenght(), iter);
+            auto iter = std::find(temp.cbegin() + db.serviceDataLenght(), temp.cend(), '\0');
+            std::string textOriginal(temp.cbegin() + db.serviceDataLenght(), iter);
             ++iter;
             std::string textLocalize(iter, std::find(iter, temp.cend(), '\0'));
             auto item_t = new QTableWidgetItem(QIcon(QPixmap(48, 48)),
                     QString::fromStdString(textOriginal + "\n") +
                     _codec->toUnicode(textLocalize.c_str()) );
             item_t->setTextAlignment(Qt::AlignHCenter);
-            item_t->setData(Qt::UserRole, QByteArray::fromStdString(_db.key()));
+            item_t->setData(Qt::UserRole, QByteArray::fromStdString(db.key()));
             items.push_back(item_t);
             //TODO : picture add for debug only
             ++x;
@@ -149,4 +151,5 @@ void windowChapters::reject_2(){
 }
 void windowChapters::showListChapter(const QByteArray key){
     _root = key;
+    _model->setCatalogFile(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
 }

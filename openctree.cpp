@@ -207,10 +207,10 @@ void openCtree::setIndex(const int16_t member){
     if(_header.size() <= member)
         throw std::logic_error("Incorrect index size");
 
+    _index = member;
     _lastKey.clear();
     _lastKey.resize(_header[_index].key_length);
     _navigate = {0 , 0, 0, 0};
-    _index = member;
 }
 int32_t openCtree::size() const{
     if(!isOpen())
