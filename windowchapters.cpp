@@ -30,8 +30,6 @@ windowChapters::windowChapters(QWidget *parent) :
     setFixedSize(700, 700);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->groupBox_2->setLayout(ui->horizontalLayout_5);
-    _model = new searchModel();
-    ui->listView->setModel(_model);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
@@ -151,5 +149,7 @@ void windowChapters::reject_2(){
 }
 void windowChapters::showListChapter(const QByteArray key){
     _root = key;
-    _model->setCatalogFile(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
+    _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
+    ui->listView->setModel(_model.get());
+    ui->treeView->setModel(_model.get());
 }

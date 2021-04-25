@@ -201,7 +201,11 @@
        <widget class="QListView" name="listView"/>
       </item>
       <item>
-       <widget class="QListView" name="listView_2"/>
+       <widget class="QTreeView" name="treeView">
+        <attribute name="headerVisible">
+         <bool>false</bool>
+        </attribute>
+       </widget>
       </item>
      </layout>
     </item>

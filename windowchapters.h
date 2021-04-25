@@ -12,6 +12,7 @@
 #include <QTextCodec>
 #include <QPushButton>
 #include <QTableWidgetItem>
+#include <memory>
 #include "searchmodel.h"
 
 QT_BEGIN_NAMESPACE
@@ -44,7 +45,7 @@ private:
     QTextCodec * _codec;
     QStackedLayout * _layout;
     QByteArray _root;
-    searchModel * _model;
+    std::unique_ptr<searchModel> _model;
 };
 
 #endif // WINDOWCHAPTERS_H
