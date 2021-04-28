@@ -242,7 +242,6 @@ void repertory::renderingView(){
                 for(uint8_t i = 0; i != 4; ++i){
                     uint8_t cnt = 0;
 
-                    /*for(auto it = 0; it != 5; ++it){*/
                     for(auto it = 0; it != max + 1; ++it){
                         if(secondIt != full.cend() && *secondIt == '\0'){
                             ++cnt;

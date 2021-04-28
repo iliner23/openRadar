@@ -29,17 +29,17 @@ windowChapters::windowChapters(QWidget *parent) :
     ui->verticalLayout->addLayout(_layout);
     setFixedSize(700, 700);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->groupBox_2->setLayout(ui->horizontalLayout_5);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
-    connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
+    connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItemTable);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
     connect(ui->tableWidget, &QTableWidget::itemActivated, this, &windowChapters::accept_1);
     connect(ui->listView, &QListView::activated, this, &windowChapters::listClicked);
     connect(ui->pushButton, &QPushButton::clicked, this, &windowChapters::returnBranch);
     connect(ui->buttonBox_2, &QDialogButtonBox::rejected, this, &windowChapters::reject_2);
     connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
-    connect(ui->listView, &QListView::activated, this, &windowChapters::sendActivatedBranch);
 }
 
 windowChapters::~windowChapters()
@@ -60,6 +60,12 @@ void windowChapters::getWindows(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSu
 
         _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
     }
+}
+void windowChapters::selectedItemList(const QModelIndex & current){
+    if(current.isValid())
+        ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(true);
+    else
+        ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 void windowChapters::windowChanged(int index){
     if(_layout->currentIndex() != 0){
@@ -140,7 +146,7 @@ void windowChapters::textFilter(const QString & text){
     if(!items.isEmpty())
         ui->tableWidget->setCurrentItem(items.at(0));
 }
-void windowChapters::selectedItem(QTableWidgetItem * item){
+void windowChapters::selectedItemTable(QTableWidgetItem * item){
     if(item == nullptr || item->text().isEmpty()){
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
@@ -160,7 +166,8 @@ void windowChapters::showListChapter(const QByteArray key){
     _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
     changeChapterText(key.right(6));
     ui->listView->setModel(_model.get());
-    ui->treeView->setModel(_model.get());
+    ui->listView->clearFocus();
+    connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
 }
 void windowChapters::listClicked(const QModelIndex & index){
     if(index.isValid()){
@@ -169,8 +176,11 @@ void windowChapters::listClicked(const QModelIndex & index){
             ui->listView->setRootIndex(index);
             changeChapterText(indexPtr->key().right(6));
         }
-        else
+        else{
             emit activatedBranch(index, ui->comboBox->currentIndex());
+            clearModel();
+            close();
+        }
     }
 }
 void windowChapters::returnBranch(){
@@ -251,17 +261,15 @@ void windowChapters::changeChapterText(const QByteArray & key){
 }
 void windowChapters::sendActivatedBranch(){
     auto index = ui->listView->currentIndex();
-
-    if(static_cast<const searchModel::_node*>(index.internalPointer())->marker() == false){
-        emit activatedBranch(index, ui->comboBox->currentIndex());
-        clearModel();
-        close();
-    }
+    emit activatedBranch(index, ui->comboBox->currentIndex());
+    clearModel();
+    close();
 }
 void windowChapters::clearModel(){
+    disconnect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
     ui->listView->setModel(nullptr);
-    ui->treeView->setModel(nullptr);
     _model.reset();
+    ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 void windowChapters::reject(){
     clearModel();

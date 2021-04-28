@@ -36,12 +36,13 @@ private:
     inline void clearModel();
 private slots:
     void textFilter(const QString &);
-    void selectedItem(QTableWidgetItem *);
+    void selectedItemTable(QTableWidgetItem *);
     void accept_1();
     void reject_2();
     void listClicked(const QModelIndex &);
     void returnBranch();
     void sendActivatedBranch();
+    void selectedItemList(const QModelIndex &);
 signals:
     void activatedBranch(const QModelIndex &, const quint32);
 
