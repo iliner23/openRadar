@@ -14,20 +14,22 @@
 
 class searchModel : public QAbstractItemModel
 {
-private:
+public:
     class _node{
     private:
+        friend searchModel;
+        explicit _node(const QString & data, const QByteArray & key = "", bool marker = false, _node * parent = nullptr);
+
         QString _data;
         std::vector<_node*> _children;
         _node * _parent = nullptr;
         quint16 _row = 0;
-        QByteArray _startKey;
+        QByteArray _key;
         bool _marker;
     public:
-        explicit _node(const QString & data, const QByteArray & key = "", bool marker = false, _node * parent = nullptr);
         ~_node();
         auto * parent() const noexcept { return _parent; }
-        auto startKey() const noexcept { return _startKey; }
+        auto key() const noexcept { return _key; }
         auto row() const noexcept { return _row; }
         auto data() const noexcept { return _data; }
         auto childSize() const noexcept { return _children.size(); }
@@ -35,11 +37,6 @@ private:
         bool marker() const noexcept { return _marker;};
     };
 
-    _node * _root = nullptr;
-    openCtree _db;
-
-    void createHeap(_node *, QByteArray);
-public:
     searchModel(QObject * parent = nullptr): QAbstractItemModel(parent) { _root = new _node("root"); }
     searchModel(const QDir &, const QByteArray &, QObject * parent = nullptr);
     ~searchModel();
@@ -54,6 +51,11 @@ public:
     bool canFetchMore(const QModelIndex &parent) const override;
     void fetchMore(const QModelIndex &parent) override;
     bool hasChildren(const QModelIndex &parent) const override;
+private:
+    _node * _root = nullptr;
+    openCtree _db;
+
+    void createHeap(_node *, QByteArray);
 };
 
 #endif // SEARCHMODEL_H

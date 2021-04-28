@@ -2,7 +2,7 @@
 #include "ui_label.h"
 
 Label::Label(const cache & ch, const QDir & path, const QDir & system,
-             const quint32 pos, const quint16 remFilter, QWidget *parent) :
+             const QByteArray & pos, const quint16 remFilter, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Label)
 {
@@ -90,7 +90,7 @@ void Label::rendering(){
     const auto lenSym = _sym.serviceDataLenght();
 
     const QString fontName("cursive");
-    const auto symptom = _sym.at(_pos);
+    const auto symptom = _sym.at(_pos.toStdString());
 
     QRectF size;
     QPointF pos;
@@ -413,7 +413,7 @@ void Label::rendering(){
             quint8 caption = 0;
 
             if(fis)
-                text = _sym.at(_pos);
+                text = _sym.at(_pos.toStdString());
             else
                 text = _sym.at(ind);
 

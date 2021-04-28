@@ -30,6 +30,7 @@ private slots:
     void openChapters();
     void windowChanged();
     void windowActivated(QAction*);
+    void setPositionInRepertory(const QModelIndex &, const qint32);
 private:
     Ui::MainWindow *ui;
     RepChose * _choose = nullptr;

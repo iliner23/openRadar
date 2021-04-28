@@ -2,7 +2,7 @@
 #include "ui_remed_author.h"
 
 remed_author::remed_author(const QDir & path, const QDir & system, const cache & ch,
-                           const quint32 pos,
+                           const QByteArray & pos,
                            const quint16 remFilter, const quint32 localPos, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::remed_author)
@@ -89,7 +89,7 @@ void remed_author::rendering(){
 
         quint16 prevRem = 0;
         qint8 type = 0;
-        const auto symptom = _sym.at(_pos);
+        const auto symptom = _sym.at(_pos.toStdString());
         auto secondIt = symptom.cbegin() + _localPos;
 
         for(auto it = std::find_if(secondIt, symptom.cend(), pred); it != symptom.cend(); ++secondIt){
@@ -175,7 +175,7 @@ void remed_author::rendering(){
             quint8 caption = 0;
 
             if(fis)
-                text = _sym.at(_pos);
+                text = _sym.at(_pos.toStdString());
             else
                 text = _sym.at(ind);
 

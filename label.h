@@ -27,7 +27,8 @@ private:
     customScene * _scene;
     QDir _path, _system;
     quint16 _remFilter = -1;
-    quint32 _rem1 = 0, _rem2 = 0, _rem3 = 0, _rem4 = 0, _pos;
+    quint32 _rem1 = 0, _rem2 = 0, _rem3 = 0, _rem4 = 0;
+    QByteArray _pos;
 
     openCtree _sym;
     bool _localize = false;
@@ -37,7 +38,7 @@ private:
 private slots:
     void showTextInformation(QListWidgetItem*);
 public:
-    explicit Label(const cache &, const QDir &, const QDir &, const quint32, const quint16 , QWidget *parent = nullptr);
+    explicit Label(const cache &, const QDir &, const QDir &, const QByteArray &, const quint16 , QWidget *parent = nullptr);
     ~Label();
 };
 

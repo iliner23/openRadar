@@ -34,7 +34,12 @@ windowChapters::windowChapters(QWidget *parent) :
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItem);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
-    connect(ui->tableWidget, &QTableWidget::itemDoubleClicked, this, &windowChapters::accept_1);
+    connect(ui->tableWidget, &QTableWidget::itemActivated, this, &windowChapters::accept_1);
+    connect(ui->listView, &QListView::activated, this, &windowChapters::listClicked);
+    connect(ui->pushButton, &QPushButton::clicked, this, &windowChapters::returnBranch);
+    connect(ui->buttonBox_2, &QDialogButtonBox::rejected, this, &windowChapters::reject_2);
+    connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
+    connect(ui->listView, &QListView::activated, this, &windowChapters::sendActivatedBranch);
 }
 
 windowChapters::~windowChapters()
@@ -57,10 +62,13 @@ void windowChapters::getWindows(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSu
     }
 }
 void windowChapters::windowChanged(int index){
-    if(_layout->currentIndex() != 0)
-        _layout->setCurrentIndex(0);//TODO: clear list viewer's model
+    if(_layout->currentIndex() != 0){
+        _layout->setCurrentIndex(0);
+        clearModel();
+    }
 
     ui->lineEdit->clear();
+    ui->lineEdit_2->clear();
 
     const int mx = 8;
     std::vector<QTableWidgetItem*> items;
@@ -75,7 +83,7 @@ void windowChapters::windowChanged(int index){
     while(true){
         auto temp = db.next();
 
-        if(x > mx){
+        if(x >= mx){
             ++y;
             x = 0;
         }
@@ -101,12 +109,12 @@ void windowChapters::windowChanged(int index){
     if(y == 0 && !items.empty())
         ui->tableWidget->setRowCount(1);
     else
-        ui->tableWidget->setRowCount(y);
+        ui->tableWidget->setRowCount(y + 1);
 
     x = 0; y = 0;
 
     for(auto & it : items){
-        if(x > mx){
+        if(x >= mx){
             ++y;
             x = 0;
         }
@@ -140,16 +148,122 @@ void windowChapters::selectedItem(QTableWidgetItem * item){
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 void windowChapters::accept_1(){
-    _layout->setCurrentIndex(1);
     ui->lineEdit->clear();
     showListChapter(ui->tableWidget->currentItem()->data(Qt::UserRole).toByteArray());
+    _layout->setCurrentIndex(1);
 }
 void windowChapters::reject_2(){
     _layout->setCurrentIndex(0);
+    clearModel();
 }
 void windowChapters::showListChapter(const QByteArray key){
-    _root = key;
     _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
+    changeChapterText(key.right(6));
     ui->listView->setModel(_model.get());
     ui->treeView->setModel(_model.get());
+}
+void windowChapters::listClicked(const QModelIndex & index){
+    if(index.isValid()){
+        auto indexPtr = static_cast<const searchModel::_node*>(index.internalPointer());
+        if(indexPtr->marker()){
+            ui->listView->setRootIndex(index);
+            changeChapterText(indexPtr->key().right(6));
+        }
+        else
+            emit activatedBranch(index, ui->comboBox->currentIndex());
+    }
+}
+void windowChapters::returnBranch(){
+    auto root = ui->listView->rootIndex();
+    ui->listView->setRootIndex(root.parent());
+
+    if(ui->listView->rootIndex() == root)
+        reject_2();
+    else{
+        auto rootPtr = static_cast<const searchModel::_node*>(root.internalPointer());
+        changeChapterText(rootPtr->parent()->key().right(6));
+    }
+}
+void windowChapters::changeChapterText(const QByteArray & key){
+    openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
+    auto codec = QTextCodec::codecForName("system");
+
+    //Chapters shower
+    std::string text;
+    QString endlab;
+    QStringList orig, loz;
+    std::string ind(6, '\0');
+    bool fis = true;
+
+    while(true){
+        quint8 caption = 0;
+
+        if(fis)
+            text = sym.at(key.toStdString());
+        else
+            text = sym.at(ind);
+
+        auto first = std::find(text.cbegin() + sym.serviceDataLenght(), text.cend(), '\0');
+        auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
+        orig.push_back(codec->toUnicode(std::string(text.cbegin() + sym.serviceDataLenght(), first).c_str()));
+
+        if(!localize.empty())
+            loz.push_back(codec->toUnicode(localize.c_str()));
+
+        caption = text.at(21);
+
+        for(auto it = 0; it != 6; ++it){
+            ind[0 + it] = text.at(17 - it);
+        }
+
+        if(caption <= 1 || ind == "\0\0\0\0\0\0")
+            break;
+
+        fis = false;
+    }
+
+    if(!orig.isEmpty()){
+        QString org, lz;
+
+        for(auto it = orig.size() - 1; it != -1; --it){
+            if(it == orig.size() - 1){
+                org += orig[it];
+            }
+            else{
+                org += " - " + orig[it];
+            }
+        }
+        if(!loz.isEmpty()){
+            for(auto it = loz.size() - 1; it != -1; --it){
+                if(it == loz.size() - 1){
+                    lz += loz[it];
+                }
+                else{
+                    lz += " - " + loz[it];
+                }
+            }
+        }
+
+        endlab = org + ((loz.isEmpty()) ? "" : '\n' + lz);
+    }
+
+    ui->label_2->setText(endlab);
+}
+void windowChapters::sendActivatedBranch(){
+    auto index = ui->listView->currentIndex();
+
+    if(static_cast<const searchModel::_node*>(index.internalPointer())->marker() == false){
+        emit activatedBranch(index, ui->comboBox->currentIndex());
+        clearModel();
+        close();
+    }
+}
+void windowChapters::clearModel(){
+    ui->listView->setModel(nullptr);
+    ui->treeView->setModel(nullptr);
+    _model.reset();
+}
+void windowChapters::reject(){
+    clearModel();
+    QDialog::reject();
 }

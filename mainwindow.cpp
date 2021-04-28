@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_4, &QAction::triggered, this, &MainWindow::openChapters);
 
     _chapters = new windowChapters(this);
+    connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
 
     _catalog.open(QDir::toNativeSeparators("../system/catalog").toStdString());
     auto dataDirs = QDir("../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
@@ -145,4 +146,11 @@ void MainWindow::windowActivated(QAction * action){
 void MainWindow::openChapters(){
     _chapters->getWindows(ui->mdiArea->subWindowList(), ui->mdiArea->activeSubWindow());
     _chapters->show();
+}
+void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 winIndex){
+    auto list = ui->mdiArea->subWindowList();
+    if(!list.isEmpty() && winIndex < list.size()){
+        auto window = qobject_cast<repertory*>(list.at(winIndex)->widget());
+        window->setPosition(static_cast<const searchModel::_node *>(pos.internalPointer())->key().right(6));
+    }
 }

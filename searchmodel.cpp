@@ -1,9 +1,9 @@
 #include "searchmodel.h"
-searchModel::_node::_node(const QString & data, const QByteArray & startKey, bool marker, _node * parent){
+searchModel::_node::_node(const QString & data, const QByteArray & key, bool marker, _node * parent){
     _data = data;
     _parent = parent;
     _marker = marker;
-    _startKey = startKey;
+    _key = key;
 
     if(_parent != nullptr){
         _parent->_children.push_back(this);
@@ -88,7 +88,7 @@ void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos){
 
     _db.open(file.path().toStdString());
     _db.setIndex(4);
-    _root = new _node("root");
+    _root = new _node("root", pos);
 
     createHeap(_root, pos);
     emit dataChanged(QModelIndex(), QModelIndex());
@@ -122,7 +122,7 @@ int searchModel::rowCount(const QModelIndex &parent) const
     if (!parent.isValid()) {
         return _root->childSize();
     }
-    auto parentInfo = static_cast<_node*>(parent.internalPointer());
+    auto parentInfo = static_cast<const _node*>(parent.internalPointer());
     return parentInfo->childSize();
 }
 int searchModel::columnCount(const QModelIndex &parent) const
@@ -135,7 +135,7 @@ QVariant searchModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || role != Qt::DisplayRole)
         return QVariant();
 
-    auto item = static_cast<_node*>(index.internalPointer());
+    auto item = static_cast<const _node*>(index.internalPointer());
     return item->data();
 }
 searchModel::~searchModel(){
@@ -152,7 +152,7 @@ bool searchModel::canFetchMore(const QModelIndex &parent) const{
     if(!parent.isValid())
         return false;
 
-    auto parentPtr = static_cast<_node*>(parent.internalPointer());
+    auto parentPtr = static_cast<const _node*>(parent.internalPointer());
     return parentPtr->marker() && (parentPtr->childSize() == 0);
 }
 void searchModel::fetchMore(const QModelIndex &parent){
@@ -160,7 +160,8 @@ void searchModel::fetchMore(const QModelIndex &parent){
         return;
 
     auto parentPtr = static_cast<_node*>(parent.internalPointer());
-    createHeap(parentPtr, parentPtr->startKey());
+    createHeap(parentPtr, parentPtr->key());
+    emit dataChanged(QModelIndex(), QModelIndex());
 }
 bool searchModel::hasChildren(const QModelIndex &parent) const{
     if (parent.isValid()) {

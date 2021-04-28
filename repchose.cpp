@@ -39,7 +39,7 @@ RepChose::RepChose(const QStringList & repertories, QWidget *parent) :
         }
     }
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &RepChose::finding);
-    connect(ui->listWidget, &QListWidget::itemClicked, this, &RepChose::activateLevel);
+    connect(ui->listWidget, &QListWidget::currentItemChanged, this, &RepChose::activateLevel);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &RepChose::showLevels);
     connect(_levels, &Levels::sendLevel, this, &RepChose::sendLevel);
 }

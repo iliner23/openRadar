@@ -23,7 +23,7 @@ void repertory::changeFilter(QAction * action){
         if(!action->isChecked())
             action->setChecked(true);
         else
-            rendering();
+            renderingView();
     }
 }
 repertory::repertory(const QDir & filename, const QDir & system, const cache & ch, const quint16 remFilter, QWidget *parent) : QWidget(parent)
@@ -104,9 +104,12 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
     _bar->setTracking(false);
     connect(_bar, &QScrollBar::valueChanged, this, &repertory::changedPos);
     connect(_scene, &customScene::labelActivated, this, &repertory::clickedAction);
+    _symptom.back(false);
+    _endIndex = QByteArray::fromStdString(_symptom.key());
+    _symptom.front(false);
 }
 
-void repertory::rendering(){
+void repertory::renderingView(){
     const QString fontName("cursive");
     customItem * lastItem = nullptr;
     _scene->clear();
@@ -115,21 +118,26 @@ void repertory::rendering(){
     QRectF size;
     QPointF pos;
     bool localize = false;
+    std::string full;
 
-    for(auto str = _index; str != _symptom.size(); ++str){
+    if(_index.isEmpty()){
+        full = _symptom.front();
+        _index = QByteArray::fromStdString(_symptom.key());
+    }
+    else
+        full = _symptom.at(_index.toStdString());
+
+    QByteArray str;
+    str = _index;
+
+    while(true){
         if(pos.y() + size.height() >= _viewLeft->height() * 2){
             break;
         }
 
         std::vector<customItem*> links;
         links.reserve(30);
-        std::string full, label1, label2;
-
-        if(str == _index){
-            full = _symptom.at(str);
-        }
-        else
-            full = _symptom.next();
+        std::string label1, label2;
 
         qint8 symbol;
         symbol = full.at(21);
@@ -491,9 +499,6 @@ nolocl:                         temp->setDefaultTextColor(Qt::darkBlue);
                 };
 
                 for(auto it = std::find_if(secondIt, full.cend(), pred); it != full.cend(); ++secondIt){
-                    //if(*it == 0)
-                        //break;
-
                     quint16 remed = 0, author = 0, tLevel = 0;
                     uint8_t rLevel;
                     const auto szr = secondIt - full.cbegin();
@@ -602,6 +607,12 @@ nolocl:                         temp->setDefaultTextColor(Qt::darkBlue);
 
         for(const auto & it : links)
             update(it);
+
+        if(str == _endIndex)
+            break;
+
+        full = _symptom.next();
+        str = QByteArray::fromStdString(_symptom.key());
     }
     _viewLeft->setSceneRect(0, 0, 1, 1);
     _viewRight->setSceneRect(0, _viewLeft->height(), 1, 1);
@@ -610,21 +621,16 @@ nolocl:                         temp->setDefaultTextColor(Qt::darkBlue);
 }
 void repertory::resizeEvent(QResizeEvent * event){
     event->ignore();
-    rendering();
+    renderingView();
 }
-void repertory::changedPos(const int pos){
-    _index = pos;
-    std::string text;
+void repertory::renderingLabel(std::string text){
     QStringList orig, loz;
     std::string ind(6, '\0');
     bool fis = true;
 
     while(true){
         quint8 caption = 0;
-        if(fis){
-            text = _symptom.at(_index);
-        }
-        else{
+        if(!fis){
             text = _symptom.at(ind);
             auto first = std::find(text.cbegin() + _symptom.serviceDataLenght(), text.cend(), '\0');
             auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
@@ -633,7 +639,6 @@ void repertory::changedPos(const int pos){
             if(!localize.empty())
                 loz.push_back(_codec->toUnicode(localize.c_str()));
         }
-
         caption = text.at(21);
 
         for(auto it = 0; it != 6; ++it){
@@ -674,7 +679,12 @@ void repertory::changedPos(const int pos){
     else{
         _label->hide();
     }
-    rendering();
+}
+void repertory::changedPos(const int pos){
+    const auto str = _symptom.at(pos);
+    _index = QByteArray::fromStdString(_symptom.key());
+    renderingLabel(str);
+    renderingView();
 }
 void repertory::clickedAction(const customItem * item){
     //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
@@ -685,7 +695,7 @@ void repertory::clickedAction(const customItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             auto * label = new Label(*_cache, _filename,
-                                     _system , item->data(1).toUInt(), _remFilter, this);
+                                     _system , item->data(1).toByteArray(), _remFilter, this);
             label->setAttribute(Qt::WA_DeleteOnClose);
             label->show();
             break;
@@ -756,7 +766,7 @@ void repertory::clickedAction(const customItem * item){
             break;
         }
         case 3 : {
-            auto remed = new remed_author(_filename, _system, *_cache, item->data(2).toUInt()
+            auto remed = new remed_author(_filename, _system, *_cache, item->data(2).toByteArray()
                                           , _remFilter, item->data(1).toUInt(), this);
             remed->setAttribute(Qt::WA_DeleteOnClose);
             remed->show();
@@ -769,4 +779,27 @@ void repertory::clickedAction(const customItem * item){
             break;
         }
     }
+}
+void repertory::setPosition(const QByteArray & pos){
+    _index = pos;//TODO : optimize
+    quint32 ipos = 0;
+    bool first = true;
+
+    while(true){
+        if(first){
+            _symptom.front(false);
+            first = false;
+        }
+        else
+            _symptom.next(false);
+
+        const auto compare = QByteArray::fromStdString(_symptom.key());
+
+        if(compare == _index)
+            break;
+
+        ++ipos;
+    }
+
+    _bar->setValue(ipos);
 }

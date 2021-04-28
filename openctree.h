@@ -43,7 +43,7 @@ private:
         uint16_t _byteSize = 0;
         uint64_t _leafPtr = 0;
         uint64_t _basePtr = 0;
-    } mutable _navigate;
+    } _navigate;
 
     std::string gtData();
 public:

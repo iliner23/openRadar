@@ -44,15 +44,19 @@ private:
     QLabel * _label;
     QDir _filename, _system;
 
-    uint32_t _index = 0;
+    //uint32_t _index = 0;
+    QByteArray _index, _endIndex;
     const cache * _cache;
 
-    void rendering();
+    void renderingView();
     void resizeEvent(QResizeEvent*);
+    void renderingLabel(std::string);
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);
     void clickedAction(const customItem * item);
+public slots:
+    void setPosition(const QByteArray &);
 };
 
 #endif // REPERTORY_H
