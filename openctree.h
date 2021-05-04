@@ -37,6 +37,7 @@ private:
     int16_t _index = 0;
     uint16_t _reclen = 0;
     std::string _lastKey;
+    uint64_t _lastValuePos = 0;
 
     struct{
         uint32_t _nextHope = 0;
@@ -45,7 +46,9 @@ private:
         uint64_t _basePtr = 0;
     } _navigate;
 
-    std::string gtData();
+    inline std::string gtData(const uint64_t);
+    inline std::string readOrNot(const bool, const uint64_t);
+    inline std::string uncompressString(const std::string &);
 public:
     openCtree(const std::string&);
     openCtree() = default;
@@ -65,6 +68,8 @@ public:
     std::string back(const bool readDbText = true);
     std::string key() const;
     std::string convertKey(const std::string&) const;
+    std::string currentValue();
+    uint64_t currentPosition();
     char paddingChar() const;
 };
 #endif // OPENCTREE_H

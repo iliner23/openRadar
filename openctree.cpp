@@ -41,8 +41,9 @@ openCtree::index_header::~index_header(){
     if(altSeq != nullptr)
         delete [] altSeq;
 }
-std::string openCtree::gtData(){
+std::string openCtree::gtData(const uint64_t datPos){
     uint8_t sig[2];
+    _dat.seekg(datPos);
     _dat.read((char *) &sig, 2);
 
     constexpr const uint8_t sg[] = {250, 250};
@@ -159,7 +160,7 @@ void openCtree::open(const std::string & filename){
 
             if(ptrSeq != 0){
                 _idx.seekg(ptrS + 0x16 + ptrSeq);
-                char * table = new char[256];
+                auto table = new char[256];
 
                 for(auto sq = 0; sq != 256; ++sq){
                     _idx.read(table + sq, 1);
@@ -191,6 +192,7 @@ void openCtree::close() noexcept{
     _reclen = 0;
     _navigate = {0, 0, 0, 0};
     _lastKey.clear();
+    _lastValuePos = 0;
 }
 
 int16_t openCtree::indexCount() const{
@@ -211,6 +213,7 @@ void openCtree::setIndex(const int16_t member){
     _lastKey.clear();
     _lastKey.resize(_header[_index].key_length);
     _navigate = {0 , 0, 0, 0};
+    _lastValuePos = 0;
 }
 int32_t openCtree::size() const{
     if(!isOpen())
@@ -255,9 +258,9 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
         const uint64_t ptr = _idx.tellg();
         _idx.seekg(ptr);
         _idx.read((char *) &nextPtr, sizeof(nextPtr));
-        _idx.seekg(ptr + 4);
+        _idx.seekg(ptr + iter->ptrSize);
         _idx.read((char *) &prevPtr, sizeof(prevPtr));
-        _idx.seekg(ptr + 8);
+        _idx.seekg(ptr + iter->ptrSize * 2);
         _idx.read((char *) &byteCount, sizeof(byteCount));
 
         if(indexCount + byteCount <= index){
@@ -279,7 +282,6 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
                 throw std::runtime_error("Incorrect key");
 
             uint64_t pointer = 0;
-            uint64_t di = _idx.tellg();
 
             if(!iter->dublicate)//leaf dublicate node hasn't poiner in begin
                 _idx.read((char *) &pointer, iter->ptrSize);
@@ -288,80 +290,33 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
                 //there is leaf
                     if(iter->dublicate){
                         pointer = 0;
-                        uint8_t tpPtr[4];
-                        _idx.seekg(di);
                         _idx.read(_lastKey.data(), iter->key_length);
-                        _idx.seekg(di + iter->key_length - 4);
-                        _idx.read((char *) &tpPtr, sizeof(tpPtr));
-
-                        for(auto i = 0; i != 4; ++i){
-                            ((char *)&pointer)[i] = tpPtr[3 - i];
-                        }
-
-                        _idx.seekg(di + iter->key_length);
+                        std::copy(_lastKey.crbegin(), _lastKey.crbegin() + iter->ptrSize, (uint8_t *) &pointer);
                     }
-                    else{
-                        _idx.seekg(di + iter->ptrSize);
+                    else
                         _idx.read(_lastKey.data(), iter->key_length);
-                        _idx.seekg(di + iter->key_length + iter->ptrSize);
-                    }
 
                     if(index == indexCount){
+                        _lastValuePos = pointer;
                         _navigate._leafPtr = _idx.tellg();
 
-                        if(readDbText){
-                            _dat.seekg(pointer);
-                            return gtData();
-                        }
-                        else
-                            return std::string();
+                        return readOrNot(readDbText, pointer);
                     }
             }
             else if(iter->index_type == 12){//for compress indexes
-                uint8_t begCompress, padCompress;
-                _idx.read((char *) &begCompress, sizeof(begCompress));
-                _idx.read((char *) &padCompress, sizeof(padCompress));
-                int16_t mustRead = iter->key_length - begCompress - padCompress + 2;//two 'cause 2 compress bytes
-
-                std::string temp(mustRead - 2, '\0');
-                _idx.read(temp.data(), mustRead - 2);
-
-                if(begCompress != 0)//uncompress some bytes from begin
-                    temp.insert(0, _lastKey.substr(0, begCompress));
-                if(padCompress != 0){//uncompress some bytes from middle
-                    if(iter->dublicate)
-                        temp.insert(temp.size() - 4, std::string(padCompress, iter->padding));
-                    else
-                        temp.insert(temp.size(), std::string(padCompress, iter->padding));
-                }
-
-                _lastKey = std::move(temp);
+                _lastKey = uncompressString(_lastKey);
 
                 //there is leaf
                     if(iter->dublicate){
                         pointer = 0;
-                        uint8_t tpPtr[4];
-                        _idx.seekg(di + mustRead - 4);
-                        _idx.read((char *) &tpPtr, sizeof(tpPtr));
-
-                        for(auto i = 0; i != 4; ++i){
-                            ((char *)&pointer)[i] = tpPtr[3 - i];
-                        }
-
-                        _idx.seekg(di + mustRead);
+                        std::copy(_lastKey.crbegin(), _lastKey.crbegin() + iter->ptrSize, (uint8_t *) &pointer);
                     }
-                    else
-                        _idx.seekg(di + mustRead + iter->ptrSize);
 
                     if(index == indexCount){
+                        _lastValuePos = pointer;
                         _navigate._leafPtr = _idx.tellg();
 
-                        if(readDbText){
-                            _dat.seekg(pointer);
-                            return gtData();
-                        }
-                        else
-                            return std::string();
+                        return readOrNot(readDbText, pointer);
                     }
                 }
             else
@@ -382,11 +337,11 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
 
     if(!iter->dublicate && key.size() != iter->key_length)
         throw std::logic_error("Incoorect key size");
-    else if(iter->dublicate && key.size() != iter->key_length - 4)
+    else if(iter->dublicate && key.size() != iter->key_length - iter->ptrSize)
         throw std::logic_error("Incoorect key size");
 
     if(iter->dublicate)
-        key.append(4, '\0');
+        key.append(iter->ptrSize, '\0');
 
     _idx.seekg(iter->bTree_root);
     std::string keyCmp(iter->key_length, '\0');
@@ -424,47 +379,24 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
                     }
                 }
                 else{//there is leaf
-                    _navigate._leafPtr = _idx.tellg();
                     _lastKey = keyCmp;
 
                     if(iter->dublicate){
                         pointer = 0;
-                        const auto sz = keyCmp.size();
+                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
+                        std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
+                    }
 
-                        for(auto i = 0; i != 4; ++i){
-                            ((char *)&pointer)[i] = keyCmp.at(sz - 1 - i);
-                            keyCmp.at(sz - 1 - i) = '\0';
-                        }
-                    }
-                    if(keyCmp == key){
-                        if(readDbText){
-                            _dat.seekg(pointer);
-                            return gtData();
-                        }
-                        else
-                            return std::string();
-                    }
+                    _lastValuePos = pointer;
+                    _navigate._leafPtr = _idx.tellg();
+
+                    if(keyCmp == key)
+                        return readOrNot(readDbText, pointer);
                 }
             }
             else if(iter->index_type == 12){//for compress indexes
-                uint8_t begCompress, padCompress;
-                _idx.read((char *) &begCompress, sizeof(begCompress));
-                _idx.read((char *) &padCompress, sizeof(padCompress));
-                int16_t mustRead = iter->key_length - begCompress - padCompress;
-                std::string temp(mustRead, '\0');
-                _idx.read(temp.data(), mustRead);
-
-                if(begCompress != 0)//uncompress some bytes from begin
-                    temp.insert(0, keyCmp.substr(0, begCompress));
-                if(padCompress != 0){//uncompress some bytes from middle
-                    if(iter->dublicate)
-                        temp.insert(temp.size() - 4, std::string(padCompress, iter->padding));
-                    else
-                        temp.insert(temp.size(), std::string(padCompress, iter->padding));
-                }
-
-                _lastKey = temp;
-                keyCmp = std::move(temp);
+                _lastKey = uncompressString(keyCmp);
+                keyCmp = _lastKey;
 
                 if(!lNode){//there is branch
                     if(keyCmp >= key){
@@ -473,25 +405,17 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
                     }
                 }
                 else{//there is leaf
-                    _navigate._leafPtr = _idx.tellg();
-
                     if(iter->dublicate){
                         pointer = 0;
-                        const auto sz = keyCmp.size();
+                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
+                        std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
+                    }
 
-                        for(auto i = 0; i != 4; ++i){
-                            ((char *)&pointer)[i] = keyCmp.at(sz - 1 - i);
-                            keyCmp.at(sz - 1 - i) = '\0';
-                        }
-                    }
-                    if(keyCmp == key){
-                        if(readDbText){
-                            _dat.seekg(pointer);
-                            return gtData();
-                        }
-                        else
-                            return std::string();
-                    }
+                    _lastValuePos = pointer;
+                    _navigate._leafPtr = _idx.tellg();
+
+                    if(keyCmp == key)
+                        return readOrNot(readDbText, pointer);
                 }
             }
             else
@@ -506,14 +430,98 @@ std::string openCtree::front(const bool readDbText){
     return at(0, readDbText);
 }
 std::string openCtree::back(const bool readDbText){
-    return at(size() - 1, readDbText);
+    if(!isOpen())
+        throw std::logic_error("Database isn't open");
+
+    auto iter = _header.begin() + _index;
+    std::string key(iter->key_length, '\xFF');
+    _idx.seekg(iter->bTree_root);
+    std::string keyCmp(iter->key_length, '\0');
+
+    while(true){
+        uint16_t byteSize;
+        bool lNode;
+        const uint64_t ptr = _idx.tellg();
+        _idx.read((char *) &_navigate._nextHope, sizeof(_navigate._nextHope));
+
+        _idx.seekg(ptr + 10);
+        _idx.read((char *) &byteSize, sizeof(byteSize));
+        _idx.seekg(ptr + 17);
+        _idx.read((char *) &lNode, sizeof(lNode));
+
+        _navigate._byteSize = byteSize;
+        _navigate._basePtr = ptr;
+
+        while(true){
+            if(ptr + 18 + byteSize <= _idx.tellg())
+                throw std::runtime_error("Incorrect key");
+
+            uint64_t pointer = 0;
+
+            if(!(iter->dublicate && lNode))//leaf dublicate node hasn't poiner in begin
+                _idx.read((char *) &pointer, iter->ptrSize);
+
+            if(iter->index_type == 0){//for uncompress indexes
+                _idx.read(keyCmp.data(), iter->key_length);
+
+                if(!lNode){//there is branch
+                    if(keyCmp >= key){
+                        _idx.seekg(pointer);
+                        break;
+                    }
+                }
+                else{//there is leaf
+                    _lastKey = keyCmp;
+
+                    if(iter->dublicate){
+                        pointer = 0;
+                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
+                    }
+
+                    _lastValuePos = pointer;
+                    _navigate._leafPtr = _idx.tellg();
+
+                    if(ptr + 18 + byteSize == _navigate._leafPtr)
+                        return readOrNot(readDbText, pointer);
+                }
+            }
+            else if(iter->index_type == 12){//for compress indexes
+                _lastKey = uncompressString(keyCmp);
+                keyCmp = _lastKey;
+
+                if(!lNode){//there is branch
+                    if(keyCmp >= key){
+                        _idx.seekg(pointer);
+                        break;
+                    }
+                }
+                else{//there is leaf
+                    if(iter->dublicate){
+                        pointer = 0;
+                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
+                    }
+
+                    _navigate._leafPtr = _idx.tellg();
+                    _lastValuePos = pointer;
+
+                    if(ptr + 18 + byteSize == _navigate._leafPtr)
+                        return readOrNot(readDbText, pointer);
+                }
+            }
+            else
+                throw std::runtime_error("Incorrect index compress type");
+
+            if(!_idx.good())
+                throw std::runtime_error("Database was destroyed");
+        }
+    }
 }
 std::string openCtree::next(const bool readDbText){
     if(!isOpen())
         throw std::logic_error("Database isn't open");
 
     if(_navigate._leafPtr == 0)
-        return at(0);
+        return front(readDbText);
 
     auto iter = _header.begin() + _index;
     _idx.seekg(_navigate._leafPtr);
@@ -540,7 +548,6 @@ std::string openCtree::next(const bool readDbText){
             throw std::logic_error("End of elements");
 
         uint64_t pointer = 0;
-        const uint64_t di = _idx.tellg();
 
         if(!iter->dublicate)//leaf dublicate node hasn't poiner in begin
             _idx.read((char *) &pointer, iter->ptrSize);
@@ -549,78 +556,31 @@ std::string openCtree::next(const bool readDbText){
             //there is leaf
                 if(iter->dublicate){
                     pointer = 0;
-                    uint8_t tpPtr[4];
-                    _idx.seekg(di);
                     _idx.read(_lastKey.data(), iter->key_length);
-                    _idx.seekg(di + iter->key_length - 4);
-                    _idx.read((char *) &tpPtr, sizeof(tpPtr));
-
-                    for(auto i = 0; i != 4; ++i){
-                        ((char *)&pointer)[i] = tpPtr[3 - i];
-                    }
-
-                    _idx.seekg(di + iter->key_length);
-                }
-                else{
-                    _idx.seekg(di + iter->ptrSize);
-                    _idx.read(_lastKey.data(), iter->key_length);
-                    _idx.seekg(di + iter->key_length + iter->ptrSize);
-                }
-
-                _navigate._leafPtr = _idx.tellg();
-
-                if(readDbText){
-                    _dat.seekg(pointer);
-                    return gtData();
+                    std::copy(_lastKey.crbegin(), _lastKey.crbegin() + iter->ptrSize, (uint8_t *) &pointer);
                 }
                 else
-                    return std::string();
+                    _idx.read(_lastKey.data(), iter->key_length);
+
+                _navigate._leafPtr = _idx.tellg();
+                _lastValuePos = pointer;
+
+                return readOrNot(readDbText, pointer);
         }
         else if(iter->index_type == 12){//for compress indexes
-            uint8_t begCompress, padCompress;
-            _idx.read((char *) &begCompress, sizeof(begCompress));
-            _idx.read((char *) &padCompress, sizeof(padCompress));
-            int16_t mustRead = iter->key_length - begCompress - padCompress + 2;//two 'cause 2 compress bytes
-
-            std::string temp(mustRead - 2, '\0');
-            _idx.read(temp.data(), mustRead - 2);
-
-            if(begCompress != 0)//uncompress some bytes from begin
-                temp.insert(0, _lastKey.substr(0, begCompress));
-            if(padCompress != 0){//uncompress some bytes from middle
-                if(iter->dublicate)
-                    temp.insert(temp.size() - 4, std::string(padCompress, iter->padding));
-                else
-                    temp.insert(temp.size(), std::string(padCompress, iter->padding));
-            }
-
-            _lastKey = std::move(temp);
+            _lastKey = uncompressString(_lastKey);
 
             //there is leaf
-                if(iter->dublicate){
-                    pointer = 0;
-                    uint8_t tpPtr[4];
-                    _idx.seekg(di + mustRead - 4);
-                    _idx.read((char *) &tpPtr, sizeof(tpPtr));
-
-                    for(auto i = 0; i != 4; ++i){
-                        ((char *)&pointer)[i] = tpPtr[3 - i];
-                    }
-
-                    _idx.seekg(di + mustRead);
-                }
-                else
-                    _idx.seekg(di + mustRead + iter->ptrSize);
-
-                _navigate._leafPtr = _idx.tellg();
-
-                if(readDbText){
-                    _dat.seekg(pointer);
-                    return gtData();
-                }
-                else
-                    return std::string();
+            if(iter->dublicate){
+                pointer = 0;
+                std::copy(_lastKey.crbegin(), _lastKey.crbegin() + iter->ptrSize, (uint8_t *) &pointer);
             }
+
+            _navigate._leafPtr = _idx.tellg();
+            _lastValuePos = pointer;
+
+            return readOrNot(readDbText, pointer);
+        }
         else
             throw std::runtime_error("Incorrect index compress type");
 
@@ -637,4 +597,42 @@ uint16_t openCtree::serviceDataLenght() const{
 
 bool openCtree::isOpen() const noexcept{
     return !_header.empty();
+}
+std::string openCtree::currentValue(){
+    if(!isOpen())
+        throw std::logic_error("Database isn't open");
+
+    if(_lastValuePos == 0 || _lastKey.empty())
+        throw std::logic_error("Position is not open");
+
+    return gtData(_lastValuePos);
+}
+std::string openCtree::readOrNot(const bool readDbText, const uint64_t pointer){
+    if(readDbText)
+        return gtData(pointer);
+
+    return std::string();
+}
+uint64_t openCtree::currentPosition(){
+    return 0;
+}
+std::string openCtree::uncompressString(const std::string & keyCmp){
+    auto iter = _header.begin() + _index;
+    uint8_t begCompress, padCompress;
+    _idx.read((char *) &begCompress, sizeof(begCompress));
+    _idx.read((char *) &padCompress, sizeof(padCompress));
+    int16_t mustRead = iter->key_length - begCompress - padCompress;
+    std::string temp(mustRead, '\0');
+    _idx.read(temp.data(), mustRead);
+
+    if(begCompress != 0)//uncompress some bytes from begin
+        temp.insert(0, keyCmp.substr(0, begCompress));
+    if(padCompress != 0){//uncompress some bytes from middle
+        if(iter->dublicate)
+            temp.insert(temp.size() - iter->ptrSize, std::string(padCompress, iter->padding));
+        else
+            temp.insert(temp.size(), std::string(padCompress, iter->padding));
+    }
+
+    return temp;
 }
