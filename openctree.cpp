@@ -193,7 +193,7 @@ void openCtree::close() noexcept{
     _navigate = {0, 0, 0, 0};
     _lastKey.clear();
     _lastValuePos = 0;
-    _lastPosition = 0;
+    _lastPosition = std::numeric_limits<uint64_t>::max();
 }
 
 uint16_t openCtree::indexCount() const{
@@ -215,7 +215,7 @@ void openCtree::setIndex(const uint16_t member){
     _lastKey.resize(_header[_index].key_length);
     _navigate = {0 , 0, 0, 0};
     _lastValuePos = 0;
-    _lastPosition = 0;
+    _lastPosition = std::numeric_limits<uint64_t>::max();;
 }
 int32_t openCtree::size() const{
     if(!isOpen())
@@ -230,6 +230,9 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
     auto iter = _header.begin() + _index;
     if(iter->active_entries < 0 || index >= (uint32_t) iter->active_entries)
         throw std::logic_error("Incorrect index value");
+
+    if(index == _lastPosition)
+        return currentValue();
 
     _idx.seekg(iter->bTree_root);
 
@@ -363,6 +366,8 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
 
     if(iter->dublicate)
         key.append(iter->ptrSize, '\0');
+    else if(key == _lastKey)
+        return currentValue();
 
     _idx.seekg(iter->bTree_root);
     std::string keyCmp(iter->key_length, '\0');

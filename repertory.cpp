@@ -43,7 +43,7 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
     _viewRight = new QGraphicsView(_scene, this);
 
     _label = new QLabel(this);
-    _label->hide();
+    _label->close();
     _label->setFont(QFont("default", 10));
 
     openCtree view(filename.filePath("view").toStdString());
@@ -672,11 +672,13 @@ void repertory::renderingLabel(std::string text){
             }
         }
 
-        _label->setText(org + ((loz.isEmpty()) ? "" : '\n' + lz));
         _label->show();
+        _label->setText(org + ((loz.isEmpty()) ? "" : '\n' + lz));
     }
-    else
-        _label->hide();
+    else{
+        _label->clear();
+        _label->close();
+    }
 }
 void repertory::changedPos(const int pos){
     qDebug() << pos;
