@@ -675,11 +675,11 @@ void repertory::renderingLabel(std::string text){
         _label->setText(org + ((loz.isEmpty()) ? "" : '\n' + lz));
         _label->show();
     }
-    else{
+    else
         _label->hide();
-    }
 }
 void repertory::changedPos(const int pos){
+    qDebug() << pos;
     const auto str = _symptom.at(pos);
     _index = QByteArray::fromStdString(_symptom.key());
     renderingLabel(str);
@@ -780,25 +780,8 @@ void repertory::clickedAction(const customItem * item){
     }
 }
 void repertory::setPosition(const QByteArray & pos){
-    _index = pos;//TODO : optimize
-    quint32 ipos = 0;
-    bool first = true;
-
-    while(true){
-        if(first){
-            _symptom.front(false);
-            first = false;
-        }
-        else
-            _symptom.next(false);
-
-        const auto compare = QByteArray::fromStdString(_symptom.key());
-
-        if(compare == _index)
-            break;
-
-        ++ipos;
-    }
-
-    _bar->setValue(ipos);
+    _index = pos;
+    _symptom.at(pos.toStdString(), false);
+    const auto tp = _symptom.currentPosition();
+    _bar->setValue(tp);
 }

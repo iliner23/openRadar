@@ -34,10 +34,11 @@ private:
     std::ifstream _dat;
     std::ifstream _idx;
     std::vector<index_header> _header;
-    int16_t _index = 0;
+    uint16_t _index = 0;
     uint16_t _reclen = 0;
     std::string _lastKey;
     uint64_t _lastValuePos = 0;
+    uint64_t _lastPosition = std::numeric_limits<uint64_t>::max();
 
     struct{
         uint32_t _nextHope = 0;
@@ -57,8 +58,8 @@ public:
     bool isOpen() const noexcept;
     bool isDublicateKey() const;
     bool isAlternateSequence() const;
-    int16_t indexCount() const;
-    void setIndex(const int16_t);
+    uint16_t indexCount() const;
+    void setIndex(const uint16_t);
     int32_t size() const;
     uint16_t serviceDataLenght() const;
     std::string at(const uint32_t, const bool readDbText = true);
