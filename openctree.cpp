@@ -786,7 +786,7 @@ uint64_t openCtree::currentPosition(){
 }
 std::string openCtree::uncompressString(const std::string & keyCmp){
     auto iter = _header.begin() + _index;
-    uint8_t begCompress, padCompress;
+    uint8_t begCompress = 0, padCompress = 0;
     _idx.read((char *) &begCompress, sizeof(begCompress));
     _idx.read((char *) &padCompress, sizeof(padCompress));
     int16_t mustRead = iter->key_length - begCompress - padCompress;
@@ -803,4 +803,10 @@ std::string openCtree::uncompressString(const std::string & keyCmp){
     }
 
     return temp;
+}
+bool openCtree::isIteratorSet() const noexcept{
+    if(isOpen() && _navigate._leafPtr != 0)
+        return true;
+
+    return false;
 }

@@ -56,6 +56,7 @@ public:
     void open(const std::string&);
     void close() noexcept;
     bool isOpen() const noexcept;
+    bool isIteratorSet() const noexcept;
     bool isDublicateKey() const;
     bool isAlternateSequence() const;
     uint16_t indexCount() const;

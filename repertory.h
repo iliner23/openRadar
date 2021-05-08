@@ -16,6 +16,8 @@
 #include <QMenuBar>
 #include <QResizeEvent>
 #include <QLabel>
+#include <QOpenGLWidget>
+#include <QtEndian>
 #include <unordered_map>
 #include "openctree.h"
 #include "customItem.h"
