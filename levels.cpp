@@ -11,10 +11,10 @@ void Levels::showLevels(const QString & path){
     openCtree view(path.toStdString());
     auto codec = QTextCodec::codecForName("system");
 
-    for(auto i = 0; i != view.dataEntries(); ++i){
+    for(auto i = 0; i != view.size(); ++i){
         auto str = view.next();
-        auto it = std::find(str.cbegin() + view.getReclen(), str.cend(), '\0');
-        str = std::string(str.cbegin() + view.getReclen(), it);
+        auto it = std::find(str.cbegin() + view.serviceDataLenght(), str.cend(), '\0');
+        str = std::string(str.cbegin() + view.serviceDataLenght(), it);
         ui->listWidget->addItem(codec->toUnicode(str.c_str()));
     }
 

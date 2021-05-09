@@ -2,7 +2,7 @@
 #include "ui_label.h"
 
 Label::Label(const cache & ch, const QDir & path, const QDir & system,
-             const quint32 pos, const quint16 remFilter, QWidget *parent) :
+             const QByteArray & pos, const quint16 remFilter, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Label)
 {
@@ -87,10 +87,10 @@ Label::~Label()
 
 void Label::rendering(){
     auto codec = QTextCodec::codecForName("system");
-    const auto lenSym = _sym.getReclen();
+    const auto lenSym = _sym.serviceDataLenght();
 
     const QString fontName("cursive");
-    const auto symptom = _sym.getData(_pos);
+    const auto symptom = _sym.at(_pos.toStdString());
 
     QRectF size;
     QPointF pos;
@@ -413,13 +413,13 @@ void Label::rendering(){
             quint8 caption = 0;
 
             if(fis)
-                text = _sym.getData(_pos);
+                text = _sym.at(_pos.toStdString());
             else
-                text = _sym.getData(ind);
+                text = _sym.at(ind);
 
-            auto first = std::find(text.cbegin() + _sym.getReclen(), text.cend(), '\0');
+            auto first = std::find(text.cbegin() + _sym.serviceDataLenght(), text.cend(), '\0');
             auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
-            orig.push_back(codec->toUnicode(std::string(text.cbegin() + _sym.getReclen(), first).c_str()));
+            orig.push_back(codec->toUnicode(std::string(text.cbegin() + _sym.serviceDataLenght(), first).c_str()));
 
             if(!localize.empty())
                 loz.push_back(codec->toUnicode(localize.c_str()));

@@ -31,41 +31,47 @@ private:
         ~index_header();
     };
 
-    mutable std::ifstream _dat;
-    mutable std::ifstream _idx;
+    std::ifstream _dat;
+    std::ifstream _idx;
     std::vector<index_header> _header;
-    int16_t _index = 0;
+    uint16_t _index = 0;
     uint16_t _reclen = 0;
-    mutable std::string _lastKey;
+    std::string _lastKey;
+    uint64_t _lastValuePos = 0;
+    uint64_t _lastPosition = std::numeric_limits<uint64_t>::max();
 
     struct{
         uint32_t _nextHope = 0;
         uint16_t _byteSize = 0;
         uint64_t _leafPtr = 0;
         uint64_t _basePtr = 0;
-    } mutable _navigate;
+    } _navigate;
 
-    std::string gtData() const;
+    inline std::string gtData(const uint64_t);
+    inline std::string readOrNot(const bool, const uint64_t);
+    inline std::string uncompressString(const std::string &);
 public:
     openCtree(const std::string&);
     openCtree() = default;
     void open(const std::string&);
     void close() noexcept;
-    bool is_open() const noexcept;
-    bool is_dublicate() const;
-    bool is_alternate() const;
-    int16_t membersCount() const;
-    void setMember(const int16_t);
-    int32_t dataEntries() const;
-    uint16_t getReclen() const;
-    std::string getData(const uint32_t) const;
-    std::string getData(std::string) const;
-    std::string next() const;
-    std::string getLastKey() const;
-    std::string convertString(const std::string&) const;
-    char getPaddingChar() const;
+    bool isOpen() const noexcept;
+    bool isIteratorSet() const noexcept;
+    bool isDublicateKey() const;
+    bool isAlternateSequence() const;
+    uint16_t indexCount() const;
+    void setIndex(const uint16_t);
+    int32_t size() const;
+    uint16_t serviceDataLenght() const;
+    std::string at(const uint32_t, const bool readDbText = true);
+    std::string at(std::string, const bool readDbText = true);
+    std::string next(const bool readDbText = true);
+    std::string front(const bool readDbText = true);
+    std::string back(const bool readDbText = true);
+    std::string key() const;
+    std::string convertKey(const std::string&) const;
+    std::string currentValue();
+    uint64_t currentPosition();
+    char paddingChar() const;
 };
-
-
-
 #endif // OPENCTREE_H

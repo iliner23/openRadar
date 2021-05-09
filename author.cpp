@@ -15,7 +15,6 @@ author::author(const QDir & system, const quint32 authorPos, const cache & ch, Q
     ui->frame->setLayout(ui->verticalLayout);
 
     const auto & text = _cache._cacheAuthor.at(authorPos);
-    QString temp;
     auto iter = text.cbegin() + _cache._lenAuthor;
     quint16 date;
     ((quint8*) &date)[0] = *(iter - 3);

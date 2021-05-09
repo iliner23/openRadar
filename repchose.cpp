@@ -29,7 +29,7 @@ RepChose::RepChose(const QStringList & repertories, QWidget *parent) :
         case 2:
             view.open(QDir::toNativeSeparators(it + "/view").toStdString());
 
-            if(view.dataEntries() != 0)
+            if(view.size() != 0)
                 _rLevels.push_back(QDir::toNativeSeparators(it + "/view"));
             else
                 _rLevels.push_back("");
@@ -39,7 +39,7 @@ RepChose::RepChose(const QStringList & repertories, QWidget *parent) :
         }
     }
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &RepChose::finding);
-    connect(ui->listWidget, &QListWidget::itemClicked, this, &RepChose::activateLevel);
+    connect(ui->listWidget, &QListWidget::currentItemChanged, this, &RepChose::activateLevel);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &RepChose::showLevels);
     connect(_levels, &Levels::sendLevel, this, &RepChose::sendLevel);
 }

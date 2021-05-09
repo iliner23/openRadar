@@ -23,7 +23,7 @@ void repertory::changeFilter(QAction * action){
         if(!action->isChecked())
             action->setChecked(true);
         else
-            rendering();
+            renderingView();
     }
 }
 repertory::repertory(const QDir & filename, const QDir & system, const cache & ch, const quint16 remFilter, QWidget *parent) : QWidget(parent)
@@ -43,7 +43,7 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
     _viewRight = new QGraphicsView(_scene, this);
 
     _label = new QLabel(this);
-    _label->hide();
+    _label->close();
     _label->setFont(QFont("default", 10));
 
     openCtree view(filename.filePath("view").toStdString());
@@ -61,9 +61,9 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
 
     auto mask = 1;
 
-    for(auto it = 0; it != view.dataEntries(); ++it){
+    for(auto it = 0; it != view.size(); ++it){
         auto str = view.next();
-        auto ps = _menu->addAction(_codec->toUnicode(str.substr(view.getReclen(), str.find('0', view.getReclen())).c_str()));
+        auto ps = _menu->addAction(_codec->toUnicode(str.substr(view.serviceDataLenght(), str.find('0', view.serviceDataLenght())).c_str()));
         ps->setData(mask);
         ps->setCheckable(true);
 
@@ -77,7 +77,7 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
 
     _bar = new QScrollBar(Qt::Vertical, this);
     _bar->setMinimum(0);
-    _bar->setMaximum(_symptom.dataEntries() - 1);
+    _bar->setMaximum(_symptom.size() - 1);
 
     hlayout->addWidget(_viewLeft);
     hlayout->addWidget(_viewRight);
@@ -90,361 +90,246 @@ repertory::repertory(const QDir & filename, const QDir & system, const cache & c
 
     _viewLeft->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     _viewRight->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
     _viewLeft->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
     _viewLeft->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+
     _viewRight->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
     _viewRight->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 
-    _viewLeft->setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing);
     _viewLeft->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    _viewRight->setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing);
     _viewRight->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+
     _scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
     _bar->setTracking(false);
     connect(_bar, &QScrollBar::valueChanged, this, &repertory::changedPos);
     connect(_scene, &customScene::labelActivated, this, &repertory::clickedAction);
+    _symptom.back(false);
+    _endIndex = QByteArray::fromStdString(_symptom.key());
+    _symptom.front(false);
 }
 
-void repertory::rendering(){
+void repertory::renderingView(){
     const QString fontName("cursive");
-    customItem * lastItem = nullptr;
+    const QFont italicFont(fontName, 10, -1, true);
+    const QFont commonFont(fontName, 10, QFont::DemiBold);
+    const QFont defaultFont(fontName, 10, QFont::Light);
+    const QFont labelChapterFont(fontName, 16, QFont::DemiBold);
+    const QFont smallFont(fontName, 8);
+    const QFont boldFont(fontName, 10, QFont::Bold);
+    const auto heightView = _viewLeft->height() * 2;
+    const auto widthView = _viewLeft->width();
+    constexpr auto attachRatio = 3;
+    constexpr auto spaceHeight = 5;
+
     _scene->clear();
-    _scene->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height() * 2);
+    _scene->setSceneRect(0, 0, widthView, heightView);
+
+    QByteArray fullStr;
+
+    if(!_index.isEmpty())
+        fullStr = QByteArray::fromStdString(_symptom.at(_index.toStdString()));
+    else
+        fullStr = QByteArray::fromStdString(_symptom.front());
 
     QRectF size;
     QPointF pos;
-    bool localize = false;
+    QString labelText[2];//first - native, second - localize
 
-    for(auto str = _index; str != _symptom.dataEntries(); ++str){
-        if(pos.y() + size.height() >= _viewLeft->height() * 2){
-            break;
-        }
+    auto returnSize = [](const auto & value, const auto & size){
+        return (value == -1) ? size : value;
+    };
 
-        std::vector<customItem*> links;
-        links.reserve(30);
-        std::string full, label1, label2;
-
-        if(str == _index){
-            full = _symptom.getData(str);
-        }
-        else
-            full = _symptom.next();
-
-        qint8 symbol;
-        symbol = full.at(21);
-        quint16 maxDrug = 0, filter = 0;
-        ((char *)&maxDrug)[0] = full.at(22);
-        ((char *)&maxDrug)[1] = full.at(23);
-        ((char *)&filter)[0] = full.at(26);
-        ((char *)&filter)[1] = full.at(27);
-
+    while(pos.y() + size.height() < heightView){
         auto update = [&](auto * temp){
-            temp->setY(pos.y() + size.height() + 5);
+            temp->setY(pos.y() + size.height() + 1);
             _scene->addItem(temp);
             size = temp->boundingRect();
             pos = temp->pos();
         };
 
+        if(pos.y() != 0)
+            pos.setY(pos.y() + spaceHeight);
+
+        QVector<QGraphicsSimpleTextItem*> linksSynomys;
+        linksSynomys.reserve(100);
+
+        quint8 attach = 0;
+        quint16 maxDrug = 0, filter = 0;
+        int labelWidth = 0;
+
+        attach = qFromLittleEndian<quint8>(fullStr.constData() + 21);
+        maxDrug = qFromLittleEndian<quint16>(fullStr.constData() + 22);
+        filter = qFromLittleEndian<quint16>(fullStr.constData() + 26);
+
+        if(attach == 0)
+            continue;
+
+        const uint8_t lessAttach = (attach > 4) ? 1 : attach;
+
         bool hideLabel = !(_remFilter == (quint16)-1 || (filter & _remFilter) != 0);
+        bool localize = false;
+        int labelsEnd = 0;
 
-        auto firstIt = std::find(full.cbegin() + _symptom.getReclen(), full.cend(), '\0');
-        auto secondIt = std::find(firstIt + 1, full.cend(), '\0');
-        {//Label subfunction
-            label2 = std::string(firstIt + 1, secondIt);
-            label1 = std::string(full.cbegin() + _symptom.getReclen(), firstIt);
+        {//label subfunction
+            const auto firstZero = returnSize(fullStr.indexOf('\0', _symptom.serviceDataLenght()), fullStr.size());
+            const auto secondZero = returnSize(fullStr.indexOf('\0', firstZero + 1), fullStr.size());
+            labelsEnd = secondZero;
 
-            for(auto i = 0; i != 2; ++i)
-            {
-                const std::string * lab = nullptr;
-                if(i == 0)
-                    lab = &label1;
-                else{
-                    if(label2.empty())
-                        break;
+            labelText[0] = _codec->toUnicode(
+                        fullStr.mid(_symptom.serviceDataLenght(), firstZero - _symptom.serviceDataLenght()));
+            labelText[1] = _codec->toUnicode
+                        (fullStr.mid(firstZero + 1, secondZero - firstZero - 1));
 
-                    lab = &label2;
-                    localize = true;
+            localize = !labelText[1].isEmpty();
+            const QString filler[] = {"", "", "-", ". ", "", "", " ", "  "};
+            const auto isLocalize = ((localize) ? 2 : 1);
+
+            for(auto it = 0; it < isLocalize; ++it){
+                auto textItem = new QGraphicsSimpleTextItem;
+                textItem->setFont(commonFont);
+
+                if(attach == 1){
+                    if(it == 0)
+                        textItem->setBrush(QBrush(Qt::red));
+
+                    textItem->setFont(labelChapterFont);
                 }
 
-                auto temp = new customItem;
-
-                switch (symbol) {
-                case 1 :
-                    temp->setFont(QFont("fontName", 16, QFont::DemiBold));
-                    if(i == 0)
-                        temp->setDefaultTextColor(Qt::red);
-                    else
-                        temp->setDefaultTextColor(Qt::blue);
-
-                    temp->setX(10);
-                    temp->setPlainText(_codec->toUnicode(lab->c_str()));
-                    break;
-                case 2 :
-                    temp->setPlainText(_codec->toUnicode(lab->c_str()));
-                    temp->setX(20);
-                    if(i == 1)
-                        temp->setDefaultTextColor(Qt::blue);
-
-                    temp->setFont(QFont("fontName", 10, QFont::DemiBold));
-                    break;
-                case 3 :
-                    temp->setX(30);
-                    if(i == 0)
-                        temp->setPlainText('-' + _codec->toUnicode(lab->c_str()));
-                    else{
-                        temp->setPlainText(' ' + _codec->toUnicode(lab->c_str()));
-                        temp->setDefaultTextColor(Qt::blue);
-                    }
-
-                    temp->setFont(QFont("fontName", 10, QFont::DemiBold));
-                    break;
-                case 4 :
-                    temp->setX(40);
-                    if(i == 0)
-                        temp->setPlainText(". " + _codec->toUnicode(lab->c_str()));
-                    else{
-                        temp->setPlainText("  " + _codec->toUnicode(lab->c_str()));
-                        temp->setDefaultTextColor(Qt::blue);
-                    }
-
-                    temp->setFont(QFont("fontName", 10, QFont::DemiBold));
-                    break;
-                default:
-                    temp->setX(50 + (symbol - 4) * 5);
-                    temp->setPlainText(_codec->toUnicode(lab->c_str()));
-                    if(i == 1)
-                        temp->setDefaultTextColor(Qt::blue);
-
-                    temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                }
+                if(it == 1)
+                    textItem->setBrush(QBrush(Qt::blue));
 
                 if(hideLabel)
-                    temp->setDefaultTextColor(Qt::gray);
+                    textItem->setBrush(QBrush(Qt::gray));
 
-                lastItem = temp;
-                temp->setData(1, str);
-                temp->setData(0, 0);
-                update(temp);
+                const auto fillStr = QString(attach * attachRatio, ' ')
+                        + filler[lessAttach - 1 + ((it == 0) ? 0 : 4)];
+
+                textItem->setText(fillStr + labelText[it] +
+                                  ((maxDrug != 0 && it == isLocalize - 1) ? ": " : ""));
+
+                const QFontMetrics metric(textItem->font());
+                labelWidth = metric.horizontalAdvance(fillStr);
+
+                textItem->setData(0, 0);
+                textItem->setData(1, QByteArray::fromStdString(_symptom.key()));
+                update(textItem);
             }
         }
         if(!hideLabel){
             {//synonyms and links
-                uint8_t max = 4;
-                for(uint8_t i = 0; i != 4; ++i){
-                    uint8_t cnt = 0;
+                quint8 type = 4;
 
-                    /*for(auto it = 0; it != 5; ++it){*/
-                    for(auto it = 0; it != max + 1; ++it){
-                        if(secondIt != full.cend() && *secondIt == '\0'){
-                            ++cnt;
-                            ++secondIt;
-                        }
-                        else
+                for(auto i = 0; i != 4; ++i){
+                    quint8 cnt = 0;
+
+                    for(auto it = 0; it != type + 1; ++it){
+                        if(labelsEnd == fullStr.size() || fullStr.at(labelsEnd) != '\0')
                             break;
+
+                        ++cnt;
+                        ++labelsEnd;
                     }
 
-                    if(cnt > max)
+                    if(cnt > type)
                         break;
 
-                    auto iter = std::find(secondIt, full.cend(), '\0');
-                    auto strg = std::string(secondIt, iter);
-                    strg.insert(strg.begin(), ' ');
-                    secondIt = iter;
+                    type = type - cnt;
 
-                    if(strg.size() > 2 && strg.substr(0, 3) == " (="){
-                        auto temp = new customItem;
+                    const auto tmpLinkIter = returnSize(fullStr.indexOf('\0', labelsEnd), fullStr.size());
+                    auto synLinkText =
+                            _codec->toUnicode(fullStr.mid(labelsEnd, tmpLinkIter - labelsEnd));
+                    synLinkText.prepend(' ');
+                    labelsEnd = tmpLinkIter;
 
-                        if(max - cnt == 2)
-                            temp->setDefaultTextColor(Qt::blue);
-                        else if(max - cnt == 3){
+                    if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
+                        const QString constSynomy[] =
+                                { "Synomy : ", "Synomy : ", " Synomy : ", " Synomy : "};
+                        auto textItem = new QGraphicsSimpleTextItem;
+
+                        if(type == 2)
+                            textItem->setBrush(QBrush(Qt::blue));
+                        else if(type == 3){
                             if(localize)
-                                temp->setDefaultTextColor(Qt::red);
+                                textItem->setBrush(QBrush(Qt::red));
                             else
-                                temp->setDefaultTextColor(Qt::blue);
+                                textItem->setBrush(QBrush(Qt::blue));
                         }
                         else
                             continue;
 
-                        switch (symbol) {
-                        case 1 :
-                            temp->setFont(QFont(fontName, 16, QFont::DemiBold));
-                            temp->setX(10);
-                            temp->setPlainText("Synomy : " + _codec->toUnicode(std::string(strg.begin() + 1, strg.end()).c_str()));
-                            break;
-                        case 2 :
-                            temp->setX(20);
-                            temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                            temp->setPlainText("Synomy : " + _codec->toUnicode(std::string(strg.begin() + 1, strg.end()).c_str()));
-                            break;
-                        case 3 :
-                            temp->setX(30);
-                            temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                            temp->setPlainText(" Synomy : " + _codec->toUnicode(std::string(strg.begin() + 1, strg.end()).c_str()));
-                            break;
-                        case 4 :
-                            temp->setX(40);
-                            temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                            temp->setPlainText(" Synomy : " + _codec->toUnicode(std::string(strg.begin() + 1, strg.end()).c_str()));
-                            break;
-                        default :
-                            temp->setX(50 + (symbol - 4) * 5);
-                            temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                            temp->setPlainText("Synomy : " + _codec->toUnicode(std::string(strg.begin() + 1, strg.end()).c_str()));
-                            break;
-                        }
+                        if(attach == 1)
+                            textItem->setFont(labelChapterFont);
+                        else
+                            textItem->setFont(commonFont);
 
-                        lastItem = temp;
-                        update(temp);
+                        textItem->setText(QString(attach * attachRatio, ' ')
+                                          + constSynomy[lessAttach - 1] + synLinkText.mid(1));
+                        linksSynomys.push_back(textItem);
                     }
                     else{
-                        for(auto it = strg.begin(); it != strg.end();){
-                            auto iter = std::find(it, strg.end(), '/');
-                            std::string tpstr;
+                        const QString constLinks[] =
+                                        {u8" \u2b08", u8" \u2b08", u8"  \u2b08", u8"   \u2b08"};
+                        const QString constSee[] = {"(see ", "(see ", " (see ", "  (see "};
+                        const QColor constColor[] = {Qt::darkRed, Qt::darkBlue, Qt::red, Qt::blue};
 
-                            if(iter != strg.end()){
-                                tpstr = std::string(it + 1, iter - 1);
-                                it = iter + 1;
+                        for(auto it = 0; it != synLinkText.size(); ){
+                            const auto iterEnd = returnSize(synLinkText.indexOf('/', it), synLinkText.size());
+                            QString linkText;
+
+                            if(iterEnd != synLinkText.size()){
+                                linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
+                                it = iterEnd + 1;
                             }
                             else{
-                                tpstr = std::string(it + 1, iter);
-                                it = iter;
+                                linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
+                                it = iterEnd;
                             }
 
-                            auto temp = new customItem;
+                            auto textItem = new QGraphicsSimpleTextItem;
+                            QString tempLinkText = linkText.mid(1);
 
-                            switch (symbol) {
-                            case 1 :
-                                if(max - cnt == 1 || max - cnt == 0){
-                                    temp->setX(10);
-                                    temp->setPlainText(u8" \u2b08" + _codec->toUnicode(tpstr.c_str() + 1));
-                                    temp->setFont(QFont(fontName, 8));
-                                }
-                                else{
-                                    temp->setX(10);
-                                    temp->setPlainText("(see " + _codec->toUnicode(tpstr.c_str() + 1) + ')');
-                                    temp->setFont(QFont(fontName, 16, QFont::DemiBold));
-                                }
-                                break;
-                            case 2 :
-                                if(max - cnt == 1 || max - cnt == 0){
-                                    temp->setX(20);
-                                    temp->setPlainText(u8" \u2b08" + _codec->toUnicode(tpstr.c_str() + 1));
-                                    temp->setFont(QFont(fontName, 8));
-                                }
-                                else{
-                                    temp->setX(20);
-                                    temp->setPlainText("(see " + _codec->toUnicode(tpstr.c_str() + 1) + ')');
-                                    temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                                }
-                                break;
-                            case 3 :
-                                if(max - cnt == 1 || max - cnt == 0){
-                                    temp->setX(30);
-                                    temp->setPlainText(u8"  \u2b08" + _codec->toUnicode(tpstr.c_str() + 1));
-                                    temp->setFont(QFont(fontName, 8));
-                                }
-                                else{
-                                    temp->setX(30);
-                                    temp->setPlainText(" (see " + _codec->toUnicode(tpstr.c_str() + 1) + ')');
-                                    temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                                }
-                                break;
-                            case 4 :
-                                if(max - cnt == 1 || max - cnt == 0){
-                                    temp->setX(40);
-                                    temp->setPlainText(u8"   \u2b08" + _codec->toUnicode(tpstr.c_str() + 1));
-                                    temp->setFont(QFont(fontName, 8));
-                                }
-                                else{
-                                    temp->setX(40);
-                                    temp->setPlainText("  (see " + _codec->toUnicode(tpstr.c_str() + 1) + ')');
-                                    temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                                }
-                                break;
-                            default :
-                                if(max - cnt == 1 || max - cnt == 0){
-                                    temp->setX(50 + (symbol - 3) * 5);
-                                    temp->setPlainText(u8" \u2b08" + _codec->toUnicode(tpstr.c_str() + 1));
-                                    temp->setFont(QFont(fontName, 8));
-                                }
-                                else{
-                                    temp->setX(50 + (symbol - 3) * 5);
-                                    temp->setPlainText("(see " + _codec->toUnicode(tpstr.c_str() + 1) + ')');
-                                    temp->setFont(QFont(fontName, 10, QFont::DemiBold));
-                                }
+                            //TODO 462 line
+                            if(type == 1 || type == 0){
+                                textItem->setFont(defaultFont);
+                                textItem->setData(0, 2);
+                                tempLinkText.prepend("  " + constLinks[lessAttach - 1]);
+                            }
+                            else{
+                                textItem->setFont(commonFont);
+                                textItem->setData(0, 1);
+                                tempLinkText.prepend(constSee[lessAttach - 1]);
+                                tempLinkText.append(')');
                             }
 
-                            temp->setData(1, QString::fromStdString(tpstr));
-                            temp->setData(2, str);
+                            textItem->setText(QString(attach * attachRatio, ' ') + tempLinkText);
+                            textItem->setBrush(QBrush(constColor[type +
+                                               ((!localize && (type + 1) % 2 != 0) ? 1 : 0)]));
 
-                            switch (max - cnt) {
-                            case 3:
-nolocs:                         temp->setDefaultTextColor(Qt::blue);
-                                temp->setData(0, 1);
-                                temp->setData(3, true);
-                                lastItem = temp;
-                                update(temp);
-                                break;
-                            case 2:
-                                if(localize){
-                                    temp->setDefaultTextColor(Qt::red);
-                                    temp->setData(3, false);
-                                }
-                                else
-                                    goto nolocs;
-
-                                temp->setData(0, 1);
-                                lastItem = temp;
-                                update(temp);
-                                break;
-                            case 1:
-nolocl:                         temp->setDefaultTextColor(Qt::darkBlue);
-                                temp->setData(3, true);
-                                temp->setData(0, 2);
-                                links.push_back(temp);
-                                break;
-                            case 0:
-                                if(localize){
-                                    temp->setDefaultTextColor(Qt::darkRed);
-                                    temp->setData(3, false);
-                                }
-                                else
-                                    goto nolocl;
-
-                                temp->setData(0, 2);
-                                links.push_back(temp);
-                            }
+                            textItem->setData(1, linkText);
+                            textItem->setData(2, QByteArray::fromStdString(_symptom.key()));
+                            textItem->setData(3, !localize);
+                            linksSynomys.push_back(textItem);
                         }
                     }
 
-                    if(max - cnt == 0)
+                    if(type == 0)
                         break;
-
-                    max = max - cnt;
                 }
             }
-            {//remed
-                auto pred = [](auto it){
-                    if(it != '\0')
-                        return true;
-                    return false;
-                };
-
-                quint16 prevRem = 0;
-                const auto baseX = pos.x();
-
-                auto horizon = [&](auto * temp){
+            {//remeds
+                 auto horizon = [&](auto * temp){
                     if(temp == nullptr)
                         return;
 
                     const auto bon = temp->boundingRect();
-                    if(pos.x() + size.width() + bon.width() + 5 >= _viewLeft->width()){
-                        temp->setX(baseX);
-                        temp->setY(pos.y() + size.height());
+                    if(pos.x() + size.width() + bon.width() + 3 >= widthView){
+                        temp->setX(labelWidth + 3);
+                        temp->setY(pos.y() + size.height() + spaceHeight);
                     }
                     else{
-                        temp->setX(pos.x() + size.width());
+                        temp->setX(pos.x() + size.width() + 3);
                         temp->setY(pos.y());
                     }
 
@@ -453,156 +338,126 @@ nolocl:                         temp->setDefaultTextColor(Qt::darkBlue);
                     pos = temp->pos();
                 };
 
-                if(maxDrug != 0 && lastItem != nullptr){
-                    auto temp = new customItem;
-                    temp->setPlainText(": ");
-                    temp->setFont(lastItem->getFont());
-                    temp->setDefaultTextColor(lastItem->getDefaultTextColor());
-                    horizon(temp);
-                }
-
-                customItem * siz = nullptr;
-                bool exit = false;
-                std::vector<QGraphicsItemGroup*> array;
-                array.reserve(maxDrug);
-
-                QGraphicsItemGroup * allrm = nullptr;
-
-                auto authorsSym = [&](auto autr, const auto author, const bool next = false){
-                    auto aut = new customItem;
+                auto authorsSym = [&](const auto & autr, const auto author, auto & allrm, const bool next = false){
+                    auto aut = new QGraphicsSimpleTextItem;
                     if(autr == "kl2")
-                        aut->setPlainText("*");
+                        aut->setText("*");
                     else if(autr == "zzz")
-                        aut->setPlainText(u8"\u2193");
+                        aut->setText(u8"\u2193");
                     else{
                         if(!next)
-                            aut->setPlainText(QString::fromStdString(autr));
+                            aut->setText(autr);
                         else
-                            aut->setPlainText(", " + QString::fromStdString(autr));
+                            aut->setText(", " + autr);
                     }
 
-                    aut->setDefaultTextColor(Qt::magenta);
-                    aut->setFont(QFont(fontName, 8));
-                    aut->setX(allrm->boundingRect().width());
-
+                    aut->setBrush(Qt::magenta);
+                    aut->setFont(smallFont);
                     aut->setData(0, 4);
                     aut->setData(1, author);
+
+                    aut->setX(allrm->boundingRect().width() + 3);
                     allrm->addToGroup(aut);
                 };
 
-                for(auto it = std::find_if(secondIt, full.cend(), pred); it != full.cend(); ++secondIt){
-                    //if(*it == 0)
-                        //break;
+                quint16 prevRemed = 0;
+                quint64 remedSize = 0;
 
+                QVector<QGraphicsItemGroup*> remeds;
+                remeds.reserve(maxDrug);
+
+                while(labelsEnd < fullStr.size()){
                     quint16 remed = 0, author = 0, tLevel = 0;
-                    uint8_t rLevel;
-                    const auto szr = secondIt - full.cbegin();
+                    uint8_t rLevel = 0;
 
-                    if(full.cend() - secondIt <= 3)
+                    if(labelsEnd + 7 >= fullStr.size())
                         break;
 
-                    ((char *)&remed)[0] = *secondIt;
-                    ((char *)&remed)[1] = *(++secondIt);
+                    const auto startLabelsEnd = labelsEnd;
 
-                    rLevel = *(++secondIt);
-
-                    ((char *)&author)[0] = *(++secondIt);
-                    ((char *)&author)[1] = *(++secondIt);
-
-                    ((char *)&tLevel)[0] = *(++secondIt);
-                    ((char *)&tLevel)[1] = *(++secondIt);
+                    remed = qFromLittleEndian<quint16>(fullStr.constData() + labelsEnd);
+                    labelsEnd += 2;
+                    rLevel = qFromLittleEndian<quint16>(fullStr.constData() + labelsEnd);
+                    ++labelsEnd;
+                    author = qFromLittleEndian<quint16>(fullStr.constData() + labelsEnd);
+                    labelsEnd += 2;
+                    tLevel = qFromLittleEndian<quint16>(fullStr.constData() + labelsEnd);
+                    labelsEnd += 2;
 
                     if(((char *)&remed)[0] == '\x5a' && ((char *)&remed)[1] == '\x5a' && rLevel == '\x5a')
                         break;
 
-                    if(_remFilter == (quint16)-1 || (tLevel & _remFilter) != 0){
-                        if((((char *)&author)[1] & (char)128) != 0){
-                            ((char *)&author)[1] ^= (char)128;//remed have * in the end
-                        }
+                    if(_remFilter != (quint16)-1 && (tLevel & _remFilter) == 0)
+                        continue;
 
-                        const auto & rmStr = _cache->_cacheRemed.at(remed);
-                        const auto & auStr = _cache->_cacheAuthor.at(author);
-                        auto itN = rmStr.find('\0', _cache->_lenRem);
-                        auto itA = auStr.find('\0', _cache->_lenAuthor);
-                        auto autr = auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor);
+                    if((((char *)&author)[1] & (char)128) != 0)
+                        ((char *)&author)[1] ^= (char)128;//remed have * in the end
 
-                        if(prevRem != remed){
-                            if(allrm != nullptr){
-                                array.push_back(allrm);
-                                allrm = nullptr;
-                            }
+                    const auto & rmStr = _cache->_cacheRemed.at(remed);
+                    const auto & auStr = _cache->_cacheAuthor.at(author);
+                    auto itN = rmStr.find('\0', _cache->_lenRem);
+                    auto itA = auStr.find('\0', _cache->_lenAuthor);
+                    auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor));
+                    auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-                            if(pos.y() >= _viewLeft->height() * 2){
-                                exit = true;
-                            }
+                    if(pos.y() >= heightView)
+                        break;
 
-                            if(!exit){
-                                allrm = new QGraphicsItemGroup;
-                                allrm->setHandlesChildEvents(false);
-                                auto rem = new customItem;
-                                switch (rLevel) {
-                                case 1 :
-                                    rem->setDefaultTextColor(Qt::darkGreen);
-                                    rem->setFont(QFont(fontName, 10));
-                                    rem->setPlainText(QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem)));
-                                    break;
-                                case 2 :
-                                    rem->setDefaultTextColor(Qt::blue);
-                                    rem->setFont(QFont(fontName, 10, -1, true));
-                                    rem->setPlainText(QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem)));
-                                    break;
-                                case 3 :
-                                    rem->setDefaultTextColor(Qt::red);
-                                    rem->setFont(QFont(fontName, 10, QFont::Bold));
-                                    rem->setPlainText(QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem)).toUpper());
-                                    break;
-                                case 4 :
-                                    rem->setDefaultTextColor(Qt::darkRed);
-                                    rem->setFont(QFont(fontName, 10, QFont::Bold));
-                                    rem->setPlainText(QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem)).toUpper());
-                                    break;
-                                default:
-                                    delete rem;
-                                    rem = nullptr;
-                                    continue;
-                                }
+                    if(rLevel == 0 || rLevel > 4)
+                        continue;
 
-                                rem->setData(0, 3);
-                                rem->setData(1, szr);
-                                rem->setData(2, str);
-                                allrm->addToGroup(rem);
-                                authorsSym(autr, author);
-                            }
-                        }
-                        else{
-                            if(allrm != nullptr && exit == false){
-                                authorsSym(autr, author, true);
-                            }
-                        }
-                        prevRem = remed;
+                    if(prevRemed == remed)
+                        authorsSym(authorName, author, remeds.back(), true);
+                    else{
+                        auto remedItem = new QGraphicsSimpleTextItem;
+                        const QFont * remedFonts[] = {&defaultFont, &italicFont, &boldFont};
+                        const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
+
+                        remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
+                        remedItem->setBrush(remedColors[rLevel - 1]);
+                        remedItem->setText((rLevel > 2) ? remedName.toUpper() : remedName);
+
+                        remedItem->setData(0, 3);
+                        remedItem->setData(1, startLabelsEnd);
+                        remedItem->setData(2, QByteArray::fromStdString(_symptom.key()));
+
+                        auto group = new QGraphicsItemGroup;
+                        group->addToGroup(remedItem);
+                        group->setHandlesChildEvents(false);
+                        group->setFlag(QGraphicsItem::ItemHasNoContents);
+                        remeds.push_back(group);
+
+                        authorsSym(authorName, author, remeds.back());
+                        ++remedSize;
                     }
+
+                    prevRemed = remed;
                 }
 
-                if(allrm != nullptr){
-                    array.push_back(allrm);
-                }
-
-                const auto arsize = array.size();
-                if(arsize != 0){
-                    siz = new customItem;
+                if(remedSize != 0){
+                    auto siz = new QGraphicsSimpleTextItem;
                     siz->setFont(QFont(fontName, 10));
-                    siz->setPlainText("(" + QString::number(arsize) + ") ");
+                    siz->setText("(" + QString::number(remedSize) + ") ");
                     horizon(siz);
                 }
 
-                for(const auto & it : array)
+                for(const auto & it : remeds)
                     horizon(it);
+
+                if(!remeds.isEmpty())
+                    pos.setY(pos.y() + spaceHeight);
             }
+
+            for(const auto & it : linksSynomys)
+                update(it);
         }
 
-        for(const auto & it : links)
-            update(it);
+        if(_symptom.key() == _endIndex.toStdString())
+            break;
+
+        fullStr = QByteArray::fromStdString(_symptom.next());
     }
+
     _viewLeft->setSceneRect(0, 0, 1, 1);
     _viewRight->setSceneRect(0, _viewLeft->height(), 1, 1);
     _viewLeft->viewport()->update();
@@ -610,30 +465,24 @@ nolocl:                         temp->setDefaultTextColor(Qt::darkBlue);
 }
 void repertory::resizeEvent(QResizeEvent * event){
     event->ignore();
-    rendering();
+    renderingView();
 }
-void repertory::changedPos(const int pos){
-    _index = pos;
-    std::string text;
+void repertory::renderingLabel(std::string text){
     QStringList orig, loz;
     std::string ind(6, '\0');
     bool fis = true;
 
     while(true){
         quint8 caption = 0;
-        if(fis){
-            text = _symptom.getData(_index);
-        }
-        else{
-            text = _symptom.getData(ind);
-            auto first = std::find(text.cbegin() + _symptom.getReclen(), text.cend(), '\0');
+        if(!fis){
+            text = _symptom.at(ind);
+            auto first = std::find(text.cbegin() + _symptom.serviceDataLenght(), text.cend(), '\0');
             auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
-            orig.push_back(_codec->toUnicode(std::string(text.cbegin() + _symptom.getReclen(), first).c_str()));
+            orig.push_back(_codec->toUnicode(std::string(text.cbegin() + _symptom.serviceDataLenght(), first).c_str()));
 
             if(!localize.empty())
                 loz.push_back(_codec->toUnicode(localize.c_str()));
         }
-
         caption = text.at(21);
 
         for(auto it = 0; it != 6; ++it){
@@ -668,13 +517,19 @@ void repertory::changedPos(const int pos){
             }
         }
 
-        _label->setText(org + ((loz.isEmpty()) ? "" : '\n' + lz));
         _label->show();
+        _label->setText(org + ((loz.isEmpty()) ? "" : '\n' + lz));
     }
     else{
-        _label->hide();
+        _label->clear();
+        _label->close();
     }
-    rendering();
+}
+void repertory::changedPos(const int pos){
+    const auto str = _symptom.at(pos);
+    _index = QByteArray::fromStdString(_symptom.key());
+    renderingLabel(str);
+    renderingView();
 }
 void repertory::clickedAction(const customItem * item){
     //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
@@ -685,7 +540,7 @@ void repertory::clickedAction(const customItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             auto * label = new Label(*_cache, _filename,
-                                     _system , item->data(1).toUInt(), _remFilter, this);
+                                     _system , item->data(1).toByteArray(), _remFilter, this);
             label->setAttribute(Qt::WA_DeleteOnClose);
             label->show();
             break;
@@ -756,7 +611,7 @@ void repertory::clickedAction(const customItem * item){
             break;
         }
         case 3 : {
-            auto remed = new remed_author(_filename, _system, *_cache, item->data(2).toUInt()
+            auto remed = new remed_author(_filename, _system, *_cache, item->data(2).toByteArray()
                                           , _remFilter, item->data(1).toUInt(), this);
             remed->setAttribute(Qt::WA_DeleteOnClose);
             remed->show();
@@ -769,4 +624,9 @@ void repertory::clickedAction(const customItem * item){
             break;
         }
     }
+}
+void repertory::setPosition(const QByteArray & pos){
+    _symptom.at(pos.toStdString(), false);
+    const auto tp = _symptom.currentPosition();
+    _bar->setValue(tp);
 }
