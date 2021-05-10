@@ -16,8 +16,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    abstractengine.cpp \
     author.cpp \
-    customItem.cpp \
     customscene.cpp \
     delegate.cpp \
     label.cpp \
@@ -32,9 +32,9 @@ SOURCES += \
     windowchapters.cpp
 
 HEADERS += \
+    abstractengine.h \
     author.h \
     cache.h \
-    customItem.h \
     customscene.h \
     delegate.h \
     label.h \

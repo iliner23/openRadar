@@ -8,55 +8,43 @@
 #include <QDir>
 #include <QHBoxLayout>
 #include <QScrollBar>
-#include <QElapsedTimer>
-#include <QTimer>
-#include <QDebug>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QMenuBar>
 #include <QResizeEvent>
 #include <QLabel>
-#include <QOpenGLWidget>
 #include <QtEndian>
+#include <QtConcurrent/QtConcurrent>
 #include <unordered_map>
 #include "openctree.h"
-#include "customItem.h"
 #include "customscene.h"
 #include "label.h"
 #include "remed_author.h"
 #include "cache.h"
 #include "author.h"
+#include "abstractengine.h"
 
-class repertory : public QWidget
+class repertory : public QWidget, public abstractEngine
 {
     Q_OBJECT
 public:
     explicit repertory(const QDir &, const QDir &, const cache &, const quint16 = -1, QWidget * = nullptr);
     QDir getRepDir() const noexcept;
 private:
-    openCtree _symptom;
-    customScene * _scene;
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;
     QScrollBar * _bar;
-    QTimer _timer;
     QMenu * _menu;
-    quint16 _remFilter = -1;//repertory filter in widget menu
-    QTextCodec * _codec;
     QLabel * _label;
     QDir _filename, _system;
 
-    //uint32_t _index = 0;
-    QByteArray _index, _endIndex;
-    const cache * _cache;
-
-    void renderingView();
+    inline void repaintView();
     void resizeEvent(QResizeEvent*);
-    void renderingLabel(std::string);
+    //void renderingLabel(QByteArray);
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);
-    void clickedAction(const customItem * item);
+    void clickedAction(const QGraphicsSimpleTextItem *item);
 public slots:
     void setPosition(const QByteArray &);
 };

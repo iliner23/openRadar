@@ -3,7 +3,7 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneEvent>
-#include <customItem.h>
+#include <QGraphicsSimpleTextItem>
 
 class customScene : public QGraphicsScene
 {
@@ -12,7 +12,7 @@ public:
     explicit customScene(QObject *parent = 0): QGraphicsScene(parent) {};
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent);
 signals:
-    void labelActivated(customItem *);
+    void labelActivated(QGraphicsSimpleTextItem *);
 };
 
 #endif // CUSTOMSCENE_H

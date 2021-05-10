@@ -10,31 +10,25 @@
 #include <QDir>
 #include <QListWidgetItem>
 #include <unordered_map>
-#include "customItem.h"
 #include "openctree.h"
+#include "abstractengine.h"
 #include "cache.h"
 
 namespace Ui {
 class Label;
 }
 
-class Label : public QDialog
+class Label : public QDialog, public abstractEngine
 {
     Q_OBJECT
 private:
     Ui::Label *ui;
-    cache _cache;
-    customScene * _scene;
     QDir _path, _system;
-    quint16 _remFilter = -1;
-    quint32 _rem1 = 0, _rem2 = 0, _rem3 = 0, _rem4 = 0;
-    QByteArray _pos;
-
-    openCtree _sym;
+    quint32 _remedSize[4] = {0, 0, 0, 0};
     bool _localize = false;
-    QStringList _synomSL, _referSL, _masterSL;
+    QStringList _linksNames[3];//_synomSL, _masterSL, _referSL
 
-    void rendering();
+    void renderingView(const int heightView, const int widthView);
 private slots:
     void showTextInformation(QListWidgetItem*);
 public:
