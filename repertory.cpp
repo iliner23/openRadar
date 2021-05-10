@@ -26,13 +26,13 @@ void repertory::changeFilter(QAction * action){
             repaintView();
     }
 }
-repertory::repertory(const QDir & filename, const QDir & system, const cache & ch, const quint16 remFilter, QWidget *parent) : QWidget(parent)
+repertory::repertory(const QDir & filename, const QDir & system, std::shared_ptr<cache> & ch, const quint16 remFilter, QWidget *parent) : QWidget(parent)
 {
     _filename = filename;
     _system = system;
     _codec = QTextCodec::codecForName("system");
     _symptom.open(filename.filePath("symptom").toStdString());
-    _cache = &ch;
+    _cache = ch;
     _remFilter = remFilter;
 
     auto vlayout = new QVBoxLayout(this);
@@ -126,7 +126,7 @@ void repertory::resizeEvent(QResizeEvent * event){
 void repertory::changedPos(const int pos){
     const auto str = QByteArray::fromStdString(_symptom.at(pos));
     _index = QByteArray::fromStdString(_symptom.key());
-    const auto label = renderingLabel(str);
+    const auto label = renderingLabel(str, _symptom);
 
     if(label.isEmpty()){
         _label->clear();
@@ -140,17 +140,15 @@ void repertory::changedPos(const int pos){
     repaintView();
 }
 void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
-    //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
-
     if(!item->data(0).isValid())
         return;
 
+    QWidget * widget = nullptr;
+
     switch (item->data(0).toInt()) {
         case 0 :{
-            auto * label = new Label(*_cache, _filename,
+            widget = new Label(_cache, _filename,
                                      _system , item->data(1).toByteArray(), _remFilter, this);
-            label->setAttribute(Qt::WA_DeleteOnClose);
-            label->show();
             break;
         }
         case 1 :
@@ -159,19 +157,18 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
             break;
         }
         case 3 : {
-            auto remed = new remed_author(_filename, _system, *_cache, item->data(2).toByteArray()
+            widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
                                           , _remFilter, item->data(1).toUInt(), this);
-            remed->setAttribute(Qt::WA_DeleteOnClose);
-            remed->show();
             break;
         }
         case 4 : {
-            auto author = new  class author(_system, item->data(1).toUInt(), *_cache, this);
-            author->setAttribute(Qt::WA_DeleteOnClose);
-            author->show();
+            widget = new author(_system, item->data(1).toUInt(), _cache, this);
             break;
         }
     }
+
+    widget->setAttribute(Qt::WA_DeleteOnClose);
+    widget->show();
 }
 void repertory::setPosition(const QByteArray & pos){
     _symptom.at(pos.toStdString(), false);

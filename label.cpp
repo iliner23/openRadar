@@ -1,7 +1,7 @@
 #include "label.h"
 #include "ui_label.h"
 
-Label::Label(const cache & ch, const QDir & path, const QDir & system,
+Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system,
              const QByteArray & pos, const quint16 remFilter, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Label)
@@ -15,16 +15,16 @@ Label::Label(const cache & ch, const QDir & path, const QDir & system,
     ui->graphicsView->setScene(_scene);
 
     _codec = QTextCodec::codecForName("system");
-    _cache = &ch;
+    _cache = ch;
     _remFilter = remFilter;
-    _path = path;
+    _filename = path;
     _system = system;
 
     _symptom.open(path.filePath("symptom").toStdString());
     _index = pos;
 
     renderingView(height(), width() - 10);
-    ui->label->setText(renderingLabel(""));
+    ui->label->setText(renderingLabel(_index, _symptom, false));
 
     ui->label_2->setFont(QFont("default", 10));
     ui->label_2->setText(QString::number(_remedSize[0] + _remedSize[1]
@@ -47,6 +47,7 @@ Label::Label(const cache & ch, const QDir & path, const QDir & system,
         ui->listWidget_3->item(2)->setHidden(true);
 
     connect(ui->listWidget_3, &QListWidget::itemClicked, this, &Label::showTextInformation);
+    connect(_scene, &customScene::labelActivated, this, &Label::clickedAction);
 
     for(auto i = 0; i != 3; ++i){
         if(!ui->listWidget_3->item(i)->isHidden()){
@@ -326,4 +327,36 @@ void Label::renderingView(const int heightView, const int widthView){
             }
         }
     }
+}
+void Label::clickedAction(const QGraphicsSimpleTextItem * item){
+    //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
+    if(!item->data(0).isValid())
+        return;
+
+    QWidget * widget = nullptr;
+
+    switch (item->data(0).toInt()) {
+        case 0 :{
+            widget = new Label(_cache, _filename,
+                                     _system , item->data(1).toByteArray(), _remFilter, this);
+            break;
+        }
+        case 1 :
+            break;
+        case 2 :{
+            break;
+        }
+        case 3 : {
+            widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
+                                          , _remFilter, item->data(1).toUInt(), this);
+            break;
+        }
+        case 4 : {
+            widget = new author(_system, item->data(1).toUInt(), _cache, this);
+            break;
+        }
+    }
+
+    widget->setAttribute(Qt::WA_DeleteOnClose);
+    widget->show();
 }

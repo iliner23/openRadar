@@ -13,6 +13,7 @@
 #include <QTableWidgetItem>
 #include <memory>
 #include "searchmodel.h"
+#include "abstractengine.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -36,6 +37,7 @@ private:
     inline void clearModel();
 private slots:
     void textFilter(const QString &);
+    void textFilter_2(const QString &);
     void selectedItemTable(QTableWidgetItem *);
     void accept_1();
     void reject_2();
@@ -54,6 +56,7 @@ private:
     QTextCodec * _codec;
     QStackedLayout * _layout;
     std::unique_ptr<searchModel> _model;
+    QSortFilterProxyModel * _filterModel;
 };
 
 #endif // WINDOWCHAPTERS_H

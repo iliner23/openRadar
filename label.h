@@ -9,6 +9,7 @@
 #include <QStringList>
 #include <QDir>
 #include <QListWidgetItem>
+#include <memory>
 #include <unordered_map>
 #include "openctree.h"
 #include "abstractengine.h"
@@ -23,7 +24,6 @@ class Label : public QDialog, public abstractEngine
     Q_OBJECT
 private:
     Ui::Label *ui;
-    QDir _path, _system;
     quint32 _remedSize[4] = {0, 0, 0, 0};
     bool _localize = false;
     QStringList _linksNames[3];//_synomSL, _masterSL, _referSL
@@ -31,8 +31,9 @@ private:
     void renderingView(const int heightView, const int widthView);
 private slots:
     void showTextInformation(QListWidgetItem*);
+    void clickedAction(const QGraphicsSimpleTextItem * item);
 public:
-    explicit Label(const cache &, const QDir &, const QDir &, const QByteArray &, const quint16 , QWidget *parent = nullptr);
+    explicit Label(std::shared_ptr<cache> &, const QDir &, const QDir &, const QByteArray &, const quint16 , QWidget *parent = nullptr);
     ~Label();
 };
 

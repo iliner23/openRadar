@@ -1,9 +1,5 @@
 #include "abstractengine.h"
 
-abstractEngine::abstractEngine()
-{
-
-}
 void abstractEngine::renderingView(const int heightView, const int widthView){
     const QString fontName("cursive");
     const QFont italicFont(fontName, 10, -1, true);
@@ -349,7 +345,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
         fullStr = QByteArray::fromStdString(_symptom.next());
     }
 }
-QString abstractEngine::renderingLabel(QByteArray text){
+QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, const bool pass, QTextCodec * codec){
     QStringList original, localization;
     QByteArray ind(6, '\0');
     bool fis = true;
@@ -358,8 +354,9 @@ QString abstractEngine::renderingLabel(QByteArray text){
         return (value == -1) ? size : value;
     };
 
-    if(text.isEmpty() == true){
-        ind = _index;
+    if(pass == false){
+        //ind = _index;
+        std::reverse_copy(text.cbegin(), text.cbegin() + 6, ind.begin());
         fis = false;
     }
 
@@ -367,13 +364,13 @@ QString abstractEngine::renderingLabel(QByteArray text){
         quint8 caption = 0;
 
         if(!fis){
-            text = QByteArray::fromStdString(_symptom.at(ind.toStdString()));
-            const auto first = returnSize(text.indexOf('\0', _symptom.serviceDataLenght()), text.size());
+            text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
+            const auto first = returnSize(text.indexOf('\0', symptom.serviceDataLenght()), text.size());
             const auto second = returnSize(text.indexOf('\0', first + 1), text.size()) - first - 1;
-            const auto local = _codec->toUnicode(text.mid(first + 1, second));
+            const auto local = codec->toUnicode(text.mid(first + 1, second));
 
-            original.push_back(_codec->toUnicode(text.mid(_symptom.serviceDataLenght()
-                                                          , first - _symptom.serviceDataLenght())));
+            original.push_back(codec->toUnicode(text.mid(symptom.serviceDataLenght()
+                                                          , first - symptom.serviceDataLenght())));
             if(!local.isEmpty())
                 localization.push_back(local);
         }

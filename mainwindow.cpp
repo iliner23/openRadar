@@ -77,11 +77,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
-    _cache._lenRem = remed.serviceDataLenght();
-    _cache._lenAuthor = author.serviceDataLenght();
 
-    _cache._cacheRemed.reserve(remed.size());
-    _cache._cacheAuthor.reserve(author.size());
+    _cache = std::make_shared<cache>();
+    _cache->_lenRem = remed.serviceDataLenght();
+    _cache->_lenAuthor = author.serviceDataLenght();
+
+    _cache->_cacheRemed.reserve(remed.size());
+    _cache->_cacheAuthor.reserve(author.size());
 
     for(auto it = 0; it != remed.size(); ++it){
         auto tp = remed.next();
@@ -89,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
         quint16 kt;
         ((char *)&kt)[0] = key[1];
         ((char *)&kt)[1] = key[0];
-        _cache._cacheRemed[kt] = std::move(tp);
+        _cache->_cacheRemed[kt] = std::move(tp);
     }
 
     for(auto it = 0; it != author.size(); ++it){
@@ -98,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent)
         quint16 kt;
         ((char *)&kt)[0] = key[1];
         ((char *)&kt)[1] = key[0];
-        _cache._cacheAuthor[kt] = std::move(tp);
+        _cache->_cacheAuthor[kt] = std::move(tp);
     }
 }
 

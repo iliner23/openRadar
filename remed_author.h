@@ -6,6 +6,7 @@
 #include "openctree.h"
 #include <QListWidgetItem>
 #include <QListWidget>
+#include <memory>
 #include "cache.h"
 #include <QStringList>
 #include <QTextCodec>
@@ -23,14 +24,14 @@ private:
     QByteArray _pos;
     quint32 _localPos;
     quint16 _remFilter = -1;
-    const cache * _cache;
+    std::shared_ptr<cache> _cache;
     QStringList _authorsText;
 
     void rendering();
 private slots:
     void showTextInformation(QListWidgetItem*);
 public:
-    explicit remed_author(const QDir &, const QDir &, const cache &,
+    explicit remed_author(const QDir &, const QDir &, std::shared_ptr<cache> &,
                           const QByteArray &, const quint16, const quint32, QWidget *parent = nullptr);
     ~remed_author();
 

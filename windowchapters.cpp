@@ -8,16 +8,26 @@ windowChapters::windowChapters(QWidget *parent) :
     ui->setupUi(this);
     _codec = QTextCodec::codecForName("system");
     _layout = new QStackedLayout;
+
     auto page1 = new QWidget(this);
     auto page2 = new QWidget(this);
+
+    _filterModel = new QSortFilterProxyModel(this);
+    _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    _filterModel->setRecursiveFilteringEnabled(true);
+
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);
+
     _layout->addWidget(page1);
     _layout->addWidget(page2);
 
     ui->groupBox->setLayout(ui->horizontalLayout_3);
+
     setLayout(ui->verticalLayout);
+
     connect(ui->comboBox, QOverload<int>::of(&QComboBox::activated), this, &windowChapters::windowChanged);
+
     ui->tableWidget->verticalHeader()->setVisible(false);
     ui->tableWidget->horizontalHeader()->setVisible(false);
     ui->tableWidget->verticalHeader()->setDefaultSectionSize(130);
@@ -27,12 +37,15 @@ windowChapters::windowChapters(QWidget *parent) :
     ui->tableWidget->setEditTriggers(QTableWidget::NoEditTriggers);
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->verticalLayout->addLayout(_layout);
+
     setFixedSize(700, 700);
+
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->groupBox_2->setLayout(ui->horizontalLayout_5);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
+    connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &windowChapters::textFilter_2);
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItemTable);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
     connect(ui->tableWidget, &QTableWidget::itemActivated, this, &windowChapters::accept_1);
@@ -42,8 +55,7 @@ windowChapters::windowChapters(QWidget *parent) :
     connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
 }
 
-windowChapters::~windowChapters()
-{
+windowChapters::~windowChapters(){
     delete ui;
 }
 
@@ -77,7 +89,7 @@ void windowChapters::windowChanged(int index){
     ui->lineEdit_2->clear();
 
     const int mx = 8;
-    std::vector<QTableWidgetItem*> items;
+    QVector<QTableWidgetItem*> items;
     ui->tableWidget->clear();
     ui->tableWidget->setColumnCount(mx);
     openCtree db;
@@ -99,9 +111,11 @@ void windowChapters::windowChanged(int index){
             std::string textOriginal(temp.cbegin() + db.serviceDataLenght(), iter);
             ++iter;
             std::string textLocalize(iter, std::find(iter, temp.cend(), '\0'));
+
             auto item_t = new QTableWidgetItem(QIcon(QPixmap(48, 48)),
                     QString::fromStdString(textOriginal + "\n") +
                     _codec->toUnicode(textLocalize.c_str()) );
+
             item_t->setTextAlignment(Qt::AlignHCenter);
             item_t->setData(Qt::UserRole, QByteArray::fromStdString(db.key()));
             items.push_back(item_t);
@@ -138,6 +152,11 @@ void windowChapters::show(bool chapter){
     if(ui->comboBox->count() != 0)
         windowChanged(ui->comboBox->currentIndex());
 
+    if(ui->comboBox->count() == 0){
+        ui->tableWidget->clear();
+        clearModel();
+    }
+
     QWidget::show();
 }
 void windowChapters::textFilter(const QString & text){
@@ -145,6 +164,9 @@ void windowChapters::textFilter(const QString & text){
 
     if(!items.isEmpty())
         ui->tableWidget->setCurrentItem(items.at(0));
+}
+void windowChapters::textFilter_2(const QString & text){
+    _filterModel->setFilterFixedString(text);//TODO : remake it
 }
 void windowChapters::selectedItemTable(QTableWidgetItem * item){
     if(item == nullptr || item->text().isEmpty()){
@@ -164,16 +186,25 @@ void windowChapters::reject_2(){
 }
 void windowChapters::showListChapter(const QByteArray key){
     _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
+    _filterModel->setSourceModel(_model.get());
+
     changeChapterText(key.right(6));
-    ui->listView->setModel(_model.get());
+    ui->listView->setModel(_filterModel);
     ui->listView->clearFocus();
     connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
 }
-void windowChapters::listClicked(const QModelIndex & index){
+void windowChapters::listClicked(const QModelIndex & indexSort){
+    auto index = _filterModel->mapToSource(indexSort);
+
     if(index.isValid()){
+        ui->lineEdit_2->clear();
+
         auto indexPtr = static_cast<const searchModel::_node*>(index.internalPointer());
         if(indexPtr->marker()){
-            ui->listView->setRootIndex(index);
+            if(_model->canFetchMore(index))
+                _model->fetchMore(index);
+
+            ui->listView->setRootIndex(indexSort);
             changeChapterText(indexPtr->key().right(6));
         }
         else{
@@ -186,88 +217,30 @@ void windowChapters::listClicked(const QModelIndex & index){
 void windowChapters::returnBranch(){
     auto root = ui->listView->rootIndex();
     ui->listView->setRootIndex(root.parent());
+    auto rootBasicModel = _filterModel->mapToSource(root);
+    ui->lineEdit_2->clear();
 
     if(ui->listView->rootIndex() == root)
         reject_2();
     else{
-        auto rootPtr = static_cast<const searchModel::_node*>(root.internalPointer());
+        auto rootPtr = static_cast<const searchModel::_node*>(rootBasicModel.internalPointer());
         changeChapterText(rootPtr->parent()->key().right(6));
     }
 }
 void windowChapters::changeChapterText(const QByteArray & key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
-    auto codec = QTextCodec::codecForName("system");
-
-    //Chapters shower
-    std::string text;
-    QString endlab;
-    QStringList orig, loz;
-    std::string ind(6, '\0');
-    bool fis = true;
-
-    while(true){
-        quint8 caption = 0;
-
-        if(fis)
-            text = sym.at(key.toStdString());
-        else
-            text = sym.at(ind);
-
-        auto first = std::find(text.cbegin() + sym.serviceDataLenght(), text.cend(), '\0');
-        auto localize = std::string(first + 1, std::find(first + 1, text.cend(), '\0'));
-        orig.push_back(codec->toUnicode(std::string(text.cbegin() + sym.serviceDataLenght(), first).c_str()));
-
-        if(!localize.empty())
-            loz.push_back(codec->toUnicode(localize.c_str()));
-
-        caption = text.at(21);
-
-        for(auto it = 0; it != 6; ++it){
-            ind[0 + it] = text.at(17 - it);
-        }
-
-        if(caption <= 1 || ind == "\0\0\0\0\0\0")
-            break;
-
-        fis = false;
-    }
-
-    if(!orig.isEmpty()){
-        QString org, lz;
-
-        for(auto it = orig.size() - 1; it != -1; --it){
-            if(it == orig.size() - 1){
-                org += orig[it];
-            }
-            else{
-                org += " - " + orig[it];
-            }
-        }
-        if(!loz.isEmpty()){
-            for(auto it = loz.size() - 1; it != -1; --it){
-                if(it == loz.size() - 1){
-                    lz += loz[it];
-                }
-                else{
-                    lz += " - " + loz[it];
-                }
-            }
-        }
-
-        endlab = org + ((loz.isEmpty()) ? "" : '\n' + lz);
-    }
-
-    ui->label_2->setText(endlab);
+    const auto column = QByteArray::fromStdString(sym.at(key.toStdString()));
+    ui->label_2->setText(abstractEngine::renderingLabel(column, sym, false));
 }
 void windowChapters::sendActivatedBranch(){
-    auto index = ui->listView->currentIndex();
+    auto index = _filterModel->mapToSource(ui->listView->currentIndex());
     emit activatedBranch(index, ui->comboBox->currentIndex());
     clearModel();
     close();
 }
 void windowChapters::clearModel(){
     disconnect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
-    ui->listView->setModel(nullptr);
+    _filterModel->setSourceModel(nullptr);
     _model.reset();
     ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
 }

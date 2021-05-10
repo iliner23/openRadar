@@ -1,7 +1,7 @@
 #include "author.h"
 #include "ui_author.h"
 
-author::author(const QDir & system, const quint32 authorPos, const cache & ch, QWidget *parent) :
+author::author(const QDir & system, const quint32 authorPos, std::shared_ptr<cache> & ch, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::author)
 {
@@ -14,8 +14,8 @@ author::author(const QDir & system, const quint32 authorPos, const cache & ch, Q
     setLayout(ui->verticalLayout_2);
     ui->frame->setLayout(ui->verticalLayout);
 
-    const auto & text = _cache._cacheAuthor.at(authorPos);
-    auto iter = text.cbegin() + _cache._lenAuthor;
+    const auto & text = _cache->_cacheAuthor.at(authorPos);
+    auto iter = text.cbegin() + _cache->_lenAuthor;
     quint16 date;
     ((quint8*) &date)[0] = *(iter - 3);
     ((quint8*) &date)[1] = *(iter - 2);

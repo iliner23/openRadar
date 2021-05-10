@@ -1,7 +1,7 @@
 #include "remed_author.h"
 #include "ui_remed_author.h"
 
-remed_author::remed_author(const QDir & path, const QDir & system, const cache & ch,
+remed_author::remed_author(const QDir & path, const QDir & system, std::shared_ptr<cache> & ch,
                            const QByteArray & pos,
                            const quint16 remFilter, const quint32 localPos, QWidget *parent) :
     QDialog(parent),
@@ -15,7 +15,7 @@ remed_author::remed_author(const QDir & path, const QDir & system, const cache &
     _pos = pos;
     _remFilter = remFilter;
     _localPos = localPos;
-    _cache = &ch;
+    _cache = ch;
 
     _sym.open(path.filePath("symptom").toStdString());
 

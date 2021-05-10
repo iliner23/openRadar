@@ -9,6 +9,7 @@
 #include <QStringListModel>
 #include <QListWidgetItem>
 #include <QMdiSubWindow>
+#include <memory>
 #include "cache.h"
 #include "windowchapters.h"
 
@@ -38,6 +39,7 @@ private:
     openCtree _catalog;
     QStringList _reperts;
     QStringList _keys;
-    cache _cache;
+    std::shared_ptr<cache> _cache;
+    //cache _cache;
 };
 #endif // MAINWINDOW_H
