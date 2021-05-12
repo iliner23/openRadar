@@ -92,9 +92,11 @@ void windowChapters::windowChanged(int index){
     QVector<QTableWidgetItem*> items;
     ui->tableWidget->clear();
     ui->tableWidget->setColumnCount(mx);
+
     openCtree db;
     db.open(_dirPaths.at(index).filePath("symptom").toStdString());
     db.setIndex(4);
+
     const std::string compr(6, '\0');
     quint16 x = 0, y = 0;
 

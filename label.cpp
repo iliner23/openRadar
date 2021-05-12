@@ -24,7 +24,8 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     _index = pos;
 
     renderingView(height(), width() - 10);
-    ui->label->setText(renderingLabel(_index, _symptom, false));
+    ui->label->setText(
+                renderingLabel(QByteArray::fromStdString(_symptom.currentValue()), _symptom, false));
 
     ui->label_2->setFont(QFont("default", 10));
     ui->label_2->setText(QString::number(_remedSize[0] + _remedSize[1]
@@ -225,16 +226,20 @@ void Label::renderingView(const int heightView, const int widthView){
 
             auto authorsSym = [&](const auto & autr, const auto author, auto & allrm, const bool next = false){
                 auto aut = new QGraphicsSimpleTextItem;
-                if(autr == "kl2")
-                    aut->setText("*");
-                else if(autr == "zzz")
-                    aut->setText(u8"\u2193");
-                else{
-                    if(!next)
-                        aut->setText(autr);
-                    else
-                        aut->setText(", " + autr);
-                }
+
+                auto replaceText = [](const auto & str) -> QString{
+                    if(str == "kl2")
+                        return "*";
+                    else if(str == "zzz")
+                        return u8"\u2193";
+
+                    return str;
+                };
+
+                if(!next)
+                    aut->setText(replaceText(autr));
+                else
+                    aut->setText(", " + replaceText(autr));
 
                 aut->setBrush(Qt::magenta);
                 aut->setFont(smallFont);
@@ -342,9 +347,9 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
             break;
         }
         case 1 :
-            break;
+            return;
         case 2 :{
-            break;
+            return;
         }
         case 3 : {
             widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()

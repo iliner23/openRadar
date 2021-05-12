@@ -152,9 +152,9 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
             break;
         }
         case 1 :
-            break;
+            return;
         case 2 :{
-            break;
+            return;
         }
         case 3 : {
             widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()

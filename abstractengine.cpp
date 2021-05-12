@@ -227,16 +227,20 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
 
                 auto authorsSym = [&](const auto & autr, const auto author, auto & allrm, const bool next = false){
                     auto aut = new QGraphicsSimpleTextItem;
-                    if(autr == "kl2")
-                        aut->setText("*");
-                    else if(autr == "zzz")
-                        aut->setText(u8"\u2193");
-                    else{
-                        if(!next)
-                            aut->setText(autr);
-                        else
-                            aut->setText(", " + autr);
-                    }
+
+                    auto replaceText = [](const auto & str) -> QString{
+                        if(str == "kl2")
+                            return "*";
+                        else if(str == "zzz")
+                            return u8"\u2193";
+
+                        return str;
+                    };
+
+                    if(!next)
+                        aut->setText(replaceText(autr));
+                    else
+                        aut->setText(", " + replaceText(autr));
 
                     aut->setBrush(Qt::magenta);
                     aut->setFont(smallFont);
