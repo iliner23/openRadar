@@ -1,16 +1,64 @@
 #include "abstractengine.h"
 
-void abstractEngine::renderingView(const int heightView, const int widthView){
-    const QString fontName("cursive");
-    const QFont italicFont(fontName, 10, -1, true);
-    const QFont commonFont(fontName, 10, QFont::DemiBold);
-    const QFont defaultFont(fontName, 10, QFont::Light);
-    const QFont labelChapterFont(fontName, 16, QFont::DemiBold);
-    const QFont smallFont(fontName, 8);
-    const QFont boldFont(fontName, 10, QFont::Bold);
-    constexpr auto attachRatio = 3;
-    constexpr auto spaceHeight = 5;
+abstractEngine::abstractEngine(){
+    _fonts.fontName = "cursive";
+    _fonts.italicFont = QFont(_fonts.fontName, 10, -1, true);
+    _fonts.commonFont = QFont(_fonts.fontName, 10, QFont::DemiBold);
+    _fonts.defaultFont = QFont(_fonts.fontName, 10, QFont::Light);
+    _fonts.labelChapterFont = QFont(_fonts.fontName, 16, QFont::DemiBold);
+    _fonts.smallFont = QFont(_fonts.fontName, 8);
+    _fonts.boldFont = QFont(_fonts.fontName, 10, QFont::Bold);
+}
+void abstractEngine::addRemeds(QGraphicsItem * temp, const int labelWidth, const int widthView){
+    if(temp == nullptr)
+        return;
 
+    const auto bon = temp->boundingRect();
+    if(_pos.x() + _size.width() + bon.width() + 3 >= widthView){
+        temp->setX(labelWidth + 3);
+        temp->setY(_pos.y() + _size.height() + _spaceHeight);
+    }
+    else{
+        temp->setX(_pos.x() + _size.width() + 3);
+        temp->setY(_pos.y());
+    }
+
+    _scene->addItem(temp);
+    _size = bon;
+    _pos = temp->pos();
+}
+void abstractEngine::addLabel(QGraphicsItem * temp){
+    temp->setY(_pos.y() + _size.height() + 1);
+    _scene->addItem(temp);
+    _size = temp->boundingRect();
+    _pos = temp->pos();
+}
+void abstractEngine::authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next){
+    auto aut = new QGraphicsSimpleTextItem;
+
+    auto replaceText = [](const auto & str) -> QString{
+        if(str == "kl2")
+            return "*";
+        else if(str == "zzz")
+            return u8"\u2193";
+
+        return str;
+    };
+
+    if(!next)
+        aut->setText(replaceText(autr));
+    else
+        aut->setText(", " + replaceText(autr));
+
+    aut->setBrush(Qt::magenta);
+    aut->setFont(_fonts.smallFont);
+    aut->setData(0, 4);
+    aut->setData(1, author);
+
+    aut->setX(allrm->boundingRect().width() + 3);
+    allrm->addToGroup(aut);
+};
+void abstractEngine::renderingView(const int heightView, const int widthView){
     _scene->clear();
     _scene->setSceneRect(0, 0, widthView, heightView);
 
@@ -21,24 +69,18 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
     else
         fullStr = QByteArray::fromStdString(_symptom.front());
 
-    QRectF size;
-    QPointF pos;
     QString labelText[2];//first - native, second - localize
 
-    auto returnSize = [](const auto & value, const auto & size){
-        return (value == -1) ? size : value;
+    auto return_size = [](const auto & value, const auto & _size){
+        return (value == -1) ? _size : value;
     };
 
-    while(pos.y() + size.height() < heightView){
-        auto update = [&](auto * temp){
-            temp->setY(pos.y() + size.height() + 1);
-            _scene->addItem(temp);
-            size = temp->boundingRect();
-            pos = temp->pos();
-        };
+    _pos = {0, 0};
+    _size = {0, 0, 0, 0};
 
-        if(pos.y() != 0)
-            pos.setY(pos.y() + spaceHeight);
+    while(_pos.y() + _size.height() < heightView){
+        if(_pos.y() != 0)
+            _pos.setY(_pos.y() + _spaceHeight);
 
         QVector<QGraphicsSimpleTextItem*> linksSynomys;
         linksSynomys.reserve(100);
@@ -61,8 +103,8 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
         int labelsEnd = 0;
 
         {//label subfunction
-            const auto firstZero = returnSize(fullStr.indexOf('\0', _symptom.serviceDataLenght()), fullStr.size());
-            const auto secondZero = returnSize(fullStr.indexOf('\0', firstZero + 1), fullStr.size());
+            const auto firstZero = return_size(fullStr.indexOf('\0', _symptom.serviceDataLenght()), fullStr.size());
+            const auto secondZero = return_size(fullStr.indexOf('\0', firstZero + 1), fullStr.size());
             labelsEnd = secondZero;
 
             labelText[0] = _codec->toUnicode(
@@ -76,13 +118,13 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
 
             for(auto it = 0; it < isLocalize; ++it){
                 auto textItem = new QGraphicsSimpleTextItem;
-                textItem->setFont(commonFont);
+                textItem->setFont(_fonts.commonFont);
 
                 if(attach == 1){
                     if(it == 0)
                         textItem->setBrush(QBrush(Qt::red));
 
-                    textItem->setFont(labelChapterFont);
+                    textItem->setFont(_fonts.labelChapterFont);
                 }
 
                 if(it == 1)
@@ -91,7 +133,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                 if(hideLabel)
                     textItem->setBrush(QBrush(Qt::gray));
 
-                const auto fillStr = QString(attach * attachRatio, ' ')
+                const auto fillStr = QString(attach * _attachRatio, ' ')
                         + filler[lessAttach - 1 + ((it == 0) ? 0 : 4)];
 
                 textItem->setText(fillStr + labelText[it] +
@@ -102,7 +144,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
 
                 textItem->setData(0, 0);
                 textItem->setData(1, QByteArray::fromStdString(_symptom.key()));
-                update(textItem);
+                addLabel(textItem);
             }
         }
         if(!hideLabel){
@@ -125,7 +167,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
 
                     type = type - cnt;
 
-                    const auto tmpLinkIter = returnSize(fullStr.indexOf('\0', labelsEnd), fullStr.size());
+                    const auto tmpLinkIter = return_size(fullStr.indexOf('\0', labelsEnd), fullStr.size());
                     auto synLinkText =
                             _codec->toUnicode(fullStr.mid(labelsEnd, tmpLinkIter - labelsEnd));
                     synLinkText.prepend(' ');
@@ -148,11 +190,11 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                             continue;
 
                         if(attach == 1)
-                            textItem->setFont(labelChapterFont);
+                            textItem->setFont(_fonts.labelChapterFont);
                         else
-                            textItem->setFont(commonFont);
+                            textItem->setFont(_fonts.commonFont);
 
-                        textItem->setText(QString(attach * attachRatio, ' ')
+                        textItem->setText(QString(attach * _attachRatio, ' ')
                                           + constSynomy[lessAttach - 1] + synLinkText.mid(1));
                         linksSynomys.push_back(textItem);
                     }
@@ -163,7 +205,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                         const QColor constColor[] = {Qt::darkRed, Qt::darkBlue, Qt::red, Qt::blue};
 
                         for(auto it = 0; it != synLinkText.size(); ){
-                            const auto iterEnd = returnSize(synLinkText.indexOf('/', it), synLinkText.size());
+                            const auto iterEnd = return_size(synLinkText.indexOf('/', it), synLinkText.size());
                             QString linkText;
 
                             if(iterEnd != synLinkText.size()){
@@ -179,18 +221,18 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                             QString tempLinkText = linkText.mid(1);
 
                             if(type == 1 || type == 0){
-                                textItem->setFont(defaultFont);
+                                textItem->setFont(_fonts.defaultFont);
                                 textItem->setData(0, 2);
                                 tempLinkText.prepend("  " + constLinks[lessAttach - 1]);
                             }
                             else{
-                                textItem->setFont(commonFont);
+                                textItem->setFont(_fonts.commonFont);
                                 textItem->setData(0, 1);
                                 tempLinkText.prepend(constSee[lessAttach - 1]);
                                 tempLinkText.append(')');
                             }
 
-                            textItem->setText(QString(attach * attachRatio, ' ') + tempLinkText);
+                            textItem->setText(QString(attach * _attachRatio, ' ') + tempLinkText);
                             textItem->setBrush(QBrush(constColor[type +
                                                ((!localize && (type + 1) % 2 != 0) ? 1 : 0)]));
 
@@ -206,53 +248,8 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                 }
             }
             {//remeds
-                 auto horizon = [&](auto * temp){
-                    if(temp == nullptr)
-                        return;
-
-                    const auto bon = temp->boundingRect();
-                    if(pos.x() + size.width() + bon.width() + 3 >= widthView){
-                        temp->setX(labelWidth + 3);
-                        temp->setY(pos.y() + size.height() + spaceHeight);
-                    }
-                    else{
-                        temp->setX(pos.x() + size.width() + 3);
-                        temp->setY(pos.y());
-                    }
-
-                    _scene->addItem(temp);
-                    size = bon;
-                    pos = temp->pos();
-                };
-
-                auto authorsSym = [&](const auto & autr, const auto author, auto & allrm, const bool next = false){
-                    auto aut = new QGraphicsSimpleTextItem;
-
-                    auto replaceText = [](const auto & str) -> QString{
-                        if(str == "kl2")
-                            return "*";
-                        else if(str == "zzz")
-                            return u8"\u2193";
-
-                        return str;
-                    };
-
-                    if(!next)
-                        aut->setText(replaceText(autr));
-                    else
-                        aut->setText(", " + replaceText(autr));
-
-                    aut->setBrush(Qt::magenta);
-                    aut->setFont(smallFont);
-                    aut->setData(0, 4);
-                    aut->setData(1, author);
-
-                    aut->setX(allrm->boundingRect().width() + 3);
-                    allrm->addToGroup(aut);
-                };
-
                 quint16 prevRemed = 0;
-                quint64 remedSize = 0;
+                quint64 remed_size = 0;
 
                 QVector<QGraphicsItemGroup*> remeds;
                 remeds.reserve(maxDrug);
@@ -281,17 +278,21 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                     if(_remFilter != (quint16)-1 && (tLevel & _remFilter) == 0)
                         continue;
 
-                    if((((char *)&author)[1] & (char)128) != 0)
+                    QString star;
+
+                    if((((char *)&author)[1] & (char)128) != 0){
                         ((char *)&author)[1] ^= (char)128;//remed have * in the end
+                        star = '*';
+                    }
 
                     const auto & rmStr = _cache->_cacheRemed.at(remed);
                     const auto & auStr = _cache->_cacheAuthor.at(author);
                     auto itN = rmStr.find('\0', _cache->_lenRem);
                     auto itA = auStr.find('\0', _cache->_lenAuthor);
-                    auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor));
+                    auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
                     auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-                    if(pos.y() >= heightView)
+                    if(_pos.y() >= heightView)
                         break;
 
                     if(rLevel == 0 || rLevel > 4)
@@ -301,7 +302,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                         authorsSym(authorName, author, remeds.back(), true);
                     else{
                         auto remedItem = new QGraphicsSimpleTextItem;
-                        const QFont * remedFonts[] = {&defaultFont, &italicFont, &boldFont};
+                        const QFont * remedFonts[] = {&_fonts.defaultFont, &_fonts.italicFont, &_fonts.boldFont};
                         const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
 
                         remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
@@ -319,28 +320,28 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                         remeds.push_back(group);
 
                         authorsSym(authorName, author, remeds.back());
-                        ++remedSize;
+                        ++remed_size;
                     }
 
                     prevRemed = remed;
                 }
 
-                if(remedSize != 0){
+                if(remed_size != 0){
                     auto siz = new QGraphicsSimpleTextItem;
-                    siz->setFont(QFont(fontName, 10));
-                    siz->setText("(" + QString::number(remedSize) + ") ");
-                    horizon(siz);
+                    siz->setFont(QFont(_fonts.fontName, 10));
+                    siz->setText("(" + QString::number(remed_size) + ") ");
+                    addRemeds(siz, labelWidth, widthView);
                 }
 
                 for(const auto & it : remeds)
-                    horizon(it);
+                    addRemeds(it, labelWidth, widthView);
 
                 if(!remeds.isEmpty())
-                    pos.setY(pos.y() + spaceHeight);
+                    _pos.setY(_pos.y() + _spaceHeight);
             }
 
             for(const auto & it : linksSynomys)
-                update(it);
+                addLabel(it);
         }
 
         if(_symptom.key() == _endIndex.toStdString())
@@ -354,23 +355,22 @@ QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, con
     QByteArray ind(6, '\0');
     bool fis = true;
 
-    auto returnSize = [](const auto & value, const auto & size){
+    auto return_size = [](const auto & value, const auto & size){
         return (value == -1) ? size : value;
     };
 
     if(pass == false){
-        //ind = _index;
         std::reverse_copy(text.cbegin(), text.cbegin() + 6, ind.begin());
         fis = false;
     }
 
     while(true){
-        quint8 caption = 0;
+        quint8 attach = 0;
 
         if(!fis){
             text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
-            const auto first = returnSize(text.indexOf('\0', symptom.serviceDataLenght()), text.size());
-            const auto second = returnSize(text.indexOf('\0', first + 1), text.size()) - first - 1;
+            const auto first = return_size(text.indexOf('\0', symptom.serviceDataLenght()), text.size());
+            const auto second = return_size(text.indexOf('\0', first + 1), text.size()) - first - 1;
             const auto local = codec->toUnicode(text.mid(first + 1, second));
 
             original.push_back(codec->toUnicode(text.mid(symptom.serviceDataLenght()
@@ -379,10 +379,12 @@ QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, con
                 localization.push_back(local);
         }
 
-        caption = text.at(21);
+        attach = text.at(21);
         std::reverse_copy(text.cbegin() + 12, text.cbegin() + 18, ind.begin());
 
-        if(caption <= 1 || ind == "\0\0\0\0\0\0")
+        if(attach == 0)
+            return QString();
+        else if(attach <= 1 || ind == "\0\0\0\0\0\0" )
             break;
 
         fis = false;

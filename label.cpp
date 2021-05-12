@@ -81,13 +81,6 @@ Label::~Label()
 }
 
 void Label::renderingView(const int heightView, const int widthView){
-    const QString fontName("cursive");
-    const QFont italicFont(fontName, 10, -1, true);
-    const QFont defaultFont(fontName, 10, QFont::Light);
-    const QFont smallFont(fontName, 8);
-    const QFont boldFont(fontName, 10, QFont::Bold);
-    constexpr auto spaceHeight = 5;
-
     _scene->clear();
     Q_UNUSED(heightView);
 
@@ -95,9 +88,6 @@ void Label::renderingView(const int heightView, const int widthView){
 
     Q_ASSERT(!_index.isEmpty());
     fullStr = QByteArray::fromStdString(_symptom.at(_index.toStdString()));
-
-    QRectF size;
-    QPointF pos;
 
     auto returnSize = [](const auto & value, const auto & size){
         return (value == -1) ? size : value;
@@ -205,53 +195,7 @@ void Label::renderingView(const int heightView, const int widthView){
             }
         }
         {//remeds
-             auto horizon = [&](auto * temp){
-                if(temp == nullptr)
-                    return;
-
-                const auto bon = temp->boundingRect();
-                if(pos.x() + size.width() + bon.width() + 3 >= widthView){
-                    temp->setX(labelWidth + 3);
-                    temp->setY(pos.y() + size.height() + spaceHeight);
-                }
-                else{
-                    temp->setX(pos.x() + size.width() + 3);
-                    temp->setY(pos.y());
-                }
-
-                _scene->addItem(temp);
-                size = bon;
-                pos = temp->pos();
-            };
-
-            auto authorsSym = [&](const auto & autr, const auto author, auto & allrm, const bool next = false){
-                auto aut = new QGraphicsSimpleTextItem;
-
-                auto replaceText = [](const auto & str) -> QString{
-                    if(str == "kl2")
-                        return "*";
-                    else if(str == "zzz")
-                        return u8"\u2193";
-
-                    return str;
-                };
-
-                if(!next)
-                    aut->setText(replaceText(autr));
-                else
-                    aut->setText(", " + replaceText(autr));
-
-                aut->setBrush(Qt::magenta);
-                aut->setFont(smallFont);
-                aut->setData(0, 4);
-                aut->setData(1, author);
-
-                aut->setX(allrm->boundingRect().width() + 3);
-                allrm->addToGroup(aut);
-            };
-
             quint16 prevRemed = 0;
-
             QVector<QGraphicsItemGroup*> array[4];
             QVector<QGraphicsItemGroup*> * arrayPtr = nullptr;
 
@@ -282,14 +226,18 @@ void Label::renderingView(const int heightView, const int widthView){
                 if(_remFilter != (quint16)-1 && (tLevel & _remFilter) == 0)
                     continue;
 
-                if((((char *)&author)[1] & (char)128) != 0)
+                QString star;
+
+                if((((char *)&author)[1] & (char)128) != 0){
                     ((char *)&author)[1] ^= (char)128;//remed have * in the end
+                    star = '*';
+                }
 
                 const auto & rmStr = _cache->_cacheRemed.at(remed);
                 const auto & auStr = _cache->_cacheAuthor.at(author);
                 auto itN = rmStr.find('\0', _cache->_lenRem);
                 auto itA = auStr.find('\0', _cache->_lenAuthor);
-                auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor));
+                auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
                 auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
                 if(rLevel == 0 || rLevel > 4)
@@ -299,7 +247,7 @@ void Label::renderingView(const int heightView, const int widthView){
                     authorsSym(authorName, author, arrayPtr->back(), true);
                 else{
                     auto remedItem = new QGraphicsSimpleTextItem;
-                    const QFont * remedFonts[] = {&defaultFont, &italicFont, &boldFont};
+                    const QFont * remedFonts[] = {&_fonts.defaultFont, &_fonts.italicFont, &_fonts.boldFont};
                     const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
 
                     remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
@@ -328,7 +276,7 @@ void Label::renderingView(const int heightView, const int widthView){
                 _remedSize[it] = array[it].size();
 
                 for(auto & iter : array[it])
-                    horizon(iter);
+                    addRemeds(iter, labelWidth, widthView);
             }
         }
     }
