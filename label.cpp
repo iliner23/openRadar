@@ -24,8 +24,7 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     _index = pos;
 
     renderingView(height(), width() - 10);
-    ui->label->setText(
-                renderingLabel(QByteArray::fromStdString(_symptom.currentValue()), _symptom, false));
+    ui->label->setText(renderingLabel());
 
     ui->label_2->setFont(QFont("default", 10));
     ui->label_2->setText(QString::number(_remedSize[0] + _remedSize[1]

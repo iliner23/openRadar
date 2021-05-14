@@ -47,7 +47,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         return;
     }
 
-    const auto size = qFromLittleEndian<quint16>(iter.mid(24, 2).toStdString().c_str());
+    const auto size = qFromLittleEndian<quint16>(iter.mid(24, 2));
 
     pos = pos.right(6);
     pos += pos;
@@ -66,8 +66,9 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         }
     }
 
-    auto rev = pos;
+    auto rev = pos.left(6);
     std::reverse(rev.begin(), rev.end());
+    rev.remove(rev.size() - 2, 2);
 
     for(quint16 i = 0; i != size; ++i){
         if(i == 0)
@@ -75,12 +76,12 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         else
             iter = QByteArray::fromStdString(_db.next());
 
-        if(iter.mid(12, 6) != rev.right(6))
-            break;
+        if(iter.mid(12, 4) != rev)
+            continue;//TODO : add support dublicate keys
 
         auto startKey = QByteArray::fromStdString(_db.key());
-        const auto size = qFromLittleEndian<quint16>(iter.mid(24, 2).toStdString().c_str());
-        new _node(decode(), startKey, (size > 0) ? true : false, parent);
+        const auto sizer = qFromLittleEndian<quint16>(iter.mid(24, 2));
+        new _node(decode(), startKey, (sizer > 0) ? true : false, parent);
     }
 }
 void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos){

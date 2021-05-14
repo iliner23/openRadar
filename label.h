@@ -14,6 +14,8 @@
 #include "openctree.h"
 #include "abstractengine.h"
 #include "cache.h"
+#include "remed_author.h"
+#include "author.h"
 
 namespace Ui {
 class Label;

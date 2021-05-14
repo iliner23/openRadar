@@ -350,7 +350,10 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
         fullStr = QByteArray::fromStdString(_symptom.next());
     }
 }
-QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, const bool pass, QTextCodec * codec){
+QString abstractEngine::renderingLabel(const bool pass){
+    return renderingLabel(QByteArray::fromStdString(_symptom.currentValue()), _symptom, pass, _codec);
+}
+QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, bool pass, QTextCodec * codec){
     QStringList original, localization;
     QByteArray ind(6, '\0');
     bool fis = true;
@@ -360,7 +363,7 @@ QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, con
     };
 
     if(pass == false){
-        std::reverse_copy(text.cbegin(), text.cbegin() + 6, ind.begin());
+        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, ind.begin());
         fis = false;
     }
 
@@ -380,11 +383,22 @@ QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, con
         }
 
         attach = text.at(21);
+        QByteArray midCompare(6, '\0');
+        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, midCompare.begin());
         std::reverse_copy(text.cbegin() + 12, text.cbegin() + 18, ind.begin());
 
+        if(midCompare.left(4) != ind.left(4)){
+            ind.replace(ind.size() - 2, 2, "\0\0", 2);}
+
+        else if(ind.back() != '\0' || ind.at(ind.size() - 1) != '\0'){
+            auto decrease = qFromBigEndian<quint16>(ind.right(2)) - 1;
+            decrease = qToBigEndian<quint16>(decrease);
+            ind.replace(ind.size() - 2, 2, (char *)&decrease, 2);
+        }
+
         if(attach == 0)
-            return QString();
-        else if(attach <= 1 || ind == "\0\0\0\0\0\0" )
+            Q_ASSERT("attach == 0");
+        else if(attach <= 1 || ind == "\0\0\0\0\0\0")
             break;
 
         fis = false;

@@ -116,17 +116,19 @@ void repertory::repaintView(){
     _viewRight->setSceneRect(0, _viewLeft->height(), 1, 1);
 
     auto threadDraw = [](auto * draw){ draw->viewport()->update(); };
-    QtConcurrent::run(threadDraw, _viewRight);
-    QtConcurrent::run(threadDraw, _viewLeft);
+    auto fut1 = QtConcurrent::run(threadDraw, _viewRight);
+    auto fut2 = QtConcurrent::run(threadDraw, _viewLeft);
+    fut1.waitForFinished();
+    fut2.waitForFinished();
 }
 void repertory::resizeEvent(QResizeEvent * event){
     event->ignore();
     repaintView();
 }
 void repertory::changedPos(const int pos){
-    const auto str = QByteArray::fromStdString(_symptom.at(pos));
+    _symptom.at(pos, false);
     _index = QByteArray::fromStdString(_symptom.key());
-    const auto label = renderingLabel(str, _symptom);
+    const auto label = renderingLabel(true);
 
     if(label.isEmpty()){
         _label->clear();

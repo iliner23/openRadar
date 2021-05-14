@@ -10,6 +10,7 @@
 #include "cache.h"
 #include <QStringList>
 #include <QTextCodec>
+#include "abstractengine.h"
 
 namespace Ui {
 class remed_author;

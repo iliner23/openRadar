@@ -7,22 +7,22 @@
 #include <QGraphicsItemGroup>
 #include <QtEndian>
 #include <QTextCodec>
+#include <QDir>
 #include <memory>
 #include "openctree.h"
 #include "cache.h"
 #include "customscene.h"
-#include "remed_author.h"
-#include "author.h"
 
 class abstractEngine {
 public:
     static QString renderingLabel(QByteArray, openCtree &symptom,
-            const bool pass = true, QTextCodec * codec = QTextCodec::codecForName("system"));
+                bool pass = true, QTextCodec * codec = QTextCodec::codecForName("system"));
 protected:
     void renderingView(const int heightView, const int widthView);
-    inline void addRemeds(QGraphicsItem * temp, const int labelWidth, const int widthView);
-    inline void authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next = false);
-    inline void addLabel(QGraphicsItem *);
+    void addRemeds(QGraphicsItem * temp, const int labelWidth, const int widthView);
+    void authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next = false);
+    void addLabel(QGraphicsItem *);
+    QString renderingLabel(const bool pass = false);
 
     abstractEngine();
 
