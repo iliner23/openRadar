@@ -42,6 +42,22 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         return tmpStr;
     };
 
+    auto increase = [](auto & array, const auto startPos){
+        for(auto i = startPos; i != 5; --i){
+            if(std::numeric_limits<char>::max() != (uchar) array.at(i)){
+                array[i] = ((uchar) array.at(i)) + 1;
+                break;
+            }
+            else{
+                if(i == 6)
+                    Q_ASSERT("error increment key");
+
+                array[i] = (uchar) 0;
+                array[i - 1] = ((uchar) array.at(i - 1)) + 1;
+            }
+        }
+    };
+
     if(iter.left(6) == QByteArray(6, '\0')){
         _db.close();
         return;
@@ -52,23 +68,16 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
     pos = pos.right(6);
     pos += pos;
 
-    for(auto i = 9; i != 5; --i){
-        if(std::numeric_limits<char>::max() != (uchar) pos.at(i)){
-            pos[i] = ((uchar) pos.at(i)) + 1;
-            break;
-        }
-        else{
-            if(i == 6)
-                Q_ASSERT("error increment key");
+    QByteArray incTemp = pos;
+    increase(incTemp, 11);
 
-            pos[i] = (uchar) 0;
-            pos[i - 1] = ((uchar) pos.at(i - 1)) + 1;
-        }
-    }
+    if(_db.haveKey(incTemp.toStdString()))
+        pos = std::move(incTemp);
+    else
+        increase(pos, 9);
 
-    auto rev = pos.left(6);
+    auto rev = pos.left(4);
     std::reverse(rev.begin(), rev.end());
-    rev.remove(rev.size() - 2, 2);
 
     for(quint16 i = 0; i != size; ++i){
         if(i == 0)
@@ -76,8 +85,8 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         else
             iter = QByteArray::fromStdString(_db.next());
 
-        if(iter.mid(12, 4) != rev)
-            continue;//TODO : add support dublicate keys
+        if(iter.mid(14, 4) != rev)
+            continue;
 
         auto startKey = QByteArray::fromStdString(_db.key());
         const auto sizer = qFromLittleEndian<quint16>(iter.mid(24, 2));

@@ -71,6 +71,7 @@ public:
     std::string key() const;
     std::string convertKey(const std::string&) const;
     std::string currentValue();
+    bool haveKey(std::string);
     uint64_t currentPosition();
     char paddingChar() const;
 };

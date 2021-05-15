@@ -232,7 +232,7 @@ void windowChapters::returnBranch(){
 void windowChapters::changeChapterText(const QByteArray & key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     const auto column = QByteArray::fromStdString(sym.at(key.toStdString()));
-    ui->label_2->setText(abstractEngine::renderingLabel(column, sym));
+    ui->label_2->setText(abstractEngine::renderingLabel(column, sym, false));
 }
 void windowChapters::sendActivatedBranch(){
     auto index = _filterModel->mapToSource(ui->listView->currentIndex());
