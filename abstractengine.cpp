@@ -69,8 +69,6 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
     else
         fullStr = QByteArray::fromStdString(_symptom.front());
 
-    QString labelText[2];//first - native, second - localize
-
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
@@ -103,6 +101,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
         int labelsEnd = 0;
 
         {//label subfunction
+            QString labelText[2];//first - native, second - localize
             const auto firstZero = return_size(fullStr.indexOf('\0', _symptom.serviceDataLenght()), fullStr.size());
             const auto secondZero = return_size(fullStr.indexOf('\0', firstZero + 1), fullStr.size());
             labelsEnd = secondZero;
@@ -113,8 +112,10 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                         (fullStr.mid(firstZero + 1, secondZero - firstZero - 1));
 
             localize = !labelText[1].isEmpty();
+
             const QString filler[] = {"", "", "-", ". ", "", "", " ", "  "};
             const auto isLocalize = ((localize) ? 2 : 1);
+            const bool star = (fullStr.at(6) != '\0' || fullStr.at(7) != '\0') ? true : false;//values with dup key adding * in the end
 
             for(auto it = 0; it < isLocalize; ++it){
                 auto textItem = new QGraphicsSimpleTextItem;
@@ -136,7 +137,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                 const auto fillStr = QString(attach * _attachRatio, ' ')
                         + filler[lessAttach - 1 + ((it == 0) ? 0 : 4)];
 
-                textItem->setText(fillStr + labelText[it] +
+                textItem->setText(fillStr + labelText[it] + ((star) ? "*" : "") +
                                   ((maxDrug != 0 && it == isLocalize - 1) ? ": " : ""));
 
                 const QFontMetrics metric(textItem->font());
