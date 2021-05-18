@@ -9,6 +9,7 @@
 #include <iostream>
 #include <algorithm>
 #include <filesystem>
+#include <variant>
 
 class openCtree
 {
@@ -50,6 +51,7 @@ private:
     inline std::string gtData(const uint64_t);
     inline std::string readOrNot(const bool, const uint64_t);
     inline std::string uncompressString(const std::string &);
+    inline std::variant<bool, std::string> commonAtKey(std::string, const bool, const bool);
 public:
     openCtree(const std::string&);
     openCtree() = default;

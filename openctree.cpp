@@ -354,6 +354,12 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
     }
 }
 std::string openCtree::at(std::string key, const bool readDbText){//if key is dublicate than input key size == full key size - 4
+    return std::get<std::string>(commonAtKey(key, true, readDbText));
+}
+bool openCtree::haveKey(std::string key){
+    return std::get<bool>(commonAtKey(key, false, false));
+}
+std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bool savePos, const bool readDbText){
     if(!isOpen())
         throw std::logic_error("Database isn't open");
 
@@ -383,15 +389,21 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
         _idx.seekg(ptr + 17);
         _idx.read((char *) &lNode, sizeof(lNode));
 
-        _navigate._byteSize = byteSize;
-        _navigate._basePtr = ptr;
+        if(savePos){
+            _navigate._byteSize = byteSize;
+            _navigate._basePtr = ptr;
+        }
 
         while(true){
             {
                 const auto pointerTemp = _idx.tellg();
 
-                if(pointerTemp < 0 || ptr + 18 + byteSize <= (uint64_t) pointerTemp)
-                    throw std::runtime_error("Incorrect key");
+                if(pointerTemp < 0 || ptr + 18 + byteSize <= (uint64_t) pointerTemp){
+                    if(savePos)
+                        throw std::runtime_error("Incorrect key");
+
+                    return false;
+                }
             }
 
             uint64_t pointer = 0;
@@ -417,10 +429,15 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
                         std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
                     }
 
-                    _lastValuePos = pointer;
-                    _navigate._leafPtr = _idx.tellg();
+                    if(savePos){
+                        _lastValuePos = pointer;
+                        _navigate._leafPtr = _idx.tellg();
+                    }
 
                     if(keyCmp == key){
+                        if(!savePos)
+                            return true;
+
                         _lastPosition = std::numeric_limits<uint64_t>::max();
                         return readOrNot(readDbText, pointer);
                     }
@@ -443,103 +460,18 @@ std::string openCtree::at(std::string key, const bool readDbText){//if key is du
                         std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
                     }
 
-                    _lastValuePos = pointer;
-                    _navigate._leafPtr = _idx.tellg();
+                    if(savePos){
+                        _lastValuePos = pointer;
+                        _navigate._leafPtr = _idx.tellg();
+                    }
 
                     if(keyCmp == key){
+                        if(!savePos)
+                            return true;
+
                         _lastPosition = std::numeric_limits<uint64_t>::max();
                         return readOrNot(readDbText, pointer);
                     }
-                }
-            }
-            else
-                throw std::runtime_error("Incorrect index compress type");
-
-            if(!_idx.good())
-                throw std::runtime_error("Database was destroyed");
-        }
-    }
-}
-bool openCtree::haveKey(std::string key){
-    if(!isOpen())
-        throw std::logic_error("Database isn't open");
-
-    auto iter = _header.begin() + _index;
-
-    if(!iter->dublicate && key.size() != iter->key_length)
-        throw std::logic_error("Incoorect key size");
-    else if(iter->dublicate && key.size() != iter->key_length - iter->ptrSize)
-        throw std::logic_error("Incoorect key size");
-
-    if(iter->dublicate)
-        key.append(iter->ptrSize, '\0');
-    else if(key == _lastKey)
-        return true;
-
-    _idx.seekg(iter->bTree_root);
-    std::string keyCmp(iter->key_length, '\0');
-
-    while(true){
-        uint16_t byteSize;
-        bool lNode;
-
-        const uint64_t ptr = _idx.tellg();
-        _idx.seekg(ptr + 10);
-        _idx.read((char *) &byteSize, sizeof(byteSize));
-        _idx.seekg(ptr + 17);
-        _idx.read((char *) &lNode, sizeof(lNode));
-
-        while(true){
-            {
-                const auto pointerTemp = _idx.tellg();
-
-                if(pointerTemp < 0 || ptr + 18 + byteSize <= (uint64_t) pointerTemp)
-                    return false;
-            }
-
-            uint64_t pointer = 0;
-
-            if(!(iter->dublicate && lNode))//leaf dublicate node hasn't poiner in begin
-                _idx.read((char *) &pointer, iter->ptrSize);
-
-            if(iter->index_type == 0){//for uncompress indexes
-                _idx.read(keyCmp.data(), iter->key_length);
-
-                if(!lNode){//there is branch
-                    if(keyCmp >= key){
-                        _idx.seekg(pointer);
-                        break;
-                    }
-                }
-                else{//there is leaf
-                    if(iter->dublicate){
-                        pointer = 0;
-                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
-                        std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
-                    }
-
-                    if(keyCmp == key)
-                        return true;
-                }
-            }
-            else if(iter->index_type == 12){//for compress indexes
-                keyCmp = uncompressString(keyCmp);
-
-                if(!lNode){//there is branch
-                    if(keyCmp >= key){
-                        _idx.seekg(pointer);
-                        break;
-                    }
-                }
-                else{//there is leaf
-                    if(iter->dublicate){
-                        pointer = 0;
-                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
-                        std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
-                    }
-
-                    if(keyCmp == key)
-                        return true;
                 }
             }
             else

@@ -15,6 +15,7 @@ windowChapters::windowChapters(QWidget *parent) :
     _filterModel = new proxySearchModel(this);
     _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     _filterModel->setRecursiveFilteringEnabled(false);
+    ui->listView->setModel(_filterModel);
 
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);
@@ -170,7 +171,7 @@ void windowChapters::textFilter(const QString & text){
         ui->tableWidget->setCurrentItem(items.at(0));
 }
 void windowChapters::textFilter_2(const QString & text){
-    _filterModel->setFilterFixedString(text);//TODO : remake it
+    _filterModel->setFilterFixedString(text);
 }
 void windowChapters::selectedItemTable(QTableWidgetItem * item){
     if(item == nullptr || item->text().isEmpty()){
@@ -193,7 +194,6 @@ void windowChapters::showListChapter(const QByteArray key){
     _filterModel->setSourceModel(_model.get());
 
     changeChapterText(key.right(6));
-    ui->listView->setModel(_filterModel);
     ui->listView->clearFocus();
 }
 void windowChapters::listClicked(const QModelIndex & indexSort){
