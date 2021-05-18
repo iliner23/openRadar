@@ -1,13 +1,7 @@
 #ifndef ABSTRACTENGINE_H
 #define ABSTRACTENGINE_H
 
-#include <QString>
-#include <QFont>
-#include <QGraphicsView>
-#include <QGraphicsItemGroup>
-#include <QtEndian>
-#include <QTextCodec>
-#include <QDir>
+#include <QtWidgets>
 #include <memory>
 #include "openctree.h"
 #include "cache.h"

@@ -1,15 +1,10 @@
 #ifndef REMED_AUTHOR_H
 #define REMED_AUTHOR_H
 
-#include <QDialog>
-#include <QDir>
+#include <QtWidgets>
 #include "openctree.h"
-#include <QListWidgetItem>
-#include <QListWidget>
 #include <memory>
 #include "cache.h"
-#include <QStringList>
-#include <QTextCodec>
 #include "abstractengine.h"
 
 namespace Ui {

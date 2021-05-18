@@ -12,9 +12,9 @@ windowChapters::windowChapters(QWidget *parent) :
     auto page1 = new QWidget(this);
     auto page2 = new QWidget(this);
 
-    _filterModel = new QSortFilterProxyModel(this);
+    _filterModel = new proxySearchModel(this);
     _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    _filterModel->setRecursiveFilteringEnabled(true);
+    _filterModel->setRecursiveFilteringEnabled(false);
 
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);
@@ -53,6 +53,8 @@ windowChapters::windowChapters(QWidget *parent) :
     connect(ui->pushButton, &QPushButton::clicked, this, &windowChapters::returnBranch);
     connect(ui->buttonBox_2, &QDialogButtonBox::rejected, this, &windowChapters::reject_2);
     connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
+
+    connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
 }
 
 windowChapters::~windowChapters(){
@@ -193,7 +195,6 @@ void windowChapters::showListChapter(const QByteArray key){
     changeChapterText(key.right(6));
     ui->listView->setModel(_filterModel);
     ui->listView->clearFocus();
-    connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
 }
 void windowChapters::listClicked(const QModelIndex & indexSort){
     auto index = _filterModel->mapToSource(indexSort);
@@ -203,10 +204,12 @@ void windowChapters::listClicked(const QModelIndex & indexSort){
 
         auto indexPtr = static_cast<const searchModel::_node*>(index.internalPointer());
         if(indexPtr->marker()){
-            if(_model->canFetchMore(index))
-                _model->fetchMore(index);
+            if(_filterModel->canFetchMore(indexSort))
+                _filterModel->fetchMore(indexSort);
 
+            _filterModel->setRootIndex(indexSort);
             ui->listView->setRootIndex(indexSort);
+
             changeChapterText(indexPtr->key().right(6));
         }
         else{
@@ -218,7 +221,10 @@ void windowChapters::listClicked(const QModelIndex & indexSort){
 }
 void windowChapters::returnBranch(){
     auto root = ui->listView->rootIndex();
+
+    _filterModel->setRootIndex(root.parent());
     ui->listView->setRootIndex(root.parent());
+
     auto rootBasicModel = _filterModel->mapToSource(root);
     ui->lineEdit_2->clear();
 
@@ -241,7 +247,7 @@ void windowChapters::sendActivatedBranch(){
     close();
 }
 void windowChapters::clearModel(){
-    disconnect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
+    _filterModel->setRootIndex(QModelIndex());
     _filterModel->setSourceModel(nullptr);
     _model.reset();
     ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);

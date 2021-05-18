@@ -1,10 +1,7 @@
 #ifndef REPCHOSE_H
 #define REPCHOSE_H
 
-#include <QDialog>
-#include <QStringList>
-#include <QListWidgetItem>
-#include <QDir>
+#include <QtWidgets>
 #include "levels.h"
 #include "openctree.h"
 

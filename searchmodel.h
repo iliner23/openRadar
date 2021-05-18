@@ -1,15 +1,7 @@
 #ifndef SEARCHMODEL_H
 #define SEARCHMODEL_H
 
-#include <QAbstractItemModel>
-#include <QDir>
-#include <QString>
-#include <QStringList>
-#include <QByteArray>
-#include <QTextCodec>
-#include <QtEndian>
-#include <QVector>
-#include <QDebug>
+#include <QtCore>
 #include "openctree.h"
 
 class searchModel : public QAbstractItemModel

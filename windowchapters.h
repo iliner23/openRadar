@@ -1,19 +1,14 @@
 #ifndef WINDOWCHAPTERS_H
 #define WINDOWCHAPTERS_H
 
-#include <QDialog>
-#include <openctree.h>
-#include <QMdiSubWindow>
-#include <repertory.h>
-#include <QString>
-#include <QStackedLayout>
-#include "delegate.h"
-#include <QTextCodec>
-#include <QPushButton>
-#include <QTableWidgetItem>
+#include <QtWidgets>
 #include <memory>
+#include "openctree.h"
+#include "repertory.h"
 #include "searchmodel.h"
+#include "delegate.h"
 #include "abstractengine.h"
+#include "proxysearchmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -56,7 +51,7 @@ private:
     QTextCodec * _codec;
     QStackedLayout * _layout;
     std::unique_ptr<searchModel> _model;
-    QSortFilterProxyModel * _filterModel;
+    proxySearchModel * _filterModel;
 };
 
 #endif // WINDOWCHAPTERS_H

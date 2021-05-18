@@ -1,19 +1,7 @@
 #ifndef REPERTORY_H
 #define REPERTORY_H
 
-#include <QWidget>
-#include <QTextCodec>
-#include <QString>
-#include <QPainter>
-#include <QDir>
-#include <QHBoxLayout>
-#include <QScrollBar>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QMenuBar>
-#include <QResizeEvent>
-#include <QLabel>
-#include <QtEndian>
+#include <QtWidgets>
 #include <QtConcurrent/QtConcurrent>
 #include <unordered_map>
 #include <memory>

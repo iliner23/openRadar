@@ -25,6 +25,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     openctree.cpp \
+    proxysearchmodel.cpp \
     remed_author.cpp \
     repchose.cpp \
     repertory.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     levels.h \
     mainwindow.h \
     openctree.h \
+    proxysearchmodel.h \
     remed_author.h \
     repchose.h \
     repertory.h \

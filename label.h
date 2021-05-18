@@ -1,16 +1,10 @@
 #ifndef LABEL_H
 #define LABEL_H
 
-#include <QDialog>
-#include <customscene.h>
-#include <QGraphicsItemGroup>
-#include <QResizeEvent>
-#include <QTextCodec>
-#include <QStringList>
-#include <QDir>
-#include <QListWidgetItem>
+#include <QtWidgets>
 #include <memory>
 #include <unordered_map>
+#include "customscene.h"
 #include "openctree.h"
 #include "abstractengine.h"
 #include "cache.h"

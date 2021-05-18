@@ -1,8 +1,7 @@
 #ifndef LEVELS_H
 #define LEVELS_H
 
-#include <QDialog>
-#include <QTextCodec>
+#include <QtWidgets>
 #include <vector>
 #include "openctree.h"
 

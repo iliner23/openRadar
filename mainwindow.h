@@ -1,15 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+#include <QtWidgets>
+#include <memory>
 #include "openctree.h"
 #include "repchose.h"
 #include "repertory.h"
-#include <QDir>
-#include <QStringListModel>
-#include <QListWidgetItem>
-#include <QMdiSubWindow>
-#include <memory>
 #include "cache.h"
 #include "windowchapters.h"
 
