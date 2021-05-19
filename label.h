@@ -29,7 +29,8 @@ private slots:
     void showTextInformation(QListWidgetItem*);
     void clickedAction(const QGraphicsSimpleTextItem * item);
 public:
-    explicit Label(std::shared_ptr<cache> &, const QDir &, const QDir &, const QByteArray &, const quint16 , QWidget *parent = nullptr);
+    explicit Label(std::shared_ptr<cache> &, const QDir &, const QDir &, const QByteArray &,
+                   const quint16 , QTextCodec *, QWidget *parent = nullptr);
     ~Label();
 };
 

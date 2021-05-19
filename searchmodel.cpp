@@ -25,17 +25,16 @@ searchModel::_node::~_node(){
 }
 
 
-searchModel::searchModel(const QDir & filename, const QByteArray & data, QObject * object): QAbstractItemModel(object){
-    setCatalogFile(filename, data);
+searchModel::searchModel(const QDir & filename, const QByteArray & data, QTextCodec * codec, QObject * object): QAbstractItemModel(object){
+    setCatalogFile(filename, data, codec);
 }
 void searchModel::createHeap(_node * parent, QByteArray pos){
-    auto codec = QTextCodec::codecForName("system");
     auto iter = QByteArray::fromStdString(_db.at(pos.toStdString()));
 
     auto decode = [&](){
         const auto firstIt = iter.indexOf('\0', _db.serviceDataLenght());
         const auto secondIt = iter.indexOf('\0', firstIt + 1);
-        const auto localize = codec->toUnicode(iter.mid(firstIt + 1, secondIt - firstIt - 1));
+        const auto localize = _codec->toUnicode(iter.mid(firstIt + 1, secondIt - firstIt - 1));
 
         QString tmpStr = iter.mid(_db.serviceDataLenght(), firstIt);
         tmpStr += ((localize.isEmpty()) ? QString() : "\n" + localize);
@@ -93,15 +92,23 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         new _node(decode(), startKey, (sizer > 0) ? true : false, parent);
     }
 }
-void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos){
+void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTextCodec * codec){
     delete _root;
 
     _db.open(file.path().toStdString());
     _db.setIndex(4);
     _root = new _node("root", pos);
 
+    if(_codec == nullptr){
+        if(codec == nullptr)
+            _codec = QTextCodec::codecForName("system");
+        else
+            _codec = codec;
+    }
+
+    beginResetModel();
     createHeap(_root, pos);
-    emit dataChanged(QModelIndex(), QModelIndex());
+    endResetModel();
 }
 QModelIndex searchModel::index(int row, int column, const QModelIndex &parent) const{
     if(!hasIndex(row, column, parent))
@@ -171,7 +178,8 @@ void searchModel::fetchMore(const QModelIndex &parent){
 
     auto parentPtr = static_cast<_node*>(parent.internalPointer());
     createHeap(parentPtr, parentPtr->key());
-    emit dataChanged(QModelIndex(), QModelIndex());
+    beginInsertRows(parent, 0, (int) parentPtr->childSize());
+    endInsertRows();
 }
 bool searchModel::hasChildren(const QModelIndex &parent) const{
     if (parent.isValid()) {
@@ -181,4 +189,10 @@ bool searchModel::hasChildren(const QModelIndex &parent) const{
         }
     }
     return QAbstractItemModel::hasChildren(parent);
+}
+void searchModel::setTextCodec(QTextCodec * codec){
+    if(codec == nullptr)
+        return;
+
+    _codec = codec;
 }

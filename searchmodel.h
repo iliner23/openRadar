@@ -30,9 +30,13 @@ public:
     };
 
     searchModel(QObject * parent = nullptr): QAbstractItemModel(parent) { _root = new _node("root"); }
-    searchModel(const QDir &, const QByteArray &, QObject * parent = nullptr);
+    searchModel(const QDir &, const QByteArray &, QTextCodec * codec = nullptr, QObject * parent = nullptr);
     ~searchModel();
-    void setCatalogFile(const QDir &, const QByteArray &);
+    void setCatalogFile(const QDir &, const QByteArray &, QTextCodec * codec = nullptr);
+
+    void setTextCodec(QTextCodec *);
+    QTextCodec * getTextCodec() const noexcept { return _codec; }
+
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex index(int row, int column,
                           const QModelIndex &parent = QModelIndex()) const override;
@@ -46,6 +50,7 @@ public:
 private:
     _node * _root = nullptr;
     openCtree _db;
+    QTextCodec * _codec = nullptr;
 
     void createHeap(_node *, QByteArray);
 };

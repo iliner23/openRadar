@@ -6,7 +6,6 @@ windowChapters::windowChapters(QWidget *parent) :
     ui(new Ui::windowChapters)
 {
     ui->setupUi(this);
-    _codec = QTextCodec::codecForName("system");
     _layout = new QStackedLayout;
 
     auto page1 = new QWidget(this);
@@ -75,6 +74,8 @@ void windowChapters::getWindows(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSu
 
         _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
     }
+
+    _codec = qobject_cast<repertory*>(mdiSub->widget())->getTextCodec();
 }
 void windowChapters::selectedItemList(const QModelIndex & current){
     if(current.isValid())
@@ -91,7 +92,7 @@ void windowChapters::windowChanged(int index){
     ui->lineEdit->clear();
     ui->lineEdit_2->clear();
 
-    const int mx = 8;
+    constexpr int mx = 8;
     QVector<QTableWidgetItem*> items;
     ui->tableWidget->clear();
     ui->tableWidget->setColumnCount(mx);
@@ -119,7 +120,7 @@ void windowChapters::windowChanged(int index){
 
             auto item_t = new QTableWidgetItem(QIcon(QPixmap(48, 48)),
                     QString::fromStdString(textOriginal + "\n") +
-                    _codec->toUnicode(textLocalize.c_str()) );
+                        _codec->toUnicode(textLocalize.c_str()) );
 
             item_t->setTextAlignment(Qt::AlignHCenter);
             item_t->setData(Qt::UserRole, QByteArray::fromStdString(db.key()));
@@ -130,6 +131,8 @@ void windowChapters::windowChanged(int index){
         else
             break;
     }
+
+    ui->tableWidget->setUpdatesEnabled(false);
 
     if(y == 0 && !items.empty())
         ui->tableWidget->setRowCount(1);
@@ -147,6 +150,16 @@ void windowChapters::windowChanged(int index){
         ui->tableWidget->setItem(y, x, it);
         ++x;
     }
+
+    for(; x != mx; ++x){
+        auto emptyItem = new QTableWidgetItem();
+        auto fl = emptyItem->flags();
+        fl.setFlag(Qt::ItemIsEnabled, false);
+        emptyItem->setFlags(fl);
+        ui->tableWidget->setItem(y, x, emptyItem);
+    }
+
+    ui->tableWidget->setUpdatesEnabled(true);
 }
 void windowChapters::show(bool chapter){
     if(chapter)
@@ -190,7 +203,7 @@ void windowChapters::reject_2(){
     clearModel();
 }
 void windowChapters::showListChapter(const QByteArray key){
-    _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key);
+    _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key, _codec);
     _filterModel->setSourceModel(_model.get());
 
     changeChapterText(key.right(6));
@@ -204,9 +217,6 @@ void windowChapters::listClicked(const QModelIndex & indexSort){
 
         auto indexPtr = static_cast<const searchModel::_node*>(index.internalPointer());
         if(indexPtr->marker()){
-            if(_filterModel->canFetchMore(indexSort))
-                _filterModel->fetchMore(indexSort);
-
             _filterModel->setRootIndex(indexSort);
             ui->listView->setRootIndex(indexSort);
 

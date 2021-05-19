@@ -26,10 +26,8 @@ public:
 public slots:
     void show(bool chapter = true);
     void reject();
-private:
-    void windowChanged(int);
-    void showListChapter(const QByteArray);
-    inline void clearModel();
+signals:
+    void activatedBranch(const QModelIndex &, const quint32);
 private slots:
     void textFilter(const QString &);
     void textFilter_2(const QString &);
@@ -40,11 +38,11 @@ private slots:
     void returnBranch();
     void sendActivatedBranch();
     void selectedItemList(const QModelIndex &);
-signals:
-    void activatedBranch(const QModelIndex &, const quint32);
-
 private:
     void changeChapterText(const QByteArray &);
+    void windowChanged(int);
+    void showListChapter(const QByteArray);
+    inline void clearModel();
 
     Ui::windowChapters *ui;
     QVector<QDir> _dirPaths;

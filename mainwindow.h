@@ -23,7 +23,7 @@ public:
 
 private slots:
     void on_action1_triggered();
-    void openRepertory(QListWidgetItem *, const quint16);
+    void openRepertory(QListWidgetItem *, const quint16, QTextCodec *);
     void openChapters();
     void windowChanged();
     void windowActivated(QAction*);

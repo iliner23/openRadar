@@ -26,11 +26,11 @@ void repertory::changeFilter(QAction * action){
             repaintView();
     }
 }
-repertory::repertory(const QDir & filename, const QDir & system, std::shared_ptr<cache> & ch, const quint16 remFilter, QWidget *parent) : QWidget(parent)
+repertory::repertory(const QDir & filename, const QDir & system,
+    std::shared_ptr<cache> & ch, QTextCodec * codec, const quint16 remFilter, QWidget *parent) : QWidget(parent), abstractEngine(codec)
 {
     _filename = filename;
     _system = system;
-    _codec = QTextCodec::codecForName("system");
     _symptom.open(filename.filePath("symptom").toStdString());
     _cache = ch;
     _remFilter = remFilter;
@@ -150,7 +150,7 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _remFilter, this);
+                                     _system , item->data(1).toByteArray(), _remFilter, _codec, this);
             break;
         }
         case 1 :
@@ -176,4 +176,7 @@ void repertory::setPosition(const QByteArray & pos){
     _symptom.at(pos.toStdString(), false);
     const auto tp = _symptom.currentPosition();
     _bar->setValue(tp);
+}
+QTextCodec * repertory::getTextCodec() const noexcept{
+    return _codec;
 }

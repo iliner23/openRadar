@@ -1,6 +1,6 @@
 #include "abstractengine.h"
 
-abstractEngine::abstractEngine(){
+abstractEngine::abstractEngine(QTextCodec * codec): _codec(codec){
     _fonts.fontName = "cursive";
     _fonts.italicFont = QFont(_fonts.fontName, 10, -1, true);
     _fonts.commonFont = QFont(_fonts.fontName, 10, QFont::DemiBold);

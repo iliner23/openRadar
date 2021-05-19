@@ -65,13 +65,13 @@
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
          <property name="topMargin">
-          <number>0</number>
+          <number>50</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>200</number>
+          <number>50</number>
          </property>
          <item>
           <widget class="QPushButton" name="pushButton_2">
@@ -91,6 +91,13 @@
           <widget class="QPushButton" name="pushButton">
            <property name="text">
             <string>Отмена</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_4">
+           <property name="text">
+            <string>Кодировка</string>
            </property>
           </widget>
          </item>

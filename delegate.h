@@ -6,7 +6,7 @@
 class delegate : public QStyledItemDelegate
 {
 public:
-    delegate();
+    delegate() = default;
     virtual void paint(QPainter *, const QStyleOptionViewItem &, const QModelIndex &) const;
 };
 

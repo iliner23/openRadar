@@ -22,6 +22,7 @@ private:
     QStringList _rLevels;
     Levels * _levels;
     quint16 _repLevel = -1;
+    QTextCodec * _codec = nullptr;
 public slots:
     void accept();
 private slots:
@@ -29,8 +30,9 @@ private slots:
     void activateLevel(QListWidgetItem *);
     void showLevels();
     void sendLevel(const quint16);
+    void setCodec();
 signals:
-    void chooseRep(QListWidgetItem *, quint16);
+    void chooseRep(QListWidgetItem *, quint16, QTextCodec *);
 };
 
 #endif // REPCHOSE_H

@@ -17,8 +17,11 @@ class repertory : public QWidget, public abstractEngine
 {
     Q_OBJECT
 public:
-    explicit repertory(const QDir &, const QDir &, std::shared_ptr<cache> & , const quint16 = -1, QWidget * = nullptr);
+    explicit repertory(const QDir &, const QDir &,
+                       std::shared_ptr<cache> &, QTextCodec *,
+                       const quint16 = -1, QWidget * = nullptr);
     QDir getRepDir() const noexcept;
+    QTextCodec * getTextCodec() const noexcept;
 private:
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;

@@ -2,9 +2,8 @@
 #include "ui_label.h"
 
 Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system,
-             const QByteArray & pos, const quint16 remFilter, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::Label)
+             const QByteArray & pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
+    QDialog(parent), abstractEngine(codec), ui(new Ui::Label)
 {
     ui->setupUi(this);
     setFixedSize(700, 700);
@@ -14,7 +13,6 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     _scene = new customScene(ui->tab_2);
     ui->graphicsView->setScene(_scene);
 
-    _codec = QTextCodec::codecForName("system");
     _cache = ch;
     _remFilter = remFilter;
     _filename = path;
@@ -290,7 +288,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _remFilter, this);
+                                     _system , item->data(1).toByteArray(), _remFilter, _codec, this);
             break;
         }
         case 1 :

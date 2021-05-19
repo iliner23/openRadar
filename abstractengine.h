@@ -18,7 +18,7 @@ protected:
     void addLabel(QGraphicsItem *);
     QString renderingLabel(const bool pass = false);
 
-    abstractEngine();
+    abstractEngine(QTextCodec *);
 
     quint16 _remFilter = -1;//repertory filter in widget menu
     std::shared_ptr<cache> _cache;
