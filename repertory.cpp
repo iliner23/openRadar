@@ -103,8 +103,10 @@ repertory::repertory(const QDir & filename, const QDir & system,
     _scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
     _bar->setTracking(false);
+
     connect(_bar, &QScrollBar::valueChanged, this, &repertory::changedPos);
     connect(_scene, &customScene::labelActivated, this, &repertory::clickedAction);
+
     _symptom.back(false);
     _endIndex = QByteArray::fromStdString(_symptom.key());
     _symptom.front(false);

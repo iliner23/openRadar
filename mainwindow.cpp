@@ -108,12 +108,12 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-void MainWindow::openRepertory(QListWidgetItem * item, const quint16 repLevel, QTextCodec * codec){
-    auto index = item->listWidget()->row(item);
+void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, QTextCodec * codec){
+    auto index = item.row();
     auto rep = new repertory(QDir(_reperts.at(index * 3 + 2)), QDir("../system"),
                              _cache, codec, repLevel, ui->mdiArea);
     rep->setAttribute(Qt::WA_DeleteOnClose);
-    rep->setWindowTitle(item->text());
+    rep->setWindowTitle(item.data().toString());
     auto repPtr = ui->mdiArea->addSubWindow(rep);
     repPtr->setMinimumSize(500, 500);
     repPtr->show();

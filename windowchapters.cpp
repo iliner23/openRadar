@@ -210,15 +210,14 @@ void windowChapters::showListChapter(const QByteArray key){
     ui->listView->clearFocus();
 }
 void windowChapters::listClicked(const QModelIndex & indexSort){
-    auto index = _filterModel->mapToSource(indexSort);
-
-    if(index.isValid()){
+    if(indexSort.isValid()){
+        auto index = _filterModel->mapToSource(indexSort);
         ui->lineEdit_2->clear();
-
         auto indexPtr = static_cast<const searchModel::_node*>(index.internalPointer());
+
         if(indexPtr->marker()){
-            _filterModel->setRootIndex(indexSort);
-            ui->listView->setRootIndex(indexSort);
+            _filterModel->setRootIndex(_filterModel->mapFromSource(index));
+            ui->listView->setRootIndex(_filterModel->mapFromSource(index));
 
             changeChapterText(indexPtr->key().right(6));
         }

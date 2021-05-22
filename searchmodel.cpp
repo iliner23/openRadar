@@ -36,7 +36,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         const auto secondIt = iter.indexOf('\0', firstIt + 1);
         const auto localize = _codec->toUnicode(iter.mid(firstIt + 1, secondIt - firstIt - 1));
 
-        QString tmpStr = iter.mid(_db.serviceDataLenght(), firstIt);
+        QString tmpStr = iter.mid(_db.serviceDataLenght(), firstIt - _db.serviceDataLenght());
         tmpStr += ((localize.isEmpty()) ? QString() : "\n" + localize);
         return tmpStr;
     };

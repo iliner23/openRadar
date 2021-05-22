@@ -2,6 +2,7 @@
 #define SEARCHMODEL_H
 
 #include <QtCore>
+#include <QTextCodec>
 #include "openctree.h"
 
 class searchModel : public QAbstractItemModel

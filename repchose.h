@@ -2,7 +2,6 @@
 #define REPCHOSE_H
 
 #include <QtWidgets>
-#include "levels.h"
 #include "openctree.h"
 
 namespace Ui {
@@ -20,19 +19,20 @@ public:
 private:
     Ui::RepChose *ui;
     QStringList _rLevels;
-    Levels * _levels;
     quint16 _repLevel = -1;
+    QSortFilterProxyModel * _proxyModel;
+    QStringListModel * _model;
     QTextCodec * _codec = nullptr;
 public slots:
     void accept();
 private slots:
     void finding(const QString &);
-    void activateLevel(QListWidgetItem *);
+    void activateLevel(const QModelIndex &);
     void showLevels();
     void sendLevel(const quint16);
     void setCodec();
 signals:
-    void chooseRep(QListWidgetItem *, quint16, QTextCodec *);
+    void chooseRep(QModelIndex &, quint16, QTextCodec *);
 };
 
 #endif // REPCHOSE_H

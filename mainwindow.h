@@ -23,7 +23,7 @@ public:
 
 private slots:
     void on_action1_triggered();
-    void openRepertory(QListWidgetItem *, const quint16, QTextCodec *);
+    void openRepertory(QModelIndex &, const quint16, QTextCodec *);
     void openChapters();
     void windowChanged();
     void windowActivated(QAction*);
@@ -36,6 +36,5 @@ private:
     QStringList _reperts;
     QStringList _keys;
     std::shared_ptr<cache> _cache;
-    //cache _cache;
 };
 #endif // MAINWINDOW_H

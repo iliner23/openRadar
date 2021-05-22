@@ -54,7 +54,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QListWidget" name="listWidget"/>
+        <widget class="QListView" name="listView"/>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -136,22 +136,6 @@
     <hint type="sourcelabel">
      <x>576</x>
      <y>136</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>295</x>
-     <y>264</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>listWidget</sender>
-   <signal>itemDoubleClicked(QListWidgetItem*)</signal>
-   <receiver>RepChose</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>250</x>
-     <y>292</y>
     </hint>
     <hint type="destinationlabel">
      <x>295</x>

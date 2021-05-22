@@ -2,6 +2,7 @@
 #define ABSTRACTENGINE_H
 
 #include <QtWidgets>
+#include <QTextCodec>
 #include <memory>
 #include "openctree.h"
 #include "cache.h"
@@ -14,9 +15,11 @@ public:
 protected:
     void renderingView(const int heightView, const int widthView);
     void addRemeds(QGraphicsItem * temp, const int labelWidth, const int widthView);
-    void authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next = false);
-    void addLabel(QGraphicsItem *);
+    inline void authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next = false);
+    inline void addLabel(QGraphicsItem *);
     QString renderingLabel(const bool pass = false);
+    inline void remedRender(QVector<QVector<QGraphicsItemGroup*>> &,
+                     bool sorting = false, quint64 * remedSize = nullptr);
 
     abstractEngine(QTextCodec *);
 
@@ -30,6 +33,10 @@ protected:
 
     const quint8 _attachRatio = 3;
     const quint8 _spaceHeight = 5;
+
+    int _heightView = 0, _widthView = 0;
+    int _labelsEnd = 0;
+    QByteArray _fullStr;
 
     QRectF _size;
     QPointF _pos;
