@@ -29,6 +29,8 @@ void repertory::changeFilter(QAction * action){
 repertory::repertory(const QDir & filename, const QDir & system,
     std::shared_ptr<cache> & ch, QTextCodec * codec, const quint16 remFilter, QWidget *parent) : QWidget(parent), abstractEngine(codec)
 {
+    setFocusPolicy(Qt::StrongFocus);
+
     _filename = filename;
     _system = system;
     _symptom.open(filename.filePath("symptom").toStdString());
@@ -111,6 +113,9 @@ repertory::repertory(const QDir & filename, const QDir & system,
     _symptom.back(false);
     _render.endIndex = QByteArray::fromStdString(_symptom.key());
     _symptom.front(false);
+
+    _viewLeft->setFocusPolicy(Qt::NoFocus);
+    _viewRight->setFocusPolicy(Qt::NoFocus);
 }
 void repertory::repaintView(){
     renderingView(_viewLeft->height() * 2, _viewLeft->width());
@@ -253,4 +258,26 @@ void repertory::setPosition(const QByteArray & pos){
 }
 QTextCodec * repertory::getTextCodec() const noexcept{
     return _codec;
+}
+void repertory::keyPressEvent(QKeyEvent *event){
+    if(event->key() == Qt::Key_Up){
+        _bar->setValue(_bar->value() - 1);
+        return;
+    }
+    if(event->key() == Qt::Key_Down){
+        _bar->setValue(_bar->value() + 1);
+        return;
+    }
+    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return){
+        if(_pointer.isNull())
+            return;
+
+        auto lab = new Label(_cache, _filename, _system ,
+                    _pointer, _render.remFilter, _codec, this);
+        lab->setAttribute(Qt::WA_DeleteOnClose);
+        lab->show();
+        return;
+    }
+
+    QWidget::keyPressEvent(event);
 }

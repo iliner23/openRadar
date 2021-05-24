@@ -138,6 +138,8 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
         return (value == -1) ? _size : value;
     };
 
+    _render.index = QByteArray::fromStdString(_symptom.key());
+
     _render.pos = {0, 0};
     _render.size = {0, 0, 0, 0};
     _render.labelsVec.clear();

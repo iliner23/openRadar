@@ -31,8 +31,9 @@ private:
     QByteArray _pointer;
 
     inline void repaintView();
-    void resizeEvent(QResizeEvent*);
+    void resizeEvent(QResizeEvent*) override;
     void redrawPointer(QGraphicsSimpleTextItem *);
+    void keyPressEvent(QKeyEvent *event) override;
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);
