@@ -25,6 +25,7 @@ private:
     QStringList _linksNames[3];//_synomSL, _masterSL, _referSL
 
     void renderingView(const int heightView, const int widthView);
+    void renderingChapter();
 private slots:
     void showTextInformation(QListWidgetItem*);
     void clickedAction(const QGraphicsSimpleTextItem * item);

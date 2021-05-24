@@ -34,6 +34,7 @@ private:
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);
+    void doubleClickedAction(const QGraphicsSimpleTextItem *item);
     void clickedAction(const QGraphicsSimpleTextItem *item);
 public slots:
     void setPosition(const QByteArray &);

@@ -14,24 +14,24 @@ void abstractEngine::addRemeds(QGraphicsItem * temp, const int labelWidth, const
         return;
 
     const auto bon = temp->boundingRect();
-    if(_pos.x() + _size.width() + bon.width() + 3 >= widthView){
+    if(_render.pos.x() + _render.size.width() + bon.width() + 3 >= widthView){
         temp->setX(labelWidth + 3);
-        temp->setY(_pos.y() + _size.height() + _spaceHeight);
+        temp->setY(_render.pos.y() + _render.size.height() + _render.spaceHeight);
     }
     else{
-        temp->setX(_pos.x() + _size.width() + 3);
-        temp->setY(_pos.y());
+        temp->setX(_render.pos.x() + _render.size.width() + 3);
+        temp->setY(_render.pos.y());
     }
 
     _scene->addItem(temp);
-    _size = bon;
-    _pos = temp->pos();
+    _render.size = bon;
+    _render.pos = temp->pos();
 }
 void abstractEngine::addLabel(QGraphicsItem * temp){
-    temp->setY(_pos.y() + _size.height() + 1);
+    temp->setY(_render.pos.y() + _render.size.height() + 1);
     _scene->addItem(temp);
-    _size = temp->boundingRect();
-    _pos = temp->pos();
+    _render.size = temp->boundingRect();
+    _render.pos = temp->pos();
 }
 void abstractEngine::authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next){
     auto aut = new QGraphicsSimpleTextItem;
@@ -57,110 +57,126 @@ void abstractEngine::authorsSym(const QString & autr, const quint16 author, QGra
 
     aut->setX(allrm->boundingRect().width() + 3);
     allrm->addToGroup(aut);
-};
+}
+void abstractEngine::renderingChapter(){
+    auto return_size = [](const auto & value, const auto & _size){
+        return (value == -1) ? _size : value;
+    };
+
+    const uint8_t lessAttach = (_render.attach > 4) ? 1 : _render.attach;
+    QString labelText[2];//first - native, second - localize
+    const auto firstZero = return_size(_render.fullStr.indexOf('\0', _symptom.serviceDataLenght()), _render.fullStr.size());
+    const auto secondZero = return_size(_render.fullStr.indexOf('\0', firstZero + 1), _render.fullStr.size());
+    _render.labelsEnd = secondZero;
+
+    labelText[0] = _codec->toUnicode(
+                _render.fullStr.mid(_symptom.serviceDataLenght(), firstZero - _symptom.serviceDataLenght()));
+    labelText[1] = _codec->toUnicode
+                (_render.fullStr.mid(firstZero + 1, secondZero - firstZero - 1));
+
+    _render.localize = !labelText[1].isEmpty();
+
+    const QString filler[] = {"", "", "-", ". ", "", "", " ", "  "};
+    const auto isLocalize = ((_render.localize) ? 2 : 1);
+    const bool star = (_render.fullStr.at(6) != '\0' || _render.fullStr.at(7) != '\0') ? true : false;//values with dup key adding * in the end
+
+    for(auto it = 0; it < isLocalize; ++it){
+        auto textItem = new QGraphicsSimpleTextItem;
+        textItem->setFont(_fonts.commonFont);
+
+        if(_render.attach == 1){
+            if(it == 0)
+                textItem->setBrush(QBrush(Qt::red));
+
+            textItem->setFont(_fonts.labelChapterFont);
+        }
+
+        if(it == 1)
+            textItem->setBrush(QBrush(Qt::blue));
+
+        if(_render.hideLabel)
+            textItem->setBrush(QBrush(Qt::gray));
+
+        const auto fillStr = QString(_render.attach * _render.attachRatio, ' ')
+                + filler[lessAttach - 1 + ((it == 0) ? 0 : 4)];
+
+        textItem->setText(fillStr + labelText[it] + ((star) ? "*" : "") +
+                          ((_render.maxDrug != 0 && it == isLocalize - 1) ? ": " : ""));
+
+        const QFontMetrics metric(textItem->font());
+        _render.labelWidth = metric.horizontalAdvance(fillStr);
+
+        textItem->setData(0, 0);
+        textItem->setData(1, QByteArray::fromStdString(_symptom.key()));
+        addLabel(textItem);
+
+        if(it == 0){
+            auto pos = new QGraphicsSimpleTextItem("->");
+            pos->setX(textItem->x());
+            pos->setY(textItem->y());
+            pos->hide();
+            pos->setData(0, 5);
+            pos->setData(1, QByteArray::fromStdString(_symptom.key()));
+
+            _scene->addItem(pos);
+            _render.labelsVec.push_back(pos);
+        }
+    }
+}
 void abstractEngine::renderingView(const int heightView, const int widthView){
     _scene->clear();
-    _heightView = heightView;
-    _widthView = widthView;
-    _scene->setSceneRect(0, 0, _widthView, _heightView);
+    _render.heightView = heightView;
+    _render.widthView = widthView;
+    _scene->setSceneRect(0, 0, _render.widthView, _render.heightView);
 
-    if(!_index.isEmpty())
-        _fullStr = QByteArray::fromStdString(_symptom.at(_index.toStdString()));
+    if(!_render.index.isEmpty())
+        _render.fullStr = QByteArray::fromStdString(_symptom.at(_render.index.toStdString()));
     else
-        _fullStr = QByteArray::fromStdString(_symptom.front());
+        _render.fullStr = QByteArray::fromStdString(_symptom.front());
 
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
 
-    _pos = {0, 0};
-    _size = {0, 0, 0, 0};
+    _render.pos = {0, 0};
+    _render.size = {0, 0, 0, 0};
+    _render.labelsVec.clear();
 
-    while(_pos.y() + _size.height() < _heightView){
-        if(_pos.y() != 0)
-            _pos.setY(_pos.y() + _spaceHeight);
+    while(_render.pos.y() + _render.size.height() < _render.heightView){
+        if(_render.pos.y() != 0)
+            _render.pos.setY(_render.pos.y() + _render.spaceHeight);
 
         QVector<QGraphicsSimpleTextItem*> linksSynomys;
         linksSynomys.reserve(100);
 
-        quint8 attach = 0;
-        quint16 maxDrug = 0, filter = 0;
-        int labelWidth = 0;
+        _render.attach = qFromLittleEndian<quint8>(_render.fullStr.constData() + 21);
+        _render.maxDrug = qFromLittleEndian<quint16>(_render.fullStr.constData() + 22);
+        _render.filter = qFromLittleEndian<quint16>(_render.fullStr.constData() + 26);
 
-        attach = qFromLittleEndian<quint8>(_fullStr.constData() + 21);
-        maxDrug = qFromLittleEndian<quint16>(_fullStr.constData() + 22);
-        filter = qFromLittleEndian<quint16>(_fullStr.constData() + 26);
-
-        if(attach == 0)
+        if(_render.attach == 0)
             continue;
 
-        const uint8_t lessAttach = (attach > 4) ? 1 : attach;
+        _render.hideLabel = !(_render.remFilter == (quint16)-1 || (_render.filter & _render.remFilter) != 0);
+        _render.localize = false;
+        _render.labelsEnd = 0;
 
-        bool hideLabel = !(_remFilter == (quint16)-1 || (filter & _remFilter) != 0);
-        bool localize = false;
-        _labelsEnd = 0;
+        renderingChapter();//label subfunction
 
-        {//label subfunction
-            QString labelText[2];//first - native, second - localize
-            const auto firstZero = return_size(_fullStr.indexOf('\0', _symptom.serviceDataLenght()), _fullStr.size());
-            const auto secondZero = return_size(_fullStr.indexOf('\0', firstZero + 1), _fullStr.size());
-            _labelsEnd = secondZero;
-
-            labelText[0] = _codec->toUnicode(
-                        _fullStr.mid(_symptom.serviceDataLenght(), firstZero - _symptom.serviceDataLenght()));
-            labelText[1] = _codec->toUnicode
-                        (_fullStr.mid(firstZero + 1, secondZero - firstZero - 1));
-
-            localize = !labelText[1].isEmpty();
-
-            const QString filler[] = {"", "", "-", ". ", "", "", " ", "  "};
-            const auto isLocalize = ((localize) ? 2 : 1);
-            const bool star = (_fullStr.at(6) != '\0' || _fullStr.at(7) != '\0') ? true : false;//values with dup key adding * in the end
-
-            for(auto it = 0; it < isLocalize; ++it){
-                auto textItem = new QGraphicsSimpleTextItem;
-                textItem->setFont(_fonts.commonFont);
-
-                if(attach == 1){
-                    if(it == 0)
-                        textItem->setBrush(QBrush(Qt::red));
-
-                    textItem->setFont(_fonts.labelChapterFont);
-                }
-
-                if(it == 1)
-                    textItem->setBrush(QBrush(Qt::blue));
-
-                if(hideLabel)
-                    textItem->setBrush(QBrush(Qt::gray));
-
-                const auto fillStr = QString(attach * _attachRatio, ' ')
-                        + filler[lessAttach - 1 + ((it == 0) ? 0 : 4)];
-
-                textItem->setText(fillStr + labelText[it] + ((star) ? "*" : "") +
-                                  ((maxDrug != 0 && it == isLocalize - 1) ? ": " : ""));
-
-                const QFontMetrics metric(textItem->font());
-                labelWidth = metric.horizontalAdvance(fillStr);
-
-                textItem->setData(0, 0);
-                textItem->setData(1, QByteArray::fromStdString(_symptom.key()));
-                addLabel(textItem);
-            }
-        }
-        if(!hideLabel){
+        if(!_render.hideLabel){
             {//synonyms and links
+                const uint8_t lessAttach = (_render.attach > 4) ? 1 : _render.attach;
                 quint8 type = 4;
 
                 for(auto i = 0; i != 4; ++i){
                     quint8 cnt = 0;
 
                     for(auto it = 0; it != type + 1; ++it){
-                        if(_labelsEnd == _fullStr.size() || _fullStr.at(_labelsEnd) != '\0')
+                        if(_render.labelsEnd == _render.fullStr.size()
+                                || _render.fullStr.at(_render.labelsEnd) != '\0')
                             break;
 
                         ++cnt;
-                        ++_labelsEnd;
+                        ++_render.labelsEnd;
                     }
 
                     if(cnt > type)
@@ -168,11 +184,13 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
 
                     type = type - cnt;
 
-                    const auto tmpLinkIter = return_size(_fullStr.indexOf('\0', _labelsEnd), _fullStr.size());
+                    const auto tmpLinkIter = return_size
+                            (_render.fullStr.indexOf('\0', _render.labelsEnd), _render.fullStr.size());
                     auto synLinkText =
-                            _codec->toUnicode(_fullStr.mid(_labelsEnd, tmpLinkIter - _labelsEnd));
+                            _codec->toUnicode(_render.fullStr.mid
+                                (_render.labelsEnd, tmpLinkIter - _render.labelsEnd));
                     synLinkText.prepend(' ');
-                    _labelsEnd = tmpLinkIter;
+                    _render.labelsEnd = tmpLinkIter;
 
                     if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
                         const QString constSynomy[] =
@@ -182,7 +200,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                         if(type == 2)
                             textItem->setBrush(QBrush(Qt::blue));
                         else if(type == 3){
-                            if(localize)
+                            if(_render.localize)
                                 textItem->setBrush(QBrush(Qt::red));
                             else
                                 textItem->setBrush(QBrush(Qt::blue));
@@ -190,12 +208,12 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                         else
                             continue;
 
-                        if(attach == 1)
+                        if(_render.attach == 1)
                             textItem->setFont(_fonts.labelChapterFont);
                         else
                             textItem->setFont(_fonts.commonFont);
 
-                        textItem->setText(QString(attach * _attachRatio, ' ')
+                        textItem->setText(QString(_render.attach * _render.attachRatio, ' ')
                                           + constSynomy[lessAttach - 1] + synLinkText.mid(1));
                         linksSynomys.push_back(textItem);
                     }
@@ -233,13 +251,13 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                                 tempLinkText.append(')');
                             }
 
-                            textItem->setText(QString(attach * _attachRatio, ' ') + tempLinkText);
+                            textItem->setText(QString(_render.attach * _render.attachRatio, ' ') + tempLinkText);
                             textItem->setBrush(QBrush(constColor[type +
-                                               ((!localize && (type + 1) % 2 != 0) ? 1 : 0)]));
+                                               ((!_render.localize && (type + 1) % 2 != 0) ? 1 : 0)]));
 
                             textItem->setData(1, linkText);
                             textItem->setData(2, QByteArray::fromStdString(_symptom.key()));
-                            textItem->setData(3, !localize);
+                            textItem->setData(3, !_render.localize);
                             linksSynomys.push_back(textItem);
                         }
                     }
@@ -258,24 +276,24 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
                     auto siz = new QGraphicsSimpleTextItem;
                     siz->setFont(QFont(_fonts.fontName, 10));
                     siz->setText("(" + QString::number(remed_size) + ") ");
-                    addRemeds(siz, labelWidth, _widthView);
+                    addRemeds(siz, _render.labelWidth, _render.widthView);
                 }
 
                 for(const auto & it : remeds[0])
-                    addRemeds(it, labelWidth, _widthView);
+                    addRemeds(it, _render.labelWidth, _render.widthView);
 
                 if(!remeds[0].empty())
-                    _pos.setY(_pos.y() + _spaceHeight);
+                    _render.pos.setY(_render.pos.y() + _render.spaceHeight);
             }
 
             for(const auto & it : linksSynomys)
                 addLabel(it);
         }
 
-        if(_symptom.key() == _endIndex.toStdString())
+        if(_symptom.key() == _render.endIndex.toStdString())
             break;
 
-        _fullStr = QByteArray::fromStdString(_symptom.next());
+        _render.fullStr = QByteArray::fromStdString(_symptom.next());
     }
 }
 void abstractEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array, bool sorting, quint64 * remedSize){
@@ -283,28 +301,28 @@ void abstractEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array, 
     QVector<QGraphicsItemGroup*> * arrayPtr = nullptr;
     quint64 remed_size = 0;
 
-    while(_labelsEnd < _fullStr.size()){
+    while(_render.labelsEnd < _render.fullStr.size()){
         quint16 remed = 0, author = 0, tLevel = 0;
         uint8_t rLevel = 0;
 
-        if(_labelsEnd + 7 >= _fullStr.size())
+        if(_render.labelsEnd + 7 >= _render.fullStr.size())
             break;
 
-        const auto startLabelsEnd = _labelsEnd;
+        const auto startLabelsEnd = _render.labelsEnd;
 
-        remed = qFromLittleEndian<quint16>(_fullStr.constData() + _labelsEnd);
-        _labelsEnd += 2;
-        rLevel = qFromLittleEndian<quint16>(_fullStr.constData() + _labelsEnd);
-        ++_labelsEnd;
-        author = qFromLittleEndian<quint16>(_fullStr.constData() + _labelsEnd);
-        _labelsEnd += 2;
-        tLevel = qFromLittleEndian<quint16>(_fullStr.constData() + _labelsEnd);
-        _labelsEnd += 2;
+        remed = qFromLittleEndian<quint16>(_render.fullStr.constData() + _render.labelsEnd);
+        _render.labelsEnd += 2;
+        rLevel = qFromLittleEndian<quint16>(_render.fullStr.constData() + _render.labelsEnd);
+        ++_render.labelsEnd;
+        author = qFromLittleEndian<quint16>(_render.fullStr.constData() + _render.labelsEnd);
+        _render.labelsEnd += 2;
+        tLevel = qFromLittleEndian<quint16>(_render.fullStr.constData() + _render.labelsEnd);
+        _render.labelsEnd += 2;
 
         if(memcmp(&remed, "\x5a\x5a", 2) == 0 && rLevel == '\x5a')
             break;
 
-        if(_remFilter != (quint16)-1 && (tLevel & _remFilter) == 0)
+        if(_render.remFilter != (quint16)-1 && (tLevel & _render.remFilter) == 0)
             continue;
 
         QString star;
@@ -321,7 +339,7 @@ void abstractEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array, 
         auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
         auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-        if(_pos.y() >= _heightView)
+        if(_render.pos.y() >= _render.heightView)
             break;
 
         if(rLevel == 0 || rLevel > 4)

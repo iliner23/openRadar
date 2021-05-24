@@ -20,26 +20,37 @@ protected:
     QString renderingLabel(const bool pass = false);
     inline void remedRender(QVector<QVector<QGraphicsItemGroup*>> &,
                      bool sorting = false, quint64 * remedSize = nullptr);
-
+    void renderingChapter();
     abstractEngine(QTextCodec *);
 
-    quint16 _remFilter = -1;//repertory filter in widget menu
     std::shared_ptr<cache> _cache;
     QTextCodec * _codec = nullptr;
     openCtree _symptom;
     customScene * _scene = nullptr;
-    QByteArray _index, _endIndex;
     QDir _filename, _system;
 
-    const quint8 _attachRatio = 3;
-    const quint8 _spaceHeight = 5;
+    struct{
+        quint16 remFilter = -1;//repertory filter in widget menu
+        QByteArray index, endIndex;
+        quint8 attach = 0;
+        quint16 maxDrug = 0, filter = 0;
+        int labelWidth = 0;
 
-    int _heightView = 0, _widthView = 0;
-    int _labelsEnd = 0;
-    QByteArray _fullStr;
+        const quint8 attachRatio = 3;
+        const quint8 spaceHeight = 5;
 
-    QRectF _size;
-    QPointF _pos;
+        int heightView = 0, widthView = 0;
+        int labelsEnd = 0;
+        QByteArray fullStr;
+
+        QRectF size;
+        QPointF pos;
+
+        bool localize = false;
+        bool hideLabel = false;
+
+        QVector<QGraphicsSimpleTextItem*> labelsVec;
+    } _render;
 
     struct{
         QString fontName;

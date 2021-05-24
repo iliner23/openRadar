@@ -11,7 +11,7 @@ void repertory::changeFilter(QAction * action){
             return;
 
         auto array = menu->actions();
-        _remFilter = (quint16) action->data().toInt();
+        _render.remFilter = (quint16) action->data().toInt();
         menu->setTitle(action->text());
 
         for(auto & it : array){
@@ -33,7 +33,7 @@ repertory::repertory(const QDir & filename, const QDir & system,
     _system = system;
     _symptom.open(filename.filePath("symptom").toStdString());
     _cache = ch;
-    _remFilter = remFilter;
+    _render.remFilter = remFilter;
 
     auto vlayout = new QVBoxLayout(this);
     auto hlayout = new QHBoxLayout(this);
@@ -55,7 +55,7 @@ repertory::repertory(const QDir & filename, const QDir & system,
     frm->setCheckable(true);
     frm->setData(-1);
 
-    if(_remFilter == (quint16)-1){
+    if(_render.remFilter == (quint16)-1){
         changeFilter(frm);
     }
 
@@ -67,7 +67,7 @@ repertory::repertory(const QDir & filename, const QDir & system,
         ps->setData(mask);
         ps->setCheckable(true);
 
-        if(mask == _remFilter){
+        if(mask == _render.remFilter){
             changeFilter(ps);
         }
 
@@ -105,17 +105,18 @@ repertory::repertory(const QDir & filename, const QDir & system,
     _bar->setTracking(false);
 
     connect(_bar, &QScrollBar::valueChanged, this, &repertory::changedPos);
-    connect(_scene, &customScene::labelActivated, this, &repertory::clickedAction);
+    connect(_scene, &customScene::doubleClick, this, &repertory::doubleClickedAction);
+    connect(_scene, &customScene::click, this, &repertory::clickedAction);
 
     _symptom.back(false);
-    _endIndex = QByteArray::fromStdString(_symptom.key());
+    _render.endIndex = QByteArray::fromStdString(_symptom.key());
     _symptom.front(false);
 }
 void repertory::repaintView(){
     renderingView(_viewLeft->height() * 2, _viewLeft->width());
 
-    _viewLeft->setSceneRect(0, 0, 1, 1);
-    _viewRight->setSceneRect(0, _viewLeft->height(), 1, 1);
+    _viewLeft->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height());
+    _viewRight->setSceneRect(0, _viewRight->height(), _viewRight->width(), _viewRight->height());
 
     auto threadDraw = [](auto * draw){ draw->viewport()->update(); };
     auto fut1 = QtConcurrent::run(threadDraw, _viewRight);
@@ -129,7 +130,7 @@ void repertory::resizeEvent(QResizeEvent * event){
 }
 void repertory::changedPos(const int pos){
     _symptom.at(pos, false);
-    _index = QByteArray::fromStdString(_symptom.key());
+    _render.index = QByteArray::fromStdString(_symptom.key());
     const auto label = renderingLabel(true);
 
     if(label.isEmpty()){
@@ -147,12 +148,45 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
     if(!item->data(0).isValid())
         return;
 
+    auto redraw = [&](const auto & it, const auto height){
+        if(it->y() < height){
+            _viewLeft->viewport()->update
+                    (it->x(), it->y(),
+                     it->boundingRect().width(), it->boundingRect().height());
+        }
+        else{
+            _viewRight->viewport()->update
+                    (it->x(), it->y() / 2,
+                     it ->boundingRect().width(), it->boundingRect().height());//BUG : not draw
+        }
+    };
+
+    if(item->data(0) != 5 && item->data(0) != 0)
+        return;
+
+    const auto key = item->data(1).toByteArray();
+
+    for(auto & it : _render.labelsVec){
+        if(it->data(1).toByteArray() != key){
+            it->hide();
+            redraw(it, _viewLeft->height());
+        }
+        else{
+            it->show();
+            redraw(it, _viewLeft->height());
+        }
+    }
+}
+void repertory::doubleClickedAction(const QGraphicsSimpleTextItem * item){
+    if(!item->data(0).isValid())
+        return;
+
     QWidget * widget = nullptr;
 
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _remFilter, _codec, this);
+                                     _system , item->data(1).toByteArray(), _render.remFilter, _codec, this);
             break;
         }
         case 1 :
@@ -162,13 +196,15 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
         }
         case 3 : {
             widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
-                                          , _remFilter, item->data(1).toUInt(), this);
+                                          , _render.remFilter, item->data(1).toUInt(), this);
             break;
         }
         case 4 : {
             widget = new author(_system, item->data(1).toUInt(), _cache, this);
             break;
         }
+        default:
+            return;
     }
 
     widget->setAttribute(Qt::WA_DeleteOnClose);

@@ -2,6 +2,7 @@
 #define REPCHOSE_H
 
 #include <QtWidgets>
+#include <QTextCodec>
 #include "openctree.h"
 
 namespace Ui {

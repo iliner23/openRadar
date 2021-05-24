@@ -14,12 +14,12 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     ui->graphicsView->setScene(_scene);
 
     _cache = ch;
-    _remFilter = remFilter;
+    _render.remFilter = remFilter;
     _filename = path;
     _system = system;
 
     _symptom.open(path.filePath("symptom").toStdString());
-    _index = pos;
+    _render.index = pos;
 
     renderingView(height(), width() - 10);
 
@@ -51,7 +51,7 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
         ui->listWidget_3->item(2)->setHidden(true);
 
     connect(ui->listWidget_3, &QListWidget::itemClicked, this, &Label::showTextInformation);
-    connect(_scene, &customScene::labelActivated, this, &Label::clickedAction);
+    connect(_scene, &customScene::doubleClick, this, &Label::clickedAction);
 
     for(auto i = 0; i != 3; ++i){
         if(!ui->listWidget_3->item(i)->isHidden()){
@@ -82,42 +82,44 @@ Label::~Label()
 {
     delete ui;
 }
+void Label::renderingChapter(){
+    auto returnSize = [](const auto & value, const auto & size){
+        return (value == -1) ? size : value;
+    };
 
+    const auto firstZero = returnSize
+            (_render.fullStr.indexOf('\0', _symptom.serviceDataLenght()), _render.fullStr.size());
+    const auto secondZero = returnSize
+            (_render.fullStr.indexOf('\0', firstZero + 1), _render.fullStr.size());
+
+    _render.labelsEnd = secondZero;
+    _localize = _render.localize = (secondZero - firstZero - 1 <= 0) ? false : true;
+}
 void Label::renderingView(const int heightView, const int widthView){
     _scene->clear();
-    _heightView = heightView;
-    _widthView = widthView;
+    _render.heightView = heightView;
+    _render.widthView = widthView;
 
-    Q_ASSERT(!_index.isEmpty());
-    _fullStr = QByteArray::fromStdString(_symptom.at(_index.toStdString()));
+    Q_ASSERT(!_render.index.isEmpty());
+    _render.fullStr = QByteArray::fromStdString(_symptom.at(_render.index.toStdString()));
 
     auto returnSize = [](const auto & value, const auto & size){
         return (value == -1) ? size : value;
     };
 
-    quint8 attach = 0;
-    quint16 maxDrug = 0, filter = 0;
-    int labelWidth = 0;
+    _render.attach = qFromLittleEndian<quint8>(_render.fullStr.constData() + 21);
+    _render.filter = qFromLittleEndian<quint16>(_render.fullStr.constData() + 26);
 
-    attach = qFromLittleEndian<quint8>(_fullStr.constData() + 21);
-    maxDrug = qFromLittleEndian<quint16>(_fullStr.constData() + 22);
-    filter = qFromLittleEndian<quint16>(_fullStr.constData() + 26);
-
-    if(attach == 0)
+    if(_render.attach == 0)
         return;
 
-    bool hideLabel = !(_remFilter == (quint16)-1 || (filter & _remFilter) != 0);
-    bool localize = false;
-    _labelsEnd = 0;
+    _render.hideLabel = !(_render.remFilter == (quint16)-1 || (_render.filter & _render.remFilter) != 0);
+    _render.localize = false;
+    _render.labelsEnd = 0;
 
-    {//label subfunction
-        const auto firstZero = returnSize(_fullStr.indexOf('\0', _symptom.serviceDataLenght()), _fullStr.size());
-        const auto secondZero = returnSize(_fullStr.indexOf('\0', firstZero + 1), _fullStr.size());
+    renderingChapter();//label subfunction
 
-        _labelsEnd = secondZero;
-        _localize = localize = (secondZero - firstZero - 1 <= 0) ? false : true;
-    }
-    if(!hideLabel){
+    if(!_render.hideLabel){
         {//synonyms and links
             quint8 type = 4;
 
@@ -125,11 +127,12 @@ void Label::renderingView(const int heightView, const int widthView){
                 quint8 cnt = 0;
 
                 for(auto it = 0; it != type + 1; ++it){
-                    if(_labelsEnd == _fullStr.size() || _fullStr.at(_labelsEnd) != '\0')
+                    if(_render.labelsEnd == _render.fullStr.size()
+                            || _render.fullStr.at(_render.labelsEnd) != '\0')
                         break;
 
                     ++cnt;
-                    ++_labelsEnd;
+                    ++_render.labelsEnd;
                 }
 
                 if(cnt > type)
@@ -137,11 +140,13 @@ void Label::renderingView(const int heightView, const int widthView){
 
                 type = type - cnt;
 
-                const auto tmpLinkIter = returnSize(_fullStr.indexOf('\0', _labelsEnd), _fullStr.size());
+                const auto tmpLinkIter = returnSize
+                        (_render.fullStr.indexOf('\0', _render.labelsEnd), _render.fullStr.size());
                 auto synLinkText =
-                        _codec->toUnicode(_fullStr.mid(_labelsEnd, tmpLinkIter - _labelsEnd));
+                        _codec->toUnicode(_render.fullStr.mid(_render.labelsEnd,
+                                            tmpLinkIter - _render.labelsEnd));
                 synLinkText.prepend(' ');
-                _labelsEnd = tmpLinkIter;
+                _render.labelsEnd = tmpLinkIter;
 
                 if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
                     const auto sz = _linksNames[0].size() + 1;
@@ -150,8 +155,8 @@ void Label::renderingView(const int heightView, const int widthView){
                             _linksNames[0].push_back("");
                     }
                     else if(type == 2){
-                        if((localize && sz % 2 != 0) ||
-                          (!localize && sz % 2 == 0))
+                        if((_render.localize && sz % 2 != 0) ||
+                          (!_render.localize && sz % 2 == 0))
                             _linksNames[0].push_back("");
                     }
                     else
@@ -183,8 +188,8 @@ void Label::renderingView(const int heightView, const int widthView){
                             _linksNames[lnIndex].push_back(linkText);
                         }
                         else{
-                            if((localize && delFor2 % 2 != 0) ||
-                              (!localize && delFor2 % 2 == 0))
+                            if((_render.localize && delFor2 % 2 != 0) ||
+                              (!_render.localize && delFor2 % 2 == 0))
                                 _linksNames[lnIndex].push_back("");
 
                             _linksNames[lnIndex].push_back(linkText);
@@ -204,7 +209,7 @@ void Label::renderingView(const int heightView, const int widthView){
                 _remedSize[it] = array[it].size();
 
                 for(auto & iter : array[it])
-                    addRemeds(iter, labelWidth, _widthView);
+                    addRemeds(iter, _render.labelWidth, _render.widthView);
             }
         }
     }
@@ -219,7 +224,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _remFilter, _codec, this);
+                                     _system , item->data(1).toByteArray(), _render.remFilter, _codec, this);
             break;
         }
         case 1 :
@@ -229,13 +234,15 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
         }
         case 3 : {
             widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
-                                          , _remFilter, item->data(1).toUInt(), this);
+                                          , _render.remFilter, item->data(1).toUInt(), this);
             break;
         }
         case 4 : {
             widget = new author(_system, item->data(1).toUInt(), _cache, this);
             break;
         }
+        default:
+            return;
     }
 
     widget->setAttribute(Qt::WA_DeleteOnClose);

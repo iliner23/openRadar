@@ -11,8 +11,10 @@ Q_OBJECT
 public:
     explicit customScene(QObject *parent = 0): QGraphicsScene(parent) {};
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
 signals:
-    void labelActivated(QGraphicsSimpleTextItem *);
+    void doubleClick(QGraphicsSimpleTextItem *);
+    void click(QGraphicsSimpleTextItem *);
 };
 
 #endif // CUSTOMSCENE_H

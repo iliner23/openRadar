@@ -6,6 +6,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->action_4->setEnabled(false);
+
     connect(ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::windowChanged);
     connect(ui->action, &QAction::triggered, ui->mdiArea, &QMdiArea::cascadeSubWindows);
     connect(ui->action_3, &QAction::triggered, ui->mdiArea, &QMdiArea::tileSubWindows);
@@ -131,7 +133,9 @@ void MainWindow::windowChanged(){
     }
 
     const auto sub = ui->mdiArea->activeSubWindow();
-    auto list = ui->mdiArea->subWindowList();
+    const auto list = ui->mdiArea->subWindowList();
+
+    ui->action_4->setEnabled(!list.isEmpty());
 
     for(auto & it : list){
         auto atr = ui->menu_6->addAction(it->windowTitle());
