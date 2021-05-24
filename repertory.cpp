@@ -115,6 +115,18 @@ repertory::repertory(const QDir & filename, const QDir & system,
 void repertory::repaintView(){
     renderingView(_viewLeft->height() * 2, _viewLeft->width());
 
+    if(_pointer.isEmpty())
+        _pointer = _render.index;
+
+    auto pred = [&](const auto & it){
+        return (it->data(1).toByteArray() == _pointer) ? true : false;
+    };
+
+    auto iter = std::find_if(_render.labelsVec.cbegin(), _render.labelsVec.cend(), pred);
+
+    if(iter != _render.labelsVec.cend())
+        redrawPointer(*iter);
+
     _viewLeft->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height());
     _viewRight->setSceneRect(0, _viewRight->height(), _viewRight->width(), _viewRight->height());
 
@@ -129,25 +141,41 @@ void repertory::resizeEvent(QResizeEvent * event){
     repaintView();
 }
 void repertory::changedPos(const int pos){
+    const auto oldIndex = _render.index;
+
     _symptom.at(pos, false);
     _render.index = QByteArray::fromStdString(_symptom.key());
-    const auto label = renderingLabel(true);
 
-    if(label.isEmpty()){
-        _label->clear();
-        _label->close();
+    const auto label = renderingLabel(true);
+    const bool oldVis = _label->isVisible();
+
+    _label->setText(label);
+    _label->setVisible(!label.isEmpty());
+
+    auto pred = [&](const auto & it){
+        return (it->data(1).toByteArray() == _render.index) ? true : false;
+    };
+
+    auto iter = std::find_if(_render.labelsVec.cbegin(), _render.labelsVec.cend(), pred);
+
+    if(iter != _render.labelsVec.cend()){
+        if(oldVis == _label->isVisible()){
+            redrawPointer(*iter);
+            _pointer = _render.index;
+            _render.index = oldIndex;
+        }
+        else{
+            _pointer = _render.index;
+            _render.index = oldIndex;
+            repaintView();
+        }
     }
     else{
-        _label->setText(label);
-        _label->show();
+        _pointer.clear();
+        repaintView();
     }
-
-    repaintView();
 }
-void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
-    if(!item->data(0).isValid())
-        return;
-
+void repertory::redrawPointer(QGraphicsSimpleTextItem * item){
     auto redraw = [&](const auto & it, const auto height){
         if(it->y() < height){
             _viewLeft->viewport()->update
@@ -156,13 +184,10 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
         }
         else{
             _viewRight->viewport()->update
-                    (it->x(), it->y() / 2,
-                     it ->boundingRect().width(), it->boundingRect().height());//BUG : not draw
+                    (it->x(), it->y() - height,
+                     it ->boundingRect().width(), it->boundingRect().height());
         }
     };
-
-    if(item->data(0) != 5 && item->data(0) != 0)
-        return;
 
     const auto key = item->data(1).toByteArray();
 
@@ -177,7 +202,18 @@ void repertory::clickedAction(const QGraphicsSimpleTextItem * item){
         }
     }
 }
-void repertory::doubleClickedAction(const QGraphicsSimpleTextItem * item){
+void repertory::clickedAction(QGraphicsSimpleTextItem * item){
+    if(!item->data(0).isValid())
+        return;
+
+    if(item->data(0) != 5 && item->data(0) != 0)
+        return;
+
+    _pointer = item->data(1).toByteArray();
+    _symptom.at(_pointer.toStdString(), false);
+    _bar->setValue(_symptom.currentPosition());
+}
+void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
     if(!item->data(0).isValid())
         return;
 

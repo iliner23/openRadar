@@ -142,7 +142,10 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
     _render.size = {0, 0, 0, 0};
     _render.labelsVec.clear();
 
-    while(_render.pos.y() + _render.size.height() < _render.heightView){
+    const QFontMetrics mt(_fonts.labelChapterFont);
+    const auto line = mt.maxWidth();
+
+    while(_render.pos.y() + _render.size.height() + line < _render.heightView){
         if(_render.pos.y() != 0)
             _render.pos.setY(_render.pos.y() + _render.spaceHeight);
 

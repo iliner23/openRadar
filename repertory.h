@@ -28,14 +28,16 @@ private:
     QScrollBar * _bar;
     QMenu * _menu;
     QLabel * _label;
+    QByteArray _pointer;
 
     inline void repaintView();
     void resizeEvent(QResizeEvent*);
+    void redrawPointer(QGraphicsSimpleTextItem *);
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);
-    void doubleClickedAction(const QGraphicsSimpleTextItem *item);
-    void clickedAction(const QGraphicsSimpleTextItem *item);
+    void doubleClickedAction(QGraphicsSimpleTextItem *item);
+    void clickedAction(QGraphicsSimpleTextItem *item);
 public slots:
     void setPosition(const QByteArray &);
 };
