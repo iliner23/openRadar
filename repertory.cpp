@@ -117,8 +117,20 @@ repertory::repertory(const QDir & filename, const QDir & system,
     _viewLeft->setFocusPolicy(Qt::NoFocus);
     _viewRight->setFocusPolicy(Qt::NoFocus);
 }
-void repertory::repaintView(){
+void repertory::rendering(){
     renderingView(_viewLeft->height() * 2, _viewLeft->width());
+    _viewLeft->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height());
+    _viewRight->setSceneRect(0, _viewRight->height(), _viewRight->width(), _viewRight->height());
+}
+void repertory::redrawing(){
+    auto threadDraw = [](auto * draw){ draw->viewport()->update(); };
+    auto fut1 = QtConcurrent::run(threadDraw, _viewRight);
+    auto fut2 = QtConcurrent::run(threadDraw, _viewLeft);
+    fut1.waitForFinished();
+    fut2.waitForFinished();
+}
+void repertory::repaintView(){
+    rendering();
 
     if(_pointer.isEmpty())
         _pointer = _render.index;
@@ -129,27 +141,24 @@ void repertory::repaintView(){
 
     auto iter = std::find_if(_render.labelsVec.cbegin(), _render.labelsVec.cend(), pred);
 
-    if(iter != _render.labelsVec.cend())
-        redrawPointer(*iter);
+    if(iter != _render.labelsVec.cend()){
+        for(auto & it : _render.labelsVec){
+            if(it->data(1).toByteArray() != (*iter)->data(1).toByteArray())
+                it->hide();
+            else
+                it->show();
+        }
+    }
 
-    _viewLeft->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height());
-    _viewRight->setSceneRect(0, _viewRight->height(), _viewRight->width(), _viewRight->height());
-
-    auto threadDraw = [](auto * draw){ draw->viewport()->update(); };
-    auto fut1 = QtConcurrent::run(threadDraw, _viewRight);
-    auto fut2 = QtConcurrent::run(threadDraw, _viewLeft);
-    fut1.waitForFinished();
-    fut2.waitForFinished();
+    redrawing();
 }
 void repertory::resizeEvent(QResizeEvent * event){
     event->ignore();
     repaintView();
 }
 void repertory::changedPos(const int pos){
-    const auto oldIndex = _render.index;
-
     _symptom.at(pos, false);
-    _render.index = QByteArray::fromStdString(_symptom.key());
+    const auto newIndex = QByteArray::fromStdString(_symptom.key());
 
     const auto label = renderingLabel(true);
     const bool oldVis = _label->isVisible();
@@ -158,26 +167,41 @@ void repertory::changedPos(const int pos){
     _label->setVisible(!label.isEmpty());
 
     auto pred = [&](const auto & it){
-        return (it->data(1).toByteArray() == _render.index) ? true : false;
+        return (it->data(1).toByteArray() == newIndex) ? true : false;
     };
 
-    auto iter = std::find_if(_render.labelsVec.cbegin(), _render.labelsVec.cend(), pred);
+    if(oldVis != _label->isVisible()){
+        auto iter = std::find_if(_render.labelsVec.cbegin(), _render.labelsVec.cend(), pred);
+        _pointer = newIndex;
 
-    if(iter != _render.labelsVec.cend()){
-        if(oldVis == _label->isVisible()){
-            redrawPointer(*iter);
-            _pointer = _render.index;
-            _render.index = oldIndex;
+        if(iter == _render.labelsVec.cend() ||
+                _scene->height() - _label->height() <= (*iter)->y() + (*iter)->boundingRect().height()){
+             _render.index = newIndex;
         }
-        else{
-            _pointer = _render.index;
-            _render.index = oldIndex;
-            repaintView();
+
+        rendering();
+
+        for(auto & it : _render.labelsVec){
+            if(it->data(1).toByteArray() != _pointer)
+                it->hide();
+            else
+                it->show();
         }
+
+        redrawing();
     }
     else{
-        _pointer.clear();
-        repaintView();
+        auto iter = std::find_if(_render.labelsVec.cbegin(), _render.labelsVec.cend(), pred);
+
+        if(iter != _render.labelsVec.cend()){
+            _pointer = newIndex;
+            redrawPointer(*iter);
+        }
+        else{
+            _render.index = newIndex;
+            _pointer.clear();
+            repaintView();
+        }
     }
 }
 void repertory::redrawPointer(QGraphicsSimpleTextItem * item){

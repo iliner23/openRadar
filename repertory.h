@@ -34,6 +34,8 @@ private:
     void resizeEvent(QResizeEvent*) override;
     void redrawPointer(QGraphicsSimpleTextItem *);
     void keyPressEvent(QKeyEvent *event) override;
+    void rendering();
+    void redrawing();
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);

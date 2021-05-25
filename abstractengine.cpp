@@ -110,7 +110,7 @@ void abstractEngine::renderingChapter(){
         textItem->setData(1, QByteArray::fromStdString(_symptom.key()));
         addLabel(textItem);
 
-        if(it == 0){
+        if(it == 0 && textItem->y() + textItem->boundingRect().height() <= _render.heightView){
             auto pos = new QGraphicsSimpleTextItem("->");
             pos->setX(textItem->x());
             pos->setY(textItem->y());
@@ -144,10 +144,7 @@ void abstractEngine::renderingView(const int heightView, const int widthView){
     _render.size = {0, 0, 0, 0};
     _render.labelsVec.clear();
 
-    const QFontMetrics mt(_fonts.labelChapterFont);
-    const auto line = mt.maxWidth();
-
-    while(_render.pos.y() + _render.size.height() + line < _render.heightView){
+    while(_render.pos.y() + _render.size.height() < _render.heightView){
         if(_render.pos.y() != 0)
             _render.pos.setY(_render.pos.y() + _render.spaceHeight);
 
