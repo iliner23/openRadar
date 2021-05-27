@@ -33,8 +33,8 @@ public:
     searchModel(QObject * parent = nullptr): QAbstractItemModel(parent) { _root = new _node("root"); }
     searchModel(const QDir &, const QByteArray &, QTextCodec * codec = nullptr, QObject * parent = nullptr);
     ~searchModel();
-    void setCatalogFile(const QDir &, const QByteArray &, QTextCodec * codec = nullptr);
 
+    void setCatalogFile(const QDir &, const QByteArray &, QTextCodec * codec = nullptr);
     void setTextCodec(QTextCodec *);
     QTextCodec * getTextCodec() const noexcept { return _codec; }
 

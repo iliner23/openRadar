@@ -10,8 +10,9 @@
 
 class abstractEngine {
 public:
-    static QString renderingLabel(QByteArray, openCtree &symptom,
+    static QString renderingLabel(openCtree &symptom,
                 bool pass = true, QTextCodec * codec = QTextCodec::codecForName("system"));
+    static QVector<QByteArray> getRootPath(openCtree &);
 protected:
     void renderingView(const int heightView, const int widthView);
     void addRemeds(QGraphicsItem * temp, const int labelWidth, const int widthView);

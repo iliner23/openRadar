@@ -116,7 +116,7 @@ void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, QText
                              _cache, codec, repLevel, ui->mdiArea);
     rep->setAttribute(Qt::WA_DeleteOnClose);
     rep->setWindowTitle(item.data().toString());
-    auto repPtr = ui->mdiArea->addSubWindow(rep);
+    auto repPtr = ui->mdiArea->addSubWindow(rep, Qt::SubWindow);
     repPtr->setMinimumSize(500, 500);
     repPtr->show();
 }
@@ -151,8 +151,7 @@ void MainWindow::windowActivated(QAction * action){
     ui->mdiArea->setActiveSubWindow(action->data().value<QMdiSubWindow*>());
 }
 void MainWindow::openChapters(){
-    _chapters->getWindows(ui->mdiArea->subWindowList(), ui->mdiArea->activeSubWindow());
-    _chapters->show();
+    _chapters->show(ui->mdiArea->subWindowList(), ui->mdiArea->activeSubWindow());
 }
 void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 winIndex){
     auto list = ui->mdiArea->subWindowList();

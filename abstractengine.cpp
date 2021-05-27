@@ -385,10 +385,46 @@ void abstractEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array, 
         *remedSize = remed_size;
 }
 QString abstractEngine::renderingLabel(const bool pass){
-    return renderingLabel(QByteArray::fromStdString(_symptom.currentValue()), _symptom, pass, _codec);
+    return renderingLabel(_symptom, pass, _codec);
 }
-QString abstractEngine::renderingLabel(QByteArray text, openCtree & symptom, bool pass, QTextCodec * codec){
+QVector<QByteArray> abstractEngine::getRootPath(openCtree & symptom){
+    QVector<QByteArray> array;
+    auto text = QByteArray::fromStdString(symptom.currentValue());
+    QByteArray ind(6, '\0');
+
+    std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, ind.begin());
+
+    while(true){
+        quint8 attach = 0;
+
+        array.push_back(ind);
+        text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
+
+        attach = text.at(21);
+        QByteArray midCompare(6, '\0');
+        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, midCompare.begin());
+        std::reverse_copy(text.cbegin() + 12, text.cbegin() + 18, ind.begin());
+
+        if(midCompare.left(4) != ind.left(4)){
+            ind.replace(ind.size() - 2, 2, "\0\0", 2);}
+
+        else if(ind.back() != '\0' || ind.at(ind.size() - 1) != '\0'){
+            auto decrease = qFromBigEndian<quint16>(ind.right(2)) - 1;
+            decrease = qToBigEndian<quint16>(decrease);
+            ind.replace(ind.size() - 2, 2, (char *)&decrease, 2);
+        }
+
+        if(attach == 0)
+            Q_ASSERT("attach == 0");
+        else if(attach <= 1 || ind == "\0\0\0\0\0\0")
+            break;
+    }
+
+    return array;
+}
+QString abstractEngine::renderingLabel(openCtree & symptom, bool pass, QTextCodec * codec){
     QStringList original, localization;
+    auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');
     bool fis = true;
 

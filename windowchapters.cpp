@@ -6,6 +6,7 @@ windowChapters::windowChapters(QWidget *parent) :
     ui(new Ui::windowChapters)
 {
     ui->setupUi(this);
+    _model = new searchModel(this);
     _layout = new QStackedLayout;
 
     auto page1 = new QWidget(this);
@@ -14,6 +15,7 @@ windowChapters::windowChapters(QWidget *parent) :
     _filterModel = new proxySearchModel(this);
     _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     _filterModel->setRecursiveFilteringEnabled(false);
+    _filterModel->setSourceModel(_model);
     ui->listView->setModel(_filterModel);
 
     page1->setLayout(ui->verticalLayout_2);
@@ -26,7 +28,7 @@ windowChapters::windowChapters(QWidget *parent) :
 
     setLayout(ui->verticalLayout);
 
-    connect(ui->comboBox, QOverload<int>::of(&QComboBox::activated), this, &windowChapters::windowChanged);
+    connect(ui->comboBox, QOverload<int>::of(&QComboBox::activated), this, &windowChapters::setActiveRepertory);
 
     ui->tableWidget->verticalHeader()->setVisible(false);
     ui->tableWidget->horizontalHeader()->setVisible(false);
@@ -60,37 +62,24 @@ windowChapters::windowChapters(QWidget *parent) :
 windowChapters::~windowChapters(){
     delete ui;
 }
-
-void windowChapters::getWindows(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
-    ui->comboBox->clear();
-    _dirPaths.clear();
-
-    for(auto it = 0; it != win.size(); ++it){
-        ui->comboBox->addItem(win.at(it)->windowTitle());
-
-        if(win.at(it) == mdiSub){
-            ui->comboBox->setCurrentIndex(it);
-        }
-
-        _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
-    }
-
-    _codec = qobject_cast<repertory*>(mdiSub->widget())->getTextCodec();
-}
 void windowChapters::selectedItemList(const QModelIndex & current){
     if(current.isValid())
         ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(true);
     else
         ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
-void windowChapters::windowChanged(int index){
+void windowChapters::setActiveRepertory(int comboIndex){
     if(_layout->currentIndex() != 0){
         _layout->setCurrentIndex(0);
         clearModel();
     }
 
+    tableRender(comboIndex);
+}
+void windowChapters::tableRender(int comboIndex){
     ui->lineEdit->clear();
     ui->lineEdit_2->clear();
+    _codec = ui->comboBox->itemData(comboIndex).value<repertory*>()->getTextCodec();
 
     constexpr int mx = 8;
     QVector<QTableWidgetItem*> items;
@@ -98,7 +87,7 @@ void windowChapters::windowChanged(int index){
     ui->tableWidget->setColumnCount(mx);
 
     openCtree db;
-    db.open(_dirPaths.at(index).filePath("symptom").toStdString());
+    db.open(_dirPaths.at(comboIndex).filePath("symptom").toStdString());
     db.setIndex(4);
 
     const std::string compr(6, '\0');
@@ -161,20 +150,55 @@ void windowChapters::windowChanged(int index){
 
     ui->tableWidget->setUpdatesEnabled(true);
 }
-void windowChapters::show(bool chapter){
-    if(chapter)
-        _layout->setCurrentIndex(0);
-    else
-        _layout->setCurrentIndex(1);
+void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
+    ui->comboBox->clear();
+    _dirPaths.clear();
 
-    if(ui->comboBox->count() != 0)
-        windowChanged(ui->comboBox->currentIndex());
+    for(auto it = 0; it != win.size(); ++it){
+        ui->comboBox->addItem(win.at(it)->windowTitle(), QVariant::fromValue(win.at(it)->widget()));
 
-    if(ui->comboBox->count() == 0){
-        ui->tableWidget->clear();
-        clearModel();
+        if(win.at(it) == mdiSub){
+            ui->comboBox->setCurrentIndex(it);
+        }
+
+        _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
     }
 
+    if(ui->comboBox->count() != 0)
+        tableRender(ui->comboBox->currentIndex());
+    else
+        ui->tableWidget->clear();
+
+    _layout->setCurrentIndex(0);
+    QWidget::show();
+}
+void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, const QByteArray & key){
+    ui->comboBox->clear();
+    _dirPaths.clear();
+
+    for(auto it = 0; it != win.size(); ++it){
+        ui->comboBox->addItem(win.at(it)->windowTitle());
+
+        if(win.at(it) == mdiSub)
+            ui->comboBox->setCurrentIndex(it);
+
+        _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
+    }
+
+    if(ui->comboBox->count() != 0)
+        tableRender(ui->comboBox->currentIndex());
+    else
+        ui->tableWidget->clear();
+
+    openCtree db;
+    db.open(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
+    db.at(key.toStdString(), false);
+
+    const auto path = abstractEngine::getRootPath(db);//TODO : show list from current label
+
+    showListChapter(path.back());
+
+    _layout->setCurrentIndex(1);
     QWidget::show();
 }
 void windowChapters::textFilter(const QString & text){
@@ -203,9 +227,7 @@ void windowChapters::reject_2(){
     clearModel();
 }
 void windowChapters::showListChapter(const QByteArray key){
-    _model = std::make_unique<searchModel>(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key, _codec);
-    _filterModel->setSourceModel(_model.get());
-
+    _model->setCatalogFile(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key, _codec);
     changeChapterText(key.right(6));
     ui->listView->clearFocus();
 }
@@ -246,8 +268,8 @@ void windowChapters::returnBranch(){
 }
 void windowChapters::changeChapterText(const QByteArray & key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
-    const auto column = QByteArray::fromStdString(sym.at(key.toStdString()));
-    ui->label_2->setText(abstractEngine::renderingLabel(column, sym, false));
+    sym.at(key.toStdString(), false);
+    ui->label_2->setText(abstractEngine::renderingLabel(sym, false, _codec));
 }
 void windowChapters::sendActivatedBranch(){
     auto index = _filterModel->mapToSource(ui->listView->currentIndex());
@@ -257,8 +279,6 @@ void windowChapters::sendActivatedBranch(){
 }
 void windowChapters::clearModel(){
     _filterModel->setRootIndex(QModelIndex());
-    _filterModel->setSourceModel(nullptr);
-    _model.reset();
     ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 void windowChapters::reject(){

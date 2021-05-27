@@ -34,7 +34,7 @@ void remed_author::showTextInformation(QListWidgetItem * item){
     ui->listWidget->clear();
     switch (ui->listWidget_2->row(item)){
     case 0:{
-        for(const auto & it : _authorsText)
+        for(const auto & it : qAsConst(_authorsText))
             ui->listWidget->addItem(it);
         break;
     }
@@ -45,11 +45,6 @@ void remed_author::showTextInformation(QListWidgetItem * item){
 void remed_author::rendering(){
     auto * codec = QTextCodec::codecForName("system");
     //remed
-    auto pred = [](auto it){
-        if(it != '\0')
-            return true;
-        return false;
-    };
 
     auto authorTxt = [&](const auto & text){
         QString tmp;
@@ -87,31 +82,25 @@ void remed_author::rendering(){
     };
 
     quint16 prevRem = 0;
-    const auto symptom = _sym.at(_pos.toStdString());
-    auto secondIt = symptom.cbegin() + _localPos;
+    const auto symptom = QByteArray::fromStdString(_sym.at(_pos.toStdString()));
 
-    for(auto it = std::find_if(secondIt, symptom.cend(), pred); it != symptom.cend(); ++secondIt){
-        if(*it == 0)
-            break;
-
+    while(_localPos < symptom.size()){
         quint16 remed = 0, author = 0, tLevel = 0;
         uint8_t rLevel;
 
-        if(symptom.cend() - secondIt <= 3)
+        if(symptom.size() - _localPos <= 3)
             break;
 
-        ((char *)&remed)[0] = *secondIt;
-        ((char *)&remed)[1] = *(++secondIt);
+        remed = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
+        _localPos += 2;
+        rLevel = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
+        ++_localPos;
+        author = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
+        _localPos += 2;
+        tLevel = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
+        _localPos += 2;
 
-        rLevel = *(++secondIt);
-
-        ((char *)&author)[0] = *(++secondIt);
-        ((char *)&author)[1] = *(++secondIt);
-
-        ((char *)&tLevel)[0] = *(++secondIt);
-        ((char *)&tLevel)[1] = *(++secondIt);
-
-        if(((char *)&remed)[0] == '\x5a' && ((char *)&remed)[1] == '\x5a' && rLevel == '\x5a')
+        if(memcmp(&remed, "\x5a\x5a", 2) == 0 && rLevel == '\x5a')
             break;
 
         if(prevRem != 0 && remed != prevRem)
@@ -125,18 +114,15 @@ void remed_author::rendering(){
             const auto & rmStr = _cache->_cacheRemed.at(remed);
             const auto & auStr = _cache->_cacheAuthor.at(author);
 
-            if(prevRem != remed){
+            if(prevRem != remed)
                 ui->label_2->setText(remedTxt(rmStr));
-                authorTxt(auStr);
-            }
-            else{
-                authorTxt(auStr);
-            }
+
+            authorTxt(auStr);
             prevRem = remed;
         }
     }
-    ui->label->setText(abstractEngine::renderingLabel(
-                QByteArray::fromStdString(symptom), _sym, false));
+
+    ui->label->setText(abstractEngine::renderingLabel(_sym, false));
 }
 remed_author::~remed_author()
 {

@@ -50,6 +50,7 @@
      <string>Поиск</string>
     </property>
     <addaction name="action_4"/>
+    <addaction name="action_7"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -593,6 +594,11 @@
   <action name="action_4">
    <property name="text">
     <string>Найти симптом</string>
+   </property>
+  </action>
+  <action name="action_7">
+   <property name="text">
+    <string>Найти из текущего симптома</string>
    </property>
   </action>
  </widget>

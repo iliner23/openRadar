@@ -24,7 +24,6 @@ searchModel::_node::~_node(){
     }
 }
 
-
 searchModel::searchModel(const QDir & filename, const QByteArray & data, QTextCodec * codec, QObject * object): QAbstractItemModel(object){
     setCatalogFile(filename, data, codec);
 }
@@ -99,12 +98,10 @@ void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTex
     _db.setIndex(4);
     _root = new _node("root", pos);
 
-    if(_codec == nullptr){
-        if(codec == nullptr)
-            _codec = QTextCodec::codecForName("system");
-        else
-            _codec = codec;
-    }
+    if(codec == nullptr)
+        _codec = QTextCodec::codecForName("system");
+    else
+        _codec = codec;
 
     beginResetModel();
     createHeap(_root, pos);

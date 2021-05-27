@@ -22,13 +22,14 @@ class windowChapters : public QDialog
 public:
     explicit windowChapters(QWidget *parent = nullptr);
     ~windowChapters();
-    void getWindows(QList<QMdiSubWindow*>, QMdiSubWindow*);
 public slots:
-    void show(bool chapter = true);
+    void show(QList<QMdiSubWindow*>, QMdiSubWindow*);
+    void show(QList<QMdiSubWindow*>, QMdiSubWindow *, const QByteArray &);
     void reject();
 signals:
     void activatedBranch(const QModelIndex &, const quint32);
 private slots:
+    void show() {}
     void textFilter(const QString &);
     void textFilter_2(const QString &);
     void selectedItemTable(QTableWidgetItem *);
@@ -38,9 +39,10 @@ private slots:
     void returnBranch();
     void sendActivatedBranch();
     void selectedItemList(const QModelIndex &);
+    void setActiveRepertory(int);
 private:
     void changeChapterText(const QByteArray &);
-    void windowChanged(int);
+    void tableRender(int);
     void showListChapter(const QByteArray);
     inline void clearModel();
 
@@ -48,7 +50,7 @@ private:
     QVector<QDir> _dirPaths;
     QTextCodec * _codec;
     QStackedLayout * _layout;
-    std::unique_ptr<searchModel> _model;
+    searchModel * _model = nullptr;
     proxySearchModel * _filterModel;
 };
 

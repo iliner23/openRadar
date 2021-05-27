@@ -18,7 +18,7 @@ private:
     QDir _path, _system;
     openCtree _sym;
     QByteArray _pos;
-    quint32 _localPos;
+    int _localPos;
     quint16 _remFilter = -1;
     std::shared_ptr<cache> _cache;
     QStringList _authorsText;

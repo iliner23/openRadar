@@ -22,7 +22,11 @@ bool proxySearchModel::filterAcceptsRow(int sourceRow, const QModelIndex &source
     if(mapFromSource(sourceParent) == _root){
         auto index = sourceModel()->index(sourceRow, 0, sourceParent);
 
+#if QT_VERSION >= 0x060000
         if(sourceModel()->data(index).toString().contains(filterRegularExpression()))
+#else
+        if(sourceModel()->data(index).toString().contains(filterRegExp()))
+#endif
             return true;
 
         return false;

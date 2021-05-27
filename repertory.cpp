@@ -49,6 +49,7 @@ repertory::repertory(const QDir & filename, const QDir & system,
     _label->setFont(QFont("default", 10));
 
     openCtree view(filename.filePath("view").toStdString());
+
     auto barm = new QMenuBar(this);
     _menu = new QMenu("Full remed", barm);
     barm->addMenu(_menu);
@@ -75,8 +76,6 @@ repertory::repertory(const QDir & filename, const QDir & system,
 
         mask <<= 1;
     }
-    connect(_menu, &QMenu::triggered, this, &repertory::changeFilter);
-
     _bar = new QScrollBar(Qt::Vertical, this);
     _bar->setMinimum(0);
     _bar->setMaximum(_symptom.size() - 1);
@@ -106,6 +105,7 @@ repertory::repertory(const QDir & filename, const QDir & system,
 
     _bar->setTracking(false);
 
+    connect(_menu, &QMenu::triggered, this, &repertory::changeFilter);
     connect(_bar, &QScrollBar::valueChanged, this, &repertory::changedPos);
     connect(_scene, &customScene::doubleClick, this, &repertory::doubleClickedAction);
     connect(_scene, &customScene::click, this, &repertory::clickedAction);
