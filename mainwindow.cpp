@@ -6,17 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->action_4->setEnabled(false);
-
-    connect(ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::windowChanged);
-    connect(ui->action, &QAction::triggered, ui->mdiArea, &QMdiArea::cascadeSubWindows);
-    connect(ui->action_3, &QAction::triggered, ui->mdiArea, &QMdiArea::tileSubWindows);
-    connect(ui->action_5, &QAction::triggered, ui->mdiArea, &QMdiArea::activateNextSubWindow);
-    connect(ui->action_6, &QAction::triggered, ui->mdiArea, &QMdiArea::activatePreviousSubWindow);
-    connect(ui->action_4, &QAction::triggered, this, &MainWindow::openChapters);
-
     _chapters = new windowChapters(this);
-    connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
 
     _catalog.open(QDir::toNativeSeparators("../system/catalog").toStdString());
     auto dataDirs = QDir("../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
@@ -75,7 +65,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     _choose = new RepChose(_reperts, this);
-    connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
@@ -104,6 +93,16 @@ MainWindow::MainWindow(QWidget *parent)
         ((char *)&kt)[1] = key[0];
         _cache->_cacheAuthor[kt] = std::move(tp);
     }
+
+    connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
+    connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
+    connect(ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::windowChanged);
+    connect(ui->action, &QAction::triggered, ui->mdiArea, &QMdiArea::cascadeSubWindows);
+    connect(ui->action_3, &QAction::triggered, ui->mdiArea, &QMdiArea::tileSubWindows);
+    connect(ui->action_5, &QAction::triggered, ui->mdiArea, &QMdiArea::activateNextSubWindow);
+    connect(ui->action_6, &QAction::triggered, ui->mdiArea, &QMdiArea::activatePreviousSubWindow);
+    connect(ui->action_4, &QAction::triggered, this, &MainWindow::openChapters);
+    connect(ui->action_7, &QAction::triggered, this, &MainWindow::openChaptersInCurrentPos);
 }
 
 MainWindow::~MainWindow()
@@ -136,10 +135,12 @@ void MainWindow::windowChanged(){
     const auto list = ui->mdiArea->subWindowList();
 
     ui->action_4->setEnabled(!list.isEmpty());
+    ui->action_7->setEnabled(!list.isEmpty());
 
     for(auto & it : list){
         auto atr = ui->menu_6->addAction(it->windowTitle());
         connect(ui->menu_6, &QMenu::triggered, this, &MainWindow::windowActivated);
+
         atr->setCheckable(true);
         atr->setData(QVariant::fromValue(it));
 
@@ -152,6 +153,15 @@ void MainWindow::windowActivated(QAction * action){
 }
 void MainWindow::openChapters(){
     _chapters->show(ui->mdiArea->subWindowList(), ui->mdiArea->activeSubWindow());
+}
+void MainWindow::openChaptersInCurrentPos(){
+    const auto key =
+            static_cast<class repertory*>
+                (ui->mdiArea->currentSubWindow()->widget())->getCurrentPosition();
+
+    _chapters->show(ui->mdiArea->subWindowList(),
+                    ui->mdiArea->activeSubWindow(),
+                    key);
 }
 void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 winIndex){
     auto list = ui->mdiArea->subWindowList();

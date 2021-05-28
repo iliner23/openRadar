@@ -592,11 +592,17 @@
    </property>
   </action>
   <action name="action_4">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Найти симптом</string>
    </property>
   </action>
   <action name="action_7">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Найти из текущего симптома</string>
    </property>

@@ -51,7 +51,7 @@ windowChapters::windowChapters(QWidget *parent) :
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItemTable);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
     connect(ui->tableWidget, &QTableWidget::itemActivated, this, &windowChapters::accept_1);
-    connect(ui->listView, &QListView::activated, this, &windowChapters::listClicked);
+    connect(ui->listView, &QListView::clicked, this, &windowChapters::listClicked);
     connect(ui->pushButton, &QPushButton::clicked, this, &windowChapters::returnBranch);
     connect(ui->buttonBox_2, &QDialogButtonBox::rejected, this, &windowChapters::reject_2);
     connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
@@ -71,6 +71,7 @@ void windowChapters::selectedItemList(const QModelIndex & current){
 void windowChapters::setActiveRepertory(int comboIndex){
     if(_layout->currentIndex() != 0){
         _layout->setCurrentIndex(0);
+        setWindowTitle("Окно выбора глав");
         clearModel();
     }
 
@@ -153,15 +154,18 @@ void windowChapters::tableRender(int comboIndex){
 void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
     ui->comboBox->clear();
     _dirPaths.clear();
+    setWindowTitle("Окно выбора глав");
 
     for(auto it = 0; it != win.size(); ++it){
-        ui->comboBox->addItem(win.at(it)->windowTitle(), QVariant::fromValue(win.at(it)->widget()));
+        ui->comboBox->addItem(win.at(it)->windowTitle(),
+            QVariant::fromValue(win.at(it)->widget()));
 
         if(win.at(it) == mdiSub){
             ui->comboBox->setCurrentIndex(it);
         }
 
-        _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
+        _dirPaths.push_back(qobject_cast<repertory*>
+                            (win.at(it)->widget())->getRepDir());
     }
 
     if(ui->comboBox->count() != 0)
@@ -173,16 +177,19 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
     QWidget::show();
 }
 void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, const QByteArray & key){
+    setWindowTitle("Окно выбора симптома");
     ui->comboBox->clear();
     _dirPaths.clear();
 
     for(auto it = 0; it != win.size(); ++it){
-        ui->comboBox->addItem(win.at(it)->windowTitle());
+        ui->comboBox->addItem(win.at(it)->windowTitle(),
+                QVariant::fromValue(win.at(it)->widget()));
 
         if(win.at(it) == mdiSub)
             ui->comboBox->setCurrentIndex(it);
 
-        _dirPaths.push_back(qobject_cast<repertory*>(win.at(it)->widget())->getRepDir());
+        _dirPaths.push_back(qobject_cast<repertory*>
+                            (win.at(it)->widget())->getRepDir());
     }
 
     if(ui->comboBox->count() != 0)
@@ -194,9 +201,33 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     db.open(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     db.at(key.toStdString(), false);
 
-    const auto path = abstractEngine::getRootPath(db);//TODO : show list from current label
+    auto path = abstractEngine::getRootPath(db);
+    showListChapter(QByteArray(6, '\0') + path.back());
+    auto iterPath = (path.size() > 1) ? path.cbegin() + 1 : path.cbegin();
+    changeChapterText(*iterPath);
+    path.pop_back();
 
-    showListChapter(path.back());
+    for(auto it = path.crbegin(); it != path.crend(); ++it){
+        const auto baseKey =
+                _filterModel->mapFromSource(
+                    _model->keyToIndex(*it,
+                    _filterModel->mapToSource(ui->listView->rootIndex())));
+
+        if(it != path.crend() - 1){
+            _filterModel->setRootIndex(baseKey);
+            ui->listView->setRootIndex(baseKey);
+        }
+        else{
+            ui->listView->scrollTo(baseKey);
+            ui->listView->setCurrentIndex(baseKey);
+        }
+    }
+
+    const auto ptr = static_cast<const searchModel::_node*>
+            (_filterModel->mapToSource(ui->listView->currentIndex()).internalPointer());
+
+    if(ptr != nullptr)
+        changeChapterText(ptr->parent()->key().right(6));
 
     _layout->setCurrentIndex(1);
     QWidget::show();
@@ -211,24 +242,27 @@ void windowChapters::textFilter_2(const QString & text){
     _filterModel->setFilterFixedString(text);
 }
 void windowChapters::selectedItemTable(QTableWidgetItem * item){
-    if(item == nullptr || item->text().isEmpty()){
+    if(item == nullptr || item->text().isEmpty())
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    }
     else
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 void windowChapters::accept_1(){
     ui->lineEdit->clear();
-    showListChapter(ui->tableWidget->currentItem()->data(Qt::UserRole).toByteArray());
+    const auto key = ui->tableWidget->currentItem()->data(Qt::UserRole).toByteArray();
+    showListChapter(key);
+    changeChapterText(key.right(6));
+    setWindowTitle("Окно выбора симптома");
     _layout->setCurrentIndex(1);
 }
 void windowChapters::reject_2(){
     _layout->setCurrentIndex(0);
+    setWindowTitle("Окно выбора глав");
     clearModel();
 }
 void windowChapters::showListChapter(const QByteArray key){
     _model->setCatalogFile(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom"), key, _codec);
-    changeChapterText(key.right(6));
+    _filterModel->setSourceModel(_model);
     ui->listView->clearFocus();
 }
 void windowChapters::listClicked(const QModelIndex & indexSort){
@@ -251,13 +285,13 @@ void windowChapters::listClicked(const QModelIndex & indexSort){
     }
 }
 void windowChapters::returnBranch(){
+    ui->lineEdit_2->clear();
     auto root = ui->listView->rootIndex();
 
     _filterModel->setRootIndex(root.parent());
     ui->listView->setRootIndex(root.parent());
 
     auto rootBasicModel = _filterModel->mapToSource(root);
-    ui->lineEdit_2->clear();
 
     if(ui->listView->rootIndex() == root)
         reject_2();
@@ -272,7 +306,13 @@ void windowChapters::changeChapterText(const QByteArray & key){
     ui->label_2->setText(abstractEngine::renderingLabel(sym, false, _codec));
 }
 void windowChapters::sendActivatedBranch(){
-    auto index = _filterModel->mapToSource(ui->listView->currentIndex());
+    QModelIndex index;
+
+    if(ui->listView->currentIndex().isValid())
+        index = _filterModel->mapToSource(ui->listView->currentIndex());
+    else
+        index = _filterModel->mapToSource(ui->listView->rootIndex());
+
     emit activatedBranch(index, ui->comboBox->currentIndex());
     clearModel();
     close();

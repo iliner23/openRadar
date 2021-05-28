@@ -421,8 +421,6 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
                     }
                 }
                 else{//there is leaf
-                    _lastKey = keyCmp;
-
                     if(iter->dublicate){
                         pointer = 0;
                         std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
@@ -437,6 +435,8 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
                     if(keyCmp == key){
                         if(!savePos)
                             return true;
+                        else
+                            _lastKey = keyCmp;
 
                         _lastPosition = std::numeric_limits<uint64_t>::max();
                         return readOrNot(readDbText, pointer);
@@ -444,8 +444,7 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
                 }
             }
             else if(iter->index_type == 12){//for compress indexes
-                _lastKey = uncompressString(keyCmp);
-                keyCmp = _lastKey;
+                keyCmp = uncompressString(keyCmp);
 
                 if(!lNode){//there is branch
                     if(keyCmp >= key){
@@ -468,6 +467,8 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
                     if(keyCmp == key){
                         if(!savePos)
                             return true;
+                        else
+                            _lastKey = keyCmp;
 
                         _lastPosition = std::numeric_limits<uint64_t>::max();
                         return readOrNot(readDbText, pointer);

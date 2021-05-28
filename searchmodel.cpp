@@ -34,9 +34,9 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         const auto firstIt = iter.indexOf('\0', _db.serviceDataLenght());
         const auto secondIt = iter.indexOf('\0', firstIt + 1);
         const auto localize = _codec->toUnicode(iter.mid(firstIt + 1, secondIt - firstIt - 1));
+        const auto original = _codec->toUnicode(iter.mid(_db.serviceDataLenght(), firstIt - _db.serviceDataLenght()));
 
-        QString tmpStr = iter.mid(_db.serviceDataLenght(), firstIt - _db.serviceDataLenght());
-        tmpStr += ((localize.isEmpty()) ? QString() : "\n" + localize);
+        QString tmpStr = original + ((localize.isEmpty()) ? QString() : "\n" + localize);
         return tmpStr;
     };
 
@@ -76,6 +76,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
 
     auto rev = pos.left(4);
     std::reverse(rev.begin(), rev.end());
+    iter.clear();
 
     for(quint16 i = 0; i != size; ++i){
         if(i == 0)
@@ -92,6 +93,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
     }
 }
 void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTextCodec * codec){
+    beginResetModel();
     delete _root;
 
     _db.open(file.path().toStdString());
@@ -103,7 +105,6 @@ void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTex
     else
         _codec = codec;
 
-    beginResetModel();
     createHeap(_root, pos);
     endResetModel();
 }
@@ -175,7 +176,7 @@ void searchModel::fetchMore(const QModelIndex &parent){
 
     auto parentPtr = static_cast<_node*>(parent.internalPointer());
     createHeap(parentPtr, parentPtr->key());
-    beginInsertRows(parent, 0, (int) parentPtr->childSize());
+    beginInsertRows(parent, 0, (int) parentPtr->childSize() - 1);
     endInsertRows();
 }
 bool searchModel::hasChildren(const QModelIndex &parent) const{
@@ -192,4 +193,25 @@ void searchModel::setTextCodec(QTextCodec * codec){
         return;
 
     _codec = codec;
+}
+QModelIndex searchModel::keyToIndex(const QByteArray & key, const QModelIndex & parent){
+    _node * ptrData = nullptr;
+
+    if(parent.isValid())
+        ptrData = static_cast<_node*>(parent.internalPointer());
+    else
+        ptrData = _root;
+
+    if(ptrData == nullptr)
+        return QModelIndex();
+
+    if(canFetchMore(parent))
+        fetchMore(parent);
+
+    for(uint64_t i = 0; i != ptrData->childSize(); ++i){
+        if(ptrData->child(i)->key().right(6) == key)
+            return index(i, 0, parent);
+    }
+
+    return QModelIndex();
 }

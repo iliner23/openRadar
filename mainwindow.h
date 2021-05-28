@@ -24,7 +24,10 @@ public:
 private slots:
     void on_action1_triggered();
     void openRepertory(QModelIndex &, const quint16, QTextCodec *);
+
     void openChapters();
+    void openChaptersInCurrentPos();
+
     void windowChanged();
     void windowActivated(QAction*);
     void setPositionInRepertory(const QModelIndex &, const qint32);

@@ -37,6 +37,7 @@ public:
     void setCatalogFile(const QDir &, const QByteArray &, QTextCodec * codec = nullptr);
     void setTextCodec(QTextCodec *);
     QTextCodec * getTextCodec() const noexcept { return _codec; }
+    QModelIndex keyToIndex(const QByteArray &, const QModelIndex &);
 
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex index(int row, int column,

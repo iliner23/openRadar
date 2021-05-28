@@ -22,6 +22,7 @@ public:
                        const quint16 = -1, QWidget * = nullptr);
     QDir getRepDir() const noexcept;
     QTextCodec * getTextCodec() const noexcept;
+    QByteArray getCurrentPosition() const noexcept { return _pointer; }
 private:
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;
