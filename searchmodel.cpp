@@ -42,7 +42,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
 
     auto increase = [](auto & array, const auto startPos){
         for(auto i = startPos; i != 5; --i){
-            if(std::numeric_limits<char>::max() != (uchar) array.at(i)){
+            if(std::numeric_limits<uchar>::max() != (uchar) array.at(i)){
                 array[i] = ((uchar) array.at(i)) + 1;
                 break;
             }

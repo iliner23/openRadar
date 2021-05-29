@@ -46,7 +46,7 @@ public:
     bool IsUsingNavigationItems() const noexcept { return _navigation; }
 
     void setChaptersFilter(quint16 filter) noexcept { _render.remFilter = filter; }
-    quint16 chaptersFilter() const noexcept { return _render.filter; }
+    quint16 chaptersFilter() const noexcept { return _render.remFilter; }
 
     QString renderingLabel(const bool passLastChapter = false);//from current key
 
