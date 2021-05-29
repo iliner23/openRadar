@@ -151,7 +151,7 @@ void repertoryEngine::setCurrentPosition(int pos){
     _symptom.at(pos, false);
     _render.index = QByteArray::fromStdString(_symptom.key());
 }
-void repertoryEngine::render(const int heightView, const int widthView){
+void repertoryEngine::render(const int heightView, const int widthView, const bool oneChapter){
     _render.fullStr =
             QByteArray::fromStdString(_symptom.at(_render.index.toStdString()));
     _render.heightView = heightView;
@@ -160,75 +160,213 @@ void repertoryEngine::render(const int heightView, const int widthView){
     qobject_cast<QGraphicsScene*>(parent())->
             setSceneRect(0, 0, _render.widthView, _render.heightView);
 
-    loopRender();
-}
-void repertoryEngine::loopRender(){
     _render.labelWidth = 0;
-
     qobject_cast<QGraphicsScene*>(parent())->clear();
-
     _render.pos = {0, 0};
     _render.size = {0, 0, 0, 0};
     _render.labelsVec.clear();
 
-    while(_render.pos.y() + _render.size.height() < _render.heightView){
-        if(_render.pos.y() != 0 &&
-                ((_filter & (~repertoryFilterType::links)) != 0))
-            _render.pos.setY(_render.pos.y() + _render.spaceHeight);
+    for(auto & it : _render.linksNames)
+        it.clear();
 
-        _render.pos.setX(0);
-        _render.size.setWidth(0);
+    if(!oneChapter){
+        while(_render.pos.y() + _render.size.height() < _render.heightView)
+            if(loopRender()) break;
+    }
+    else
+       loopRender();
+}
+bool repertoryEngine::loopRender(){
+    if(_render.pos.y() != 0 &&
+            ((_filter & (~repertoryFilterType::links)) != 0))
+        _render.pos.setY(_render.pos.y() + _render.spaceHeight);
 
-        QVector<QGraphicsItem*> linksSynomys;
-        linksSynomys.reserve(100);
+    _render.pos.setX(0);
+    _render.size.setWidth(0);
 
-        _render.attach = qFromLittleEndian<quint8>(_render.fullStr.constData() + 21);
-        _render.maxDrug = qFromLittleEndian<quint16>(_render.fullStr.constData() + 22);
-        _render.filter = qFromLittleEndian<quint16>(_render.fullStr.constData() + 26);
+    QVector<QGraphicsItem*> linksSynomys;
+    linksSynomys.reserve(100);
 
-        if(_render.attach == 0)
-            continue;
+    _render.attach = qFromLittleEndian<quint8>(_render.fullStr.constData() + 21);
+    _render.maxDrug = qFromLittleEndian<quint16>(_render.fullStr.constData() + 22);
+    _render.filter = qFromLittleEndian<quint16>(_render.fullStr.constData() + 26);
 
-        _render.hideLabel = !(_render.remFilter == (quint16)-1 || (_render.filter & _render.remFilter) != 0);
-        _render.localize = false;
-        _render.labelsEnd = 0;
+    if(_render.attach == 0)
+        return false;
 
-        renderingChapter();//label subfunction
+    _render.hideLabel = !(_render.remFilter == (quint16)-1 || (_render.filter & _render.remFilter) != 0);
+    _render.localize = false;
+    _render.labelsEnd = 0;
 
-        if(!_render.hideLabel){
-            linksRender(linksSynomys);//synonyms and links
+    renderingChapter();//label subfunction
 
-            if((_filter & repertoryFilterType::remeds) != 0){//remeds
-                quint64 remed_size = 0;
-                QVector<QVector<QGraphicsItemGroup*>> remeds(1);
-                remedRender(remeds, _sorting, &remed_size);
+    if(!_render.hideLabel){
+        linksRender(linksSynomys);//synonyms and links
 
-                if(remed_size != 0 && _counter){
-                    auto siz = new QGraphicsSimpleTextItem;
-                    siz->setFont(QFont(_fonts.fontName, 10));
-                    siz->setText("(" + QString::number(remed_size) + ") ");
-                    addRemeds(siz);
-                }
+        if((_filter & repertoryFilterType::remeds) != 0){//remeds
+            quint64 remed_size = 0;
+            QVector<QVector<QGraphicsItemGroup*>> remeds(1);
+            remedRender(remeds, _sorting, &remed_size);
 
-                for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
-                    //_remedSize[it] = array[it].size(); TODO
-                    for(auto & iter : *it)
-                        addRemeds(iter);
-                }
-
-
-                if(!remeds[0].empty())
-                    _render.pos.setY(_render.pos.y() + _render.spaceHeight);
+            if(remed_size != 0 && _counter){
+                auto siz = new QGraphicsSimpleTextItem;
+                siz->setFont(QFont(_fonts.fontName, 10));
+                siz->setText("(" + QString::number(remed_size) + ") ");
+                addRemeds(siz);
             }
 
-            for(const auto & it : linksSynomys)
-                addLabel(it);
+            for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
+                for(auto & iter : *it)
+                    addRemeds(iter);
+            }
+
+
+            if(!remeds[0].empty())
+                _render.pos.setY(_render.pos.y() + _render.spaceHeight);
         }
 
-        if(_symptom.key() == _render.endIndex.toStdString())
-            break;
+        for(const auto & it : linksSynomys)
+            addLabel(it);
+    }
 
-        _render.fullStr = QByteArray::fromStdString(_symptom.next());
+    if(_symptom.key() == _render.endIndex.toStdString())
+        return true;
+
+    _render.fullStr = QByteArray::fromStdString(_symptom.next());
+
+    return false;
+}
+void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText, QVector<QGraphicsItem *> & linksSynomys){
+    auto return_size = [](const auto & value, const auto & _size){
+        return (value == -1) ? _size : value;
+    };
+
+    const uint8_t lessAttach = (_render.attach > 4) ? 1 : _render.attach;
+
+    if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
+        const QString constSynomy[] =
+                { "Synomy : ", "Synomy : ", " Synomy : ", " Synomy : "};
+        auto textItem = new QGraphicsSimpleTextItem;
+
+        if(type == 2)
+            textItem->setBrush(QBrush(Qt::blue));
+        else if(type == 3){
+            if(_render.localize)
+                textItem->setBrush(QBrush(Qt::red));
+            else
+                textItem->setBrush(QBrush(Qt::blue));
+        }
+        else{
+            delete textItem;
+            return;
+        }
+
+        if(_render.attach == 1)
+            textItem->setFont(_fonts.labelChapterFont);
+        else
+            textItem->setFont(_fonts.commonFont);
+
+        textItem->setText(QString(_render.attach * _render.attachRatio, ' ')
+                          + constSynomy[lessAttach - 1] + synLinkText.mid(1));
+        linksSynomys.push_back(textItem);
+    }
+    else{
+        const QString constLinks[] =
+                        {u8" \u2b08", u8" \u2b08", u8"  \u2b08", u8"   \u2b08"};
+        const QString constSee[] = {"(see ", "(see ", " (see ", "  (see "};
+        const QColor constColor[] = {Qt::darkRed, Qt::darkBlue, Qt::red, Qt::blue};
+
+        for(auto it = 0; it != synLinkText.size(); ){
+            const auto iterEnd = return_size(synLinkText.indexOf('/', it), synLinkText.size());
+            QString linkText;
+
+            if(iterEnd != synLinkText.size()){
+                linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
+                it = iterEnd + 1;
+            }
+            else{
+                linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
+                it = iterEnd;
+            }
+
+            auto textItem = new QGraphicsSimpleTextItem;
+            QString tempLinkText = linkText.mid(1);
+
+            if(type == 1 || type == 0){
+                textItem->setFont(_fonts.defaultFont);
+                textItem->setData(0, 2);
+                tempLinkText.prepend("  " + constLinks[lessAttach - 1]);
+            }
+            else{
+                textItem->setFont(_fonts.commonFont);
+                textItem->setData(0, 1);
+                tempLinkText.prepend(constSee[lessAttach - 1]);
+                tempLinkText.append(')');
+            }
+
+            textItem->setText(QString(_render.attach * _render.attachRatio, ' ') + tempLinkText);
+            textItem->setBrush(QBrush(constColor[type +
+                               ((!_render.localize && (type + 1) % 2 != 0) ? 1 : 0)]));
+
+            textItem->setData(1, linkText);
+            textItem->setData(2, QByteArray::fromStdString(_symptom.key()));
+            textItem->setData(3, !_render.localize);
+            linksSynomys.push_back(textItem);
+        }
+    }
+}
+void repertoryEngine::linksStrings(const quint8 type , const QString & synLinkText){
+    auto return_size = [](const auto & value, const auto & _size){
+        return (value == -1) ? _size : value;
+    };
+
+    if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
+        const auto sz = _render.linksNames[0].size() + 1;
+        if(type == 3){
+            if(sz % 2 == 0)
+                _render.linksNames[0].push_back("");
+        }
+        else if(type == 2){
+            if((_render.localize && sz % 2 != 0) ||
+              (!_render.localize && sz % 2 == 0))
+                _render.linksNames[0].push_back("");
+        }
+        else
+            return;
+
+        _render.linksNames[0].push_back(synLinkText.mid(1));
+    }
+    else{
+        for(auto it = 0; it != synLinkText.size(); ){
+            const auto iterEnd = return_size(synLinkText.indexOf('/', it), synLinkText.size());
+            QString linkText;
+
+            if(iterEnd != synLinkText.size()){
+                linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
+                it = iterEnd + 1;
+            }
+            else{
+                linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
+                it = iterEnd;
+            }
+
+            const auto lnIndex = (type > 1) ? 1 : 2;
+            const auto delFor2 = (type > 1) ? _render.linksNames[1].size() + 1 : _render.linksNames[2].size() + 1;
+
+            if(type == 3 || type == 1){
+                if(delFor2 % 2 == 0)
+                    _render.linksNames[lnIndex].push_back("");
+
+                _render.linksNames[lnIndex].push_back(linkText);
+            }
+            else{
+                if((_render.localize && delFor2 % 2 != 0) ||
+                  (!_render.localize && delFor2 % 2 == 0))
+                    _render.linksNames[lnIndex].push_back("");
+
+                _render.linksNames[lnIndex].push_back(linkText);
+            }
+        }
     }
 }
 void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
@@ -237,7 +375,6 @@ void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
         return (value == -1) ? _size : value;
     };
 
-    const uint8_t lessAttach = (_render.attach > 4) ? 1 : _render.attach;
     quint8 type = 4;
 
     for(auto i = 0; i != 4; ++i){
@@ -260,86 +397,19 @@ void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
         const auto tmpLinkIter = return_size
                 (_render.fullStr.indexOf('\0', _render.labelsEnd), _render.fullStr.size());
 
-        if((_filter & repertoryFilterType::links) == 0){
-            _render.labelsEnd = tmpLinkIter;
-            continue;
-        }
-
         auto synLinkText =
                 _codec->toUnicode(_render.fullStr.mid
                     (_render.labelsEnd, tmpLinkIter - _render.labelsEnd));
         synLinkText.prepend(' ');
         _render.labelsEnd = tmpLinkIter;
 
-        if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
-            const QString constSynomy[] =
-                    { "Synomy : ", "Synomy : ", " Synomy : ", " Synomy : "};
-            auto textItem = new QGraphicsSimpleTextItem;
+        if(_getLinksStr)
+            linksStrings(type, synLinkText);
 
-            if(type == 2)
-                textItem->setBrush(QBrush(Qt::blue));
-            else if(type == 3){
-                if(_render.localize)
-                    textItem->setBrush(QBrush(Qt::red));
-                else
-                    textItem->setBrush(QBrush(Qt::blue));
-            }
-            else
-                continue;
+        if((_filter & repertoryFilterType::links) == 0)
+            continue;
 
-            if(_render.attach == 1)
-                textItem->setFont(_fonts.labelChapterFont);
-            else
-                textItem->setFont(_fonts.commonFont);
-
-            textItem->setText(QString(_render.attach * _render.attachRatio, ' ')
-                              + constSynomy[lessAttach - 1] + synLinkText.mid(1));
-            linksSynomys.push_back(textItem);
-        }
-        else{
-            const QString constLinks[] =
-                            {u8" \u2b08", u8" \u2b08", u8"  \u2b08", u8"   \u2b08"};
-            const QString constSee[] = {"(see ", "(see ", " (see ", "  (see "};
-            const QColor constColor[] = {Qt::darkRed, Qt::darkBlue, Qt::red, Qt::blue};
-
-            for(auto it = 0; it != synLinkText.size(); ){
-                const auto iterEnd = return_size(synLinkText.indexOf('/', it), synLinkText.size());
-                QString linkText;
-
-                if(iterEnd != synLinkText.size()){
-                    linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
-                    it = iterEnd + 1;
-                }
-                else{
-                    linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
-                    it = iterEnd;
-                }
-
-                auto textItem = new QGraphicsSimpleTextItem;
-                QString tempLinkText = linkText.mid(1);
-
-                if(type == 1 || type == 0){
-                    textItem->setFont(_fonts.defaultFont);
-                    textItem->setData(0, 2);
-                    tempLinkText.prepend("  " + constLinks[lessAttach - 1]);
-                }
-                else{
-                    textItem->setFont(_fonts.commonFont);
-                    textItem->setData(0, 1);
-                    tempLinkText.prepend(constSee[lessAttach - 1]);
-                    tempLinkText.append(')');
-                }
-
-                textItem->setText(QString(_render.attach * _render.attachRatio, ' ') + tempLinkText);
-                textItem->setBrush(QBrush(constColor[type +
-                                   ((!_render.localize && (type + 1) % 2 != 0) ? 1 : 0)]));
-
-                textItem->setData(1, linkText);
-                textItem->setData(2, QByteArray::fromStdString(_symptom.key()));
-                textItem->setData(3, !_render.localize);
-                linksSynomys.push_back(textItem);
-            }
-        }
+        linksItems(type, synLinkText, linksSynomys);
 
         if(type == 0)
             break;

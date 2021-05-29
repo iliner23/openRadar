@@ -31,8 +31,7 @@ public:
     QByteArray currentKey() const noexcept { return _render.index; }
     int currentPosition() { return _symptom.currentPosition(); }
 
-    void render(const int heightView, const int widthView);
-    void render(const QByteArray & startKey, const QByteArray & endKey = "");
+    void render(const int heightView, const int widthView, const bool oneChapter = false);
 
     int chaptersSize() const { return _symptom.size(); }
 
@@ -54,6 +53,12 @@ public:
     void setRemedsCounter(bool counter) noexcept { _counter = counter; }
     bool IsRemedsCounter() const noexcept { return _counter; }
 
+    void setGetLinksStrings(bool strings) noexcept { _getLinksStr = strings; }
+    bool IsGetLinksStrings() const noexcept { return _getLinksStr; }
+    QStringList synomyList() const { return _render.linksNames[0]; }
+    QStringList masterReferensesList() const { return _render.linksNames[1]; }
+    QStringList crossReferensesList() const { return _render.linksNames[2]; }
+
     static QString renderingLabel(openCtree &symptom,
                 bool passLastChapter = true, QTextCodec * codec = QTextCodec::codecForName("system"));
     static QVector<QByteArray> getRootPath(openCtree &);
@@ -65,9 +70,9 @@ private:
     openCtree _symptom;
     repertoryFilterType _filter = repertoryFilterType::all;
     bool _sorting = false;
-    QVector<QGraphicsItem*> _navItems;
     bool _navigation = false;
     bool _counter = true;
+    bool _getLinksStr = false;
 
     struct{
         QString fontName;
@@ -100,16 +105,19 @@ private:
         bool hideLabel = false;
 
         QVector<QGraphicsItem*> labelsVec;
+        QStringList linksNames[3];
     } _render;
 
     void renderingChapter();
-    inline void authorsSym(const QString & autr, const quint16 author, QGraphicsItemGroup * allrm, const bool next = false);
+    inline void authorsSym(const QString &, const quint16, QGraphicsItemGroup *, const bool next = false);
     inline void remedRender(QVector<QVector<QGraphicsItemGroup*>> &,
                      bool sorting = false, quint64 * remedSize = nullptr);
     inline void addLabel(QGraphicsItem *);
-    void addRemeds(QGraphicsItem * temp);
+    void addRemeds(QGraphicsItem *);
     inline void linksRender(QVector<QGraphicsItem*> &);
-    inline void loopRender();
+    inline bool loopRender();
+    inline void linksStrings(const quint8, const QString &);
+    inline void linksItems(const quint8, const QString &, QVector<QGraphicsItem *> &);
 };
 
 #endif // REPERTORYENGINE_H

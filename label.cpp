@@ -3,7 +3,7 @@
 
 Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system,
              const QByteArray & pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
-    QDialog(parent), abstractEngine(codec), ui(new Ui::Label)
+    QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
     setFixedSize(700, 700);
@@ -14,21 +14,36 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     ui->graphicsView->setScene(_scene);
 
     _cache = ch;
-    _render.remFilter = remFilter;
+    _remFilter = remFilter;
     _filename = path;
     _system = system;
 
-    _symptom.open(path.filePath("symptom").toStdString());
-    _render.index = pos;
+    if(codec == nullptr)
+        _codec = QTextCodec::codecForName("system");
+    else
+        _codec = codec;
 
-    renderingView(height(), width() - 10);
+    _engine = new repertoryEngine(_filename, _cache, _scene, _codec);
+
+    //_symptom.open(path.filePath("symptom").toStdString());
+    _engine->setCurrentKey(pos);
+    _engine->setChaptersFilter(remFilter);
+    _engine->setFilter(repertoryFilterType::remeds);
+    _engine->setSortingRemeds(true);
+    _engine->setRemedsCounter(false);
+    _engine->setGetLinksStrings(true);
+    _engine->render(height(), width() - 10, true);
+
+    _linksNames[0] = _engine->synomyList();
+    _linksNames[1] = _engine->masterReferensesList();
+    _linksNames[2] = _engine->crossReferensesList();
 
     if(!_localize){
         ui->label_4->setHidden(true);
         ui->listWidget_2->setHidden(true);
     }
 
-    ui->label->setText(renderingLabel());
+    ui->label->setText(_engine->renderingLabel());
 
     ui->label_2->setFont(QFont("default", 10));
     ui->label_2->setText(QString::number(_remedSize[0] + _remedSize[1]
@@ -82,138 +97,6 @@ Label::~Label()
 {
     delete ui;
 }
-void Label::renderingChapter(){
-    auto returnSize = [](const auto & value, const auto & size){
-        return (value == -1) ? size : value;
-    };
-
-    const auto firstZero = returnSize
-            (_render.fullStr.indexOf('\0', _symptom.serviceDataLenght()), _render.fullStr.size());
-    const auto secondZero = returnSize
-            (_render.fullStr.indexOf('\0', firstZero + 1), _render.fullStr.size());
-
-    _render.labelsEnd = secondZero;
-    _localize = _render.localize = (secondZero - firstZero - 1 <= 0) ? false : true;
-}
-void Label::renderingView(const int heightView, const int widthView){
-    _scene->clear();
-    _render.heightView = heightView;
-    _render.widthView = widthView;
-
-    Q_ASSERT(!_render.index.isEmpty());
-    _render.fullStr = QByteArray::fromStdString(_symptom.at(_render.index.toStdString()));
-
-    auto returnSize = [](const auto & value, const auto & size){
-        return (value == -1) ? size : value;
-    };
-
-    _render.attach = qFromLittleEndian<quint8>(_render.fullStr.constData() + 21);
-    _render.filter = qFromLittleEndian<quint16>(_render.fullStr.constData() + 26);
-
-    if(_render.attach == 0)
-        return;
-
-    _render.hideLabel = !(_render.remFilter == (quint16)-1 || (_render.filter & _render.remFilter) != 0);
-    _render.localize = false;
-    _render.labelsEnd = 0;
-
-    renderingChapter();//label subfunction
-
-    if(!_render.hideLabel){
-        {//synonyms and links
-            quint8 type = 4;
-
-            for(auto i = 0; i != 4; ++i){
-                quint8 cnt = 0;
-
-                for(auto it = 0; it != type + 1; ++it){
-                    if(_render.labelsEnd == _render.fullStr.size()
-                            || _render.fullStr.at(_render.labelsEnd) != '\0')
-                        break;
-
-                    ++cnt;
-                    ++_render.labelsEnd;
-                }
-
-                if(cnt > type)
-                    break;
-
-                type = type - cnt;
-
-                const auto tmpLinkIter = returnSize
-                        (_render.fullStr.indexOf('\0', _render.labelsEnd), _render.fullStr.size());
-                auto synLinkText =
-                        _codec->toUnicode(_render.fullStr.mid(_render.labelsEnd,
-                                            tmpLinkIter - _render.labelsEnd));
-                synLinkText.prepend(' ');
-                _render.labelsEnd = tmpLinkIter;
-
-                if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
-                    const auto sz = _linksNames[0].size() + 1;
-                    if(type == 3){
-                        if(sz % 2 == 0)
-                            _linksNames[0].push_back("");
-                    }
-                    else if(type == 2){
-                        if((_render.localize && sz % 2 != 0) ||
-                          (!_render.localize && sz % 2 == 0))
-                            _linksNames[0].push_back("");
-                    }
-                    else
-                        continue;
-
-                    _linksNames[0].push_back(synLinkText.mid(1));
-                }
-                else{
-                    for(auto it = 0; it != synLinkText.size(); ){
-                        const auto iterEnd = returnSize(synLinkText.indexOf('/', it), synLinkText.size());
-                        QString linkText;
-
-                        if(iterEnd != synLinkText.size()){
-                            linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
-                            it = iterEnd + 1;
-                        }
-                        else{
-                            linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
-                            it = iterEnd;
-                        }
-
-                        const auto lnIndex = (type > 1) ? 1 : 2;
-                        const auto delFor2 = (type > 1) ? _linksNames[1].size() + 1 : _linksNames[2].size() + 1;
-
-                        if(type == 3 || type == 1){
-                            if(delFor2 % 2 == 0)
-                                _linksNames[lnIndex].push_back("");
-
-                            _linksNames[lnIndex].push_back(linkText);
-                        }
-                        else{
-                            if((_render.localize && delFor2 % 2 != 0) ||
-                              (!_render.localize && delFor2 % 2 == 0))
-                                _linksNames[lnIndex].push_back("");
-
-                            _linksNames[lnIndex].push_back(linkText);
-                        }
-                    }
-                }
-
-                if(type == 0)
-                    break;
-            }
-        }
-        {//remeds
-            QVector<QVector<QGraphicsItemGroup*>> array(4);
-            remedRender(array, true);
-
-            for(auto it = 3; it != -1; --it){
-                _remedSize[it] = array[it].size();
-
-                for(auto & iter : array[it])
-                    addRemeds(iter, _render.labelWidth, _render.widthView);
-            }
-        }
-    }
-}
 void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
     if(!item->data(0).isValid())
@@ -224,7 +107,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _render.remFilter, _codec, this);
+                                     _system , item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
             break;
         }
         case 1 :
@@ -234,7 +117,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
         }
         case 3 : {
             widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
-                                          , _render.remFilter, item->data(1).toUInt(), this);
+                                          , _engine->chaptersFilter(), item->data(1).toUInt(), this);
             break;
         }
         case 4 : {

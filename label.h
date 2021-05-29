@@ -10,21 +10,27 @@
 #include "cache.h"
 #include "remed_author.h"
 #include "author.h"
+#include "repertoryengine.h"
 
 namespace Ui {
 class Label;
 }
 
-class Label : public QDialog, public abstractEngine
+class Label : public QDialog
 {
     Q_OBJECT
 private:
     Ui::Label *ui;
     quint32 _remedSize[4] = {0, 0, 0, 0};
     bool _localize = false;
+    customScene * _scene;
+    std::shared_ptr<cache> _cache;
+    quint16 _remFilter = -1;
+    QDir _filename, _system;
     QStringList _linksNames[3];//_synomSL, _masterSL, _referSL
+    repertoryEngine * _engine;
+    QTextCodec * _codec;
 
-    void renderingView(const int heightView, const int widthView);
     void renderingChapter();
 private slots:
     void showTextInformation(QListWidgetItem*);
