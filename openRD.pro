@@ -30,6 +30,7 @@ SOURCES += \
     remed_author.cpp \
     repchose.cpp \
     repertory.cpp \
+    repertoryengine.cpp \
     searchmodel.cpp \
     windowchapters.cpp
 
@@ -46,6 +47,7 @@ HEADERS += \
     remed_author.h \
     repchose.h \
     repertory.h \
+    repertoryengine.h \
     searchmodel.h \
     windowchapters.h
 

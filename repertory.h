@@ -12,8 +12,9 @@
 #include "cache.h"
 #include "author.h"
 #include "abstractengine.h"
+#include "repertoryengine.h"
 
-class repertory : public QWidget, public abstractEngine
+class repertory : public QWidget//, public abstractEngine
 {
     Q_OBJECT
 public:
@@ -26,14 +27,20 @@ public:
 private:
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;
+    customScene * _scene;
     QScrollBar * _bar;
     QMenu * _menu;
     QLabel * _label;
     QByteArray _pointer;
+    repertoryEngine * _engine;
+
+    QTextCodec * _codec = nullptr;
+    std::shared_ptr<cache> _cache;
+    QDir _filename, _system;
 
     inline void repaintView();
     void resizeEvent(QResizeEvent*) override;
-    void redrawPointer(QGraphicsSimpleTextItem *);
+    void redrawPointer(QGraphicsItem *, const QVector<QGraphicsItem*> &);
     void keyPressEvent(QKeyEvent *event) override;
     void rendering();
     void redrawing();
