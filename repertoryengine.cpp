@@ -1,12 +1,12 @@
 #include "repertoryengine.h"
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 repertoryEngine::repertoryEngine(QGraphicsScene *parent): QObject(parent){
     initFonts();
 }
-
 repertoryEngine::repertoryEngine(const QDir & filename, const std::shared_ptr<cache> & cache
                                  , QGraphicsScene *parent, QTextCodec * codec) : QObject(parent){
     initFonts();
-    reset(filename, cache, codec);
+    repertoryEngine::reset(filename, cache, codec);
 }
 void repertoryEngine::initFonts(){
     _fonts.fontName = "cursive";
@@ -166,9 +166,6 @@ void repertoryEngine::render(const int heightView, const int widthView, const bo
     _render.size = {0, 0, 0, 0};
     _render.labelsVec.clear();
 
-    for(auto & it : _render.linksNames)
-        it.clear();
-
     if(!oneChapter){
         while(_render.pos.y() + _render.size.height() < _render.heightView)
             if(loopRender()) break;
@@ -203,11 +200,11 @@ bool repertoryEngine::loopRender(){
     if(!_render.hideLabel){
         linksRender(linksSynomys);//synonyms and links
 
-        if((_filter & repertoryFilterType::remeds) != 0){//remeds
-            quint64 remed_size = 0;
-            QVector<QVector<QGraphicsItemGroup*>> remeds(1);
-            remedRender(remeds, _sorting, &remed_size);
+        quint64 remed_size = 0;
+        QVector<QVector<QGraphicsItemGroup*>> remeds(1);
+        remedRender(remeds, _sorting, &remed_size);
 
+        if((_filter & repertoryFilterType::remeds) != 0){//remeds
             if(remed_size != 0 && _counter){
                 auto siz = new QGraphicsSimpleTextItem;
                 siz->setFont(QFont(_fonts.fontName, 10));
@@ -215,11 +212,7 @@ bool repertoryEngine::loopRender(){
                 addRemeds(siz);
             }
 
-            for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
-                for(auto & iter : *it)
-                    addRemeds(iter);
-            }
-
+            sortRemeds(remeds);
 
             if(!remeds[0].empty())
                 _render.pos.setY(_render.pos.y() + _render.spaceHeight);
@@ -236,7 +229,16 @@ bool repertoryEngine::loopRender(){
 
     return false;
 }
+void repertoryEngine::sortRemeds(QVector<QVector<QGraphicsItemGroup*>> & remeds){
+    for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
+        for(auto & iter : *it)
+            addRemeds(iter);
+    }
+}
 void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText, QVector<QGraphicsItem *> & linksSynomys){
+    if((_filter & repertoryFilterType::links) == 0)
+        return;
+
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
@@ -315,60 +317,6 @@ void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText,
         }
     }
 }
-void repertoryEngine::linksStrings(const quint8 type , const QString & synLinkText){
-    auto return_size = [](const auto & value, const auto & _size){
-        return (value == -1) ? _size : value;
-    };
-
-    if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
-        const auto sz = _render.linksNames[0].size() + 1;
-        if(type == 3){
-            if(sz % 2 == 0)
-                _render.linksNames[0].push_back("");
-        }
-        else if(type == 2){
-            if((_render.localize && sz % 2 != 0) ||
-              (!_render.localize && sz % 2 == 0))
-                _render.linksNames[0].push_back("");
-        }
-        else
-            return;
-
-        _render.linksNames[0].push_back(synLinkText.mid(1));
-    }
-    else{
-        for(auto it = 0; it != synLinkText.size(); ){
-            const auto iterEnd = return_size(synLinkText.indexOf('/', it), synLinkText.size());
-            QString linkText;
-
-            if(iterEnd != synLinkText.size()){
-                linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
-                it = iterEnd + 1;
-            }
-            else{
-                linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
-                it = iterEnd;
-            }
-
-            const auto lnIndex = (type > 1) ? 1 : 2;
-            const auto delFor2 = (type > 1) ? _render.linksNames[1].size() + 1 : _render.linksNames[2].size() + 1;
-
-            if(type == 3 || type == 1){
-                if(delFor2 % 2 == 0)
-                    _render.linksNames[lnIndex].push_back("");
-
-                _render.linksNames[lnIndex].push_back(linkText);
-            }
-            else{
-                if((_render.localize && delFor2 % 2 != 0) ||
-                  (!_render.localize && delFor2 % 2 == 0))
-                    _render.linksNames[lnIndex].push_back("");
-
-                _render.linksNames[lnIndex].push_back(linkText);
-            }
-        }
-    }
-}
 void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
     //synonyms and links
     auto return_size = [](const auto & value, const auto & _size){
@@ -403,12 +351,6 @@ void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
         synLinkText.prepend(' ');
         _render.labelsEnd = tmpLinkIter;
 
-        if(_getLinksStr)
-            linksStrings(type, synLinkText);
-
-        if((_filter & repertoryFilterType::links) == 0)
-            continue;
-
         linksItems(type, synLinkText, linksSynomys);
 
         if(type == 0)
@@ -416,6 +358,9 @@ void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
     }
 }
 void repertoryEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array, bool sorting, quint64 * remedSize){
+    if((_filter & repertoryFilterType::remeds) == 0)
+        return;
+
     if(_sorting)
         array.resize(4);
 
@@ -617,4 +562,92 @@ QString repertoryEngine::renderingLabel(openCtree & symptom, bool pass, QTextCod
     }
 
     return org + ((localization.isEmpty()) ? "" : '\n' + lz);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void labelEngine::render(const int heightView, const int widthView, const bool oneChapter){
+    for(auto & it : _label.linksNames)
+        it.clear();
+
+    repertoryEngine::render(heightView, widthView, oneChapter);
+}
+int labelEngine::fullRemedsCount() const{
+    int size = 0;
+
+    for(const auto & it : _label.remedsSize)
+        size += it;
+
+    return size;
+}
+void labelEngine::linksItems(const quint8 type, const QString & synLinkText, QVector<QGraphicsItem *> & links){
+    if(_getLinksStr)
+        linksStrings(type, synLinkText);
+
+    repertoryEngine::linksItems(type, synLinkText, links);
+}
+void labelEngine::sortRemeds(QVector<QVector<QGraphicsItemGroup*>> & remeds){
+    std::array<int, 4> sizeRem;
+
+    for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
+        sizeRem.at(it - remeds.rbegin()) = it->size();
+
+        for(auto & iter : *it)
+            addRemeds(iter);
+    }
+
+    _label.remedsSize = std::move(sizeRem);
+}
+void labelEngine::linksStrings(const quint8 type , const QString & synLinkText){
+    auto return_size = [](const auto & value, const auto & _size){
+        return (value == -1) ? _size : value;
+    };
+
+    if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
+        const auto sz = _label.linksNames[0].size() + 1;
+        if(type == 3){
+            if(sz % 2 == 0)
+                _label.linksNames[0].push_back("");
+        }
+        else if(type == 2){
+            if((_render.localize && sz % 2 != 0) ||
+              (!_render.localize && sz % 2 == 0))
+                _label.linksNames[0].push_back("");
+        }
+        else
+            return;
+
+        _label.linksNames[0].push_back(synLinkText.mid(1));
+    }
+    else{
+        for(auto it = 0; it != synLinkText.size(); ){
+            const auto iterEnd = return_size(synLinkText.indexOf('/', it), synLinkText.size());
+            QString linkText;
+
+            if(iterEnd != synLinkText.size()){
+                linkText = synLinkText.mid(it + 1, iterEnd - it - 2);
+                it = iterEnd + 1;
+            }
+            else{
+                linkText = synLinkText.mid(it + 1, iterEnd - it - 1);
+                it = iterEnd;
+            }
+
+            const auto lnIndex = (type > 1) ? 1 : 2;
+            const auto delFor2 = (type > 1) ? _label.linksNames[1].size() + 1 : _label.linksNames[2].size() + 1;
+
+            if(type == 3 || type == 1){
+                if(delFor2 % 2 == 0)
+                    _label.linksNames[lnIndex].push_back("");
+
+                _label.linksNames[lnIndex].push_back(linkText);
+            }
+            else{
+                if((_render.localize && delFor2 % 2 != 0) ||
+                  (!_render.localize && delFor2 % 2 == 0))
+                    _label.linksNames[lnIndex].push_back("");
+
+                _label.linksNames[lnIndex].push_back(linkText);
+            }
+        }
+    }
 }

@@ -23,9 +23,8 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     else
         _codec = codec;
 
-    _engine = new repertoryEngine(_filename, _cache, _scene, _codec);
+    _engine = new labelEngine(_filename, _cache, _scene, _codec);
 
-    //_symptom.open(path.filePath("symptom").toStdString());
     _engine->setCurrentKey(pos);
     _engine->setChaptersFilter(remFilter);
     _engine->setFilter(repertoryFilterType::remeds);
@@ -33,10 +32,16 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
     _engine->setRemedsCounter(false);
     _engine->setGetLinksStrings(true);
     _engine->render(height(), width() - 10, true);
+    _localize = _engine->IsLocalize();
 
     _linksNames[0] = _engine->synomyList();
     _linksNames[1] = _engine->masterReferensesList();
     _linksNames[2] = _engine->crossReferensesList();
+
+    _remedSize[3] = _engine->remeds1TypeCount();
+    _remedSize[2] = _engine->remeds2TypeCount();
+    _remedSize[1] = _engine->remeds3TypeCount();
+    _remedSize[0] = _engine->remeds4TypeCount();
 
     if(!_localize){
         ui->label_4->setHidden(true);

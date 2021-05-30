@@ -28,7 +28,7 @@ private:
     quint16 _remFilter = -1;
     QDir _filename, _system;
     QStringList _linksNames[3];//_synomSL, _masterSL, _referSL
-    repertoryEngine * _engine;
+    labelEngine * _engine;
     QTextCodec * _codec;
 
     void renderingChapter();
