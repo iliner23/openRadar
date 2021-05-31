@@ -18,11 +18,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 
 SOURCES += \
-    abstractengine.cpp \
     author.cpp \
     customscene.cpp \
     delegate.cpp \
     label.cpp \
+    labelengine.cpp \
     main.cpp \
     mainwindow.cpp \
     openctree.cpp \
@@ -35,12 +35,12 @@ SOURCES += \
     windowchapters.cpp
 
 HEADERS += \
-    abstractengine.h \
     author.h \
     cache.h \
     customscene.h \
     delegate.h \
     label.h \
+    labelengine.h \
     mainwindow.h \
     openctree.h \
     proxysearchmodel.h \

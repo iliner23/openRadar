@@ -11,7 +11,6 @@
 #include "remed_author.h"
 #include "cache.h"
 #include "author.h"
-#include "abstractengine.h"
 #include "repertoryengine.h"
 
 class repertory : public QWidget//, public abstractEngine

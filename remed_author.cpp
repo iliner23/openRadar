@@ -122,7 +122,7 @@ void remed_author::rendering(){
         }
     }
 
-    ui->label->setText(abstractEngine::renderingLabel(_sym, false));
+    ui->label->setText(repertoryEngine::renderingLabel(_sym, false));
 }
 remed_author::~remed_author()
 {

@@ -2,10 +2,11 @@
 #define REMED_AUTHOR_H
 
 #include <QtWidgets>
+#include <QTextCodec>
 #include "openctree.h"
 #include <memory>
 #include "cache.h"
-#include "abstractengine.h"
+#include "repertoryengine.h"
 
 namespace Ui {
 class remed_author;

@@ -27,7 +27,7 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system
 
     _engine->setCurrentKey(pos);
     _engine->setChaptersFilter(remFilter);
-    _engine->setFilter(repertoryFilterType::remeds);
+    _engine->setFilterElements(labelEngine::remeds);
     _engine->setSortingRemeds(true);
     _engine->setRemedsCounter(false);
     _engine->setGetLinksStrings(true);
