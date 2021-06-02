@@ -6,7 +6,6 @@ RepChose::RepChose(const QStringList & repertories, QWidget *parent) :
     ui(new Ui::RepChose)
 {
     ui->setupUi(this);
-    ui->pushButton_3->setEnabled(false);
 
     openCtree view;
     uint8_t count = 0;
