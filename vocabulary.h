@@ -2,6 +2,7 @@
 #define VOCABULARY_H
 
 #include <QDialog>
+#include "repertorywords.h"
 
 namespace Ui {
 class vocabulary;
