@@ -51,6 +51,8 @@
     </property>
     <addaction name="action_4"/>
     <addaction name="action_7"/>
+    <addaction name="separator"/>
+    <addaction name="action_8"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -605,6 +607,14 @@
    </property>
    <property name="text">
     <string>Найти из текущего симптома</string>
+   </property>
+  </action>
+  <action name="action_8">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Словарный указатель</string>
    </property>
   </action>
  </widget>

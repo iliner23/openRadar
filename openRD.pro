@@ -31,7 +31,9 @@ SOURCES += \
     repchose.cpp \
     repertory.cpp \
     repertoryengine.cpp \
+    repertorywords.cpp \
     searchmodel.cpp \
+    vocabulary.cpp \
     windowchapters.cpp
 
 HEADERS += \
@@ -48,7 +50,9 @@ HEADERS += \
     repchose.h \
     repertory.h \
     repertoryengine.h \
+    repertorywords.h \
     searchmodel.h \
+    vocabulary.h \
     windowchapters.h
 
 FORMS += \
@@ -57,6 +61,7 @@ FORMS += \
     mainwindow.ui \
     remed_author.ui \
     repchose.ui \
+    vocabulary.ui \
     windowchapters.ui
 
 TRANSLATIONS += \

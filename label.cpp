@@ -1,22 +1,21 @@
 #include "label.h"
 #include "ui_label.h"
 
-Label::Label(std::shared_ptr<cache> & ch, const QDir & path, const QDir & system,
+Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
              const QByteArray & pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
     QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
-    setFixedSize(700, 700);
     setLayout(ui->gridLayout);
     ui->tab->setLayout(ui->verticalLayout);
     ui->tab_2->setLayout(ui->gridLayout_2);
     _scene = new customScene(ui->tab_2);
     ui->graphicsView->setScene(_scene);
+    setFixedSize(size());
 
     _cache = ch;
     _remFilter = remFilter;
     _filename = path;
-    _system = system;
 
     if(codec == nullptr)
         _codec = QTextCodec::codecForName("system");
@@ -112,7 +111,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+                        item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
             break;
         }
         case 1 :
@@ -121,12 +120,12 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
             return;
         }
         case 3 : {
-            widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
+            widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
                                           , _engine->chaptersFilter(), item->data(1).toUInt(), this);
             break;
         }
         case 4 : {
-            widget = new author(_system, item->data(1).toUInt(), _cache, this);
+            widget = new author(item->data(1).toUInt(), _cache, this);
             break;
         }
         default:

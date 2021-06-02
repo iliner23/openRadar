@@ -1,15 +1,13 @@
 #include "author.h"
 #include "ui_author.h"
 
-author::author(const QDir & system, const quint32 authorPos, std::shared_ptr<cache> & ch, QWidget *parent) :
+author::author(const quint32 authorPos, std::shared_ptr<cache> & ch, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::author)
 {
-    setFixedSize(800, 600);
     auto * locale = QTextCodec::codecForName("system");
     ui->setupUi(this);
     _cache = ch;
-    _system = system;
     _authorPos = authorPos;
     setLayout(ui->verticalLayout_2);
     ui->frame->setLayout(ui->verticalLayout);

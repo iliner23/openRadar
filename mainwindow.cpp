@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     _choose = new RepChose(_reperts, this);
+    _vocabulary = new vocabulary(this);
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
@@ -103,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_6, &QAction::triggered, ui->mdiArea, &QMdiArea::activatePreviousSubWindow);
     connect(ui->action_4, &QAction::triggered, this, &MainWindow::openChapters);
     connect(ui->action_7, &QAction::triggered, this, &MainWindow::openChaptersInCurrentPos);
+    connect(ui->action_8, &QAction::triggered, this, &MainWindow::openVocabulary);
 }
 
 MainWindow::~MainWindow()
@@ -169,4 +171,7 @@ void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 wi
         auto window = qobject_cast<repertory*>(list.at(winIndex)->widget());
         window->setPosition(static_cast<const searchModel::_node *>(pos.internalPointer())->key().right(6));
     }
+}
+void MainWindow::openVocabulary(){
+    _vocabulary->open();
 }

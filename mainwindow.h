@@ -8,6 +8,7 @@
 #include "repertory.h"
 #include "cache.h"
 #include "windowchapters.h"
+#include "vocabulary.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,10 +32,14 @@ private slots:
     void windowChanged();
     void windowActivated(QAction*);
     void setPositionInRepertory(const QModelIndex &, const qint32);
+
+    void openVocabulary();//NOTE : in developend
 private:
     Ui::MainWindow *ui;
     RepChose * _choose = nullptr;
     windowChapters * _chapters = nullptr;
+    vocabulary * _vocabulary = nullptr;
+
     openCtree _catalog;
     QStringList _reperts;
     QStringList _keys;

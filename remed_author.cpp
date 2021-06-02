@@ -1,7 +1,7 @@
 #include "remed_author.h"
 #include "ui_remed_author.h"
 
-remed_author::remed_author(const QDir & path, const QDir & system, std::shared_ptr<cache> & ch,
+remed_author::remed_author(const QDir & path, std::shared_ptr<cache> & ch,
                            const QByteArray & pos,
                            const quint16 remFilter, const quint32 localPos, QWidget *parent) :
     QDialog(parent),
@@ -9,9 +9,7 @@ remed_author::remed_author(const QDir & path, const QDir & system, std::shared_p
 {
     ui->setupUi(this);
     setLayout(ui->gridLayout);
-    setFixedSize(700, 700);
     _path = path;
-    _system = system;
     _pos = pos;
     _remFilter = remFilter;
     _localPos = localPos;

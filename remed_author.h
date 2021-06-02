@@ -16,7 +16,7 @@ class remed_author : public QDialog
 {
     Q_OBJECT
 private:
-    QDir _path, _system;
+    QDir _path;
     openCtree _sym;
     QByteArray _pos;
     int _localPos;
@@ -28,7 +28,7 @@ private:
 private slots:
     void showTextInformation(QListWidgetItem*);
 public:
-    explicit remed_author(const QDir &, const QDir &, std::shared_ptr<cache> &,
+    explicit remed_author(const QDir &, std::shared_ptr<cache> &,
                           const QByteArray &, const quint16, const quint32, QWidget *parent = nullptr);
     ~remed_author();
 

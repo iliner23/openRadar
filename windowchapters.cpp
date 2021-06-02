@@ -40,7 +40,7 @@ windowChapters::windowChapters(QWidget *parent) :
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->verticalLayout->addLayout(_layout);
 
-    setFixedSize(700, 700);
+    setFixedSize(680, 700);
 
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -48,11 +48,16 @@ windowChapters::windowChapters(QWidget *parent) :
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
     connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &windowChapters::textFilter_2);
+
     connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItemTable);
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
     connect(ui->tableWidget, &QTableWidget::itemActivated, this, &windowChapters::accept_1);
+
     connect(ui->listView, &QListView::clicked, this, &windowChapters::listClicked);
+    connect(ui->listView, &QListView::activated, this, &windowChapters::listClicked);
+
     connect(ui->pushButton, &QPushButton::clicked, this, &windowChapters::returnBranch);
+
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
     connect(ui->buttonBox_2, &QDialogButtonBox::rejected, this, &windowChapters::reject_2);
     connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
 
@@ -248,8 +253,8 @@ void windowChapters::selectedItemTable(QTableWidgetItem * item){
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 void windowChapters::accept_1(){
-    ui->lineEdit->clear();
     const auto key = ui->tableWidget->currentItem()->data(Qt::UserRole).toByteArray();
+    ui->lineEdit->clear();
     showListChapter(key);
     changeChapterText(key.right(6));
     setWindowTitle("Окно выбора симптома");

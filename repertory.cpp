@@ -257,10 +257,11 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
 
     QWidget * widget = nullptr;
 
+     //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
     switch (item->data(0).toInt()) {
         case 0 :{
             widget = new Label(_cache, _filename,
-                                     _system , item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+                                     item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
             break;
         }
         case 1 :
@@ -269,12 +270,12 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
             return;
         }
         case 3 : {
-            widget = new remed_author(_filename, _system, _cache, item->data(2).toByteArray()
+            widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
                                           , _engine->chaptersFilter(), item->data(1).toUInt(), this);
             break;
         }
         case 4 : {
-            widget = new author(_system, item->data(1).toUInt(), _cache, this);
+            widget = new author(item->data(1).toUInt(), _cache, this);
             break;
         }
         default:
@@ -304,7 +305,7 @@ void repertory::keyPressEvent(QKeyEvent *event){
         if(_pointer.isNull())
             return;
 
-        auto lab = new Label(_cache, _filename, _system ,
+        auto lab = new Label(_cache, _filename,
                     _pointer, _engine->chaptersFilter(), _codec, this);
         lab->setAttribute(Qt::WA_DeleteOnClose);
         lab->show();

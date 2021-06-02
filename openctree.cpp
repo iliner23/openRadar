@@ -379,8 +379,8 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
     std::string keyCmp(iter->key_length, '\0');
 
     while(true){
-        uint16_t byteSize;
-        bool lNode;
+        uint16_t byteSize = 0;
+        bool lNode = false;
         const uint64_t ptr = _idx.tellg();
         _idx.read((char *) &_navigate._nextHope, sizeof(_navigate._nextHope));
 
@@ -435,8 +435,12 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
                     if(keyCmp == key){
                         if(!savePos)
                             return true;
-                        else
+                        else{
                             _lastKey = keyCmp;
+
+                            if(iter->dublicate)
+                                std::copy((char *) &pointer, ((char *) &pointer) + iter->ptrSize, _lastKey.rbegin());
+                        }
 
                         _lastPosition = std::numeric_limits<uint64_t>::max();
                         return readOrNot(readDbText, pointer);
@@ -467,8 +471,12 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
                     if(keyCmp == key){
                         if(!savePos)
                             return true;
-                        else
+                        else{
                             _lastKey = keyCmp;
+
+                            if(iter->dublicate)
+                                std::copy((char *) &pointer, ((char *) &pointer) + iter->ptrSize, _lastKey.rbegin());
+                        }
 
                         _lastPosition = std::numeric_limits<uint64_t>::max();
                         return readOrNot(readDbText, pointer);
@@ -496,8 +504,8 @@ std::string openCtree::back(const bool readDbText){
     std::string keyCmp(iter->key_length, '\0');
 
     while(true){
-        uint16_t byteSize;
-        bool lNode;
+        uint16_t byteSize = 0;
+        bool lNode = false;
         const uint64_t ptr = _idx.tellg();
         _idx.read((char *) &_navigate._nextHope, sizeof(_navigate._nextHope));
 
@@ -703,7 +711,7 @@ uint64_t openCtree::currentPosition(){
 
     while(true){//go until leaf index
         const uint64_t ptr = _idx.tellg();
-        bool lNode;
+        bool lNode = false;
         uint64_t pointer = 0;
         _idx.seekg(ptr + 17);
         _idx.read((char *) &lNode, sizeof(lNode));
