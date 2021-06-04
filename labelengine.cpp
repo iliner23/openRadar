@@ -14,25 +14,10 @@ int labelEngine::fullRemedsCount() const{
 
     return size;
 }
-void labelEngine::linksItems(const quint8 type, const QString & synLinkText, QVector<QGraphicsItem *> & links){
-    if(_getLinksStr)
-        linksStrings(type, synLinkText);
+void labelEngine::processingLinks(const quint8 type, const QString & synLinkText){
+    if(!_getLinksStr)
+        return;
 
-    repertoryEngine::linksItems(type, synLinkText, links);
-}
-void labelEngine::sortRemeds(QVector<QVector<QGraphicsItemGroup*>> & remeds){
-    std::array<int, 4> sizeRem;
-
-    for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
-        sizeRem.at(it - remeds.rbegin()) = it->size();
-
-        for(auto & iter : *it)
-            addRemeds(iter);
-    }
-
-    _remedsSize = std::move(sizeRem);
-}
-void labelEngine::linksStrings(const quint8 type , const QString & synLinkText){
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
@@ -85,4 +70,16 @@ void labelEngine::linksStrings(const quint8 type , const QString & synLinkText){
             }
         }
     }
+}
+void labelEngine::sortRemeds(QVector<QVector<QGraphicsItemGroup*>> & remeds){
+    std::array<int, 4> sizeRem = {0, 0, 0, 0};
+
+    for(auto it = remeds.rbegin(); it != remeds.rend(); ++it){
+        sizeRem.at(it - remeds.rbegin()) = it->size();
+
+        for(auto & iter : *it)
+            addRemeds(iter);
+    }
+
+    _remedsSize = std::move(sizeRem);
 }

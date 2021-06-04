@@ -14,7 +14,6 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
     setFixedSize(size());
 
     _cache = ch;
-    _remFilter = remFilter;
     _filename = path;
 
     if(codec == nullptr)
@@ -109,16 +108,6 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     QWidget * widget = nullptr;
 
     switch (item->data(0).toInt()) {
-        case 0 :{
-            widget = new Label(_cache, _filename,
-                        item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
-            break;
-        }
-        case 1 :
-            return;
-        case 2 :{
-            return;
-        }
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
                                           , _engine->chaptersFilter(), item->data(1).toUInt(), this);

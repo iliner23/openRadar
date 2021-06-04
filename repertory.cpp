@@ -260,8 +260,16 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
      //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
     switch (item->data(0).toInt()) {
         case 0 :{
-            widget = new Label(_cache, _filename,
-                                     item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+            auto label = new Label(_cache, _filename,
+                item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+
+            if(label->isHiddenLabels()){
+                notShowLabel();
+                delete label;
+                return;
+            }
+
+            widget = label;
             break;
         }
         case 1 :
@@ -307,10 +315,22 @@ void repertory::keyPressEvent(QKeyEvent *event){
 
         auto lab = new Label(_cache, _filename,
                     _pointer, _engine->chaptersFilter(), _codec, this);
+
+        if(lab->isHiddenLabels()){
+            notShowLabel();
+            delete lab;
+            return;
+        }
+
         lab->setAttribute(Qt::WA_DeleteOnClose);
         lab->show();
         return;
     }
 
     QWidget::keyPressEvent(event);
+}
+void repertory::notShowLabel() const{
+    QMessageBox msg;
+    msg.setText("Этот симптом не существует в текущем уровне доверия репертория");
+    msg.exec();
 }

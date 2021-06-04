@@ -26,14 +26,14 @@ public:
     QStringList crossReferensesList() const { return _linksNames[2]; }
 
     bool IsLocalize() const noexcept { return repertoryEngine::IsLocalize(); }
+    bool IsHidden() const noexcept { return repertoryEngine::IsHidden(); }
 private:
-    inline void linksStrings(const quint8, const QString &);
-    void linksItems(const quint8, const QString &, QVector<QGraphicsItem *> &) override;
+    void processingLinks(const quint8, const QString &) override;
     void sortRemeds(QVector<QVector<QGraphicsItemGroup*>> &) override;
 
     bool _getLinksStr = false;
     QStringList _linksNames[3];
-    std::array<int, 4> _remedsSize;
+    std::array<int, 4> _remedsSize = {0, 0, 0, 0};
 };
 
 #endif // LABELENGINE_H

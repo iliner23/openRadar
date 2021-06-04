@@ -31,12 +31,62 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
     auto iter = QByteArray::fromStdString(_db.at(pos.toStdString()));
 
     auto decode = [&](){
+        auto return_size = [](const auto & value, const auto & _size){
+            return (value == -1) ? _size : value;
+        };
+
+        const auto children = qFromLittleEndian<quint16>(iter.constData() + 24);
         const auto firstIt = iter.indexOf('\0', _db.serviceDataLenght());
-        const auto secondIt = iter.indexOf('\0', firstIt + 1);
+        auto secondIt = iter.indexOf('\0', firstIt + 1);
         const auto localize = _codec->toUnicode(iter.mid(firstIt + 1, secondIt - firstIt - 1));
         const auto original = _codec->toUnicode(iter.mid(_db.serviceDataLenght(), firstIt - _db.serviceDataLenght()));
+        QString synonym[2];
 
-        QString tmpStr = original + ((localize.isEmpty()) ? QString() : "\n" + localize);
+        quint8 type = 4;
+
+        for(auto i = 0; i != 4; ++i){//get synonyms
+            quint8 cnt = 0;
+
+            for(auto it = 0; it != type + 1; ++it){
+                if(secondIt == iter.size()
+                        || iter.at(secondIt) != '\0')
+                    break;
+
+                ++cnt;
+                ++secondIt;
+            }
+
+            if(cnt > type)
+                break;
+
+            type = type - cnt;
+
+            const auto tmpLinkIter = return_size
+                    (iter.indexOf('\0', secondIt), iter.size());
+
+            auto synLinkText =
+                    _codec->toUnicode(iter.mid
+                        (secondIt, tmpLinkIter - secondIt));
+            secondIt = tmpLinkIter;
+
+            if(synLinkText.size() > 1 && synLinkText.left(2) == "(="){
+                if(type == 2)
+                    synonym[1] = synLinkText;
+                else if(type == 3){
+                    if(!localize.isEmpty())
+                        synonym[0] = synLinkText;
+                    else
+                        synonym[1] = synLinkText;
+                }
+            }
+
+            if(type == 0)
+                break;
+        }
+
+        QString tmpStr = ((children > 0) ? "+" : QString()) + original;
+        tmpStr += ((localize.isEmpty()) ? ' ' + synonym[1] :
+                   ' ' + synonym[0] + "\n" + localize + ' ' + synonym[1]);
         return tmpStr;
     };
 
@@ -61,7 +111,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         return;
     }
 
-    const auto size = qFromLittleEndian<quint16>(iter.mid(24, 2));
+    const auto size = qFromLittleEndian<quint16>(iter.constData() + 24);
 
     pos = pos.right(6);
     pos += pos;
@@ -88,7 +138,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
             continue;
 
         auto startKey = QByteArray::fromStdString(_db.key());
-        const auto sizer = qFromLittleEndian<quint16>(iter.mid(24, 2));
+        const auto sizer = qFromLittleEndian<quint16>(iter.constData() + 24);
         new _node(decode(), startKey, (sizer > 0) ? true : false, parent);
     }
 }

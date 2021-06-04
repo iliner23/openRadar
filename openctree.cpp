@@ -37,10 +37,6 @@ std::string openCtree::convertKey(const std::string & key) const{
 
     return str;
 }
-openCtree::index_header::~index_header(){
-    if(altSeq != nullptr)
-        delete [] altSeq;
-}
 std::string openCtree::gtData(const uint64_t datPos){
     uint8_t sig[2];
     _dat.seekg(datPos);
@@ -50,7 +46,7 @@ std::string openCtree::gtData(const uint64_t datPos){
     if(memcmp(sig, sg, 2) != 0)
         throw std::runtime_error("Incorrect signature");
 
-    uint32_t dtSize;
+    uint32_t dtSize = 0;
     _dat.seekg((uint64_t) _dat.tellg() + 4);
     _dat.read((char *) &dtSize, sizeof(dtSize));
     std::string rawData(dtSize, '\0');
@@ -67,13 +63,29 @@ bool openCtree::isDublicateKey() const{
 
     return _header[_index].dublicate;
 }
-openCtree::openCtree(const std::string & filename){
-    open(filename);
-}
+openCtree::openCtree(const openCtree & copy){
+    _header = copy._header;
+    _index = copy._index;
+    _reclen = copy._reclen;
+    _lastKey = copy._lastKey;
+    _lastValuePos = copy._lastValuePos;
+    _lastPosition = copy._lastPosition;
+    _navigate = copy._navigate;
+    _fileName = copy._fileName;
 
+    _idx.open(_fileName + ".idx", std::ios::in | std::ios::binary);
+    _dat.open(_fileName + ".dat", std::ios::in | std::ios::binary);
+    _idx.sync_with_stdio(false);
+    _dat.sync_with_stdio(false);
+
+    if(!_idx.is_open() || !_dat.is_open())
+        throw std::runtime_error("Database isn't open");
+}
 void openCtree::open(const std::string & filename){
     if(isOpen())
         close();
+
+    _fileName = filename;
 
     _idx.open(filename + ".idx", std::ios::in | std::ios::binary);
     _dat.open(filename + ".dat", std::ios::in | std::ios::binary);
@@ -167,7 +179,7 @@ void openCtree::open(const std::string & filename){
                     _idx.seekg((uint64_t)_idx.tellg() + 1);
                 }
 
-                it.altSeq = table;
+                it.altSeq.reset(table);
             }
             _idx.seekg(ptr + 0x8);
         }
@@ -194,6 +206,8 @@ void openCtree::close() noexcept{
     _lastKey.clear();
     _lastValuePos = 0;
     _lastPosition = std::numeric_limits<uint64_t>::max();
+    _fileName.clear();
+    _leaf.clear();
 }
 
 uint16_t openCtree::indexCount() const{
@@ -215,7 +229,69 @@ void openCtree::setIndex(const uint16_t member){
     _lastKey.resize(_header[_index].key_length);
     _navigate = {0 , 0, 0, 0};
     _lastValuePos = 0;
-    _lastPosition = std::numeric_limits<uint64_t>::max();;
+    _lastPosition = std::numeric_limits<uint64_t>::max();
+    _leaf.clear();
+
+    writeLeafs();//save leafs ptr and index pos into map
+}
+void openCtree::writeLeafs(){
+    auto iter = _header.begin() + _index;
+
+    if(iter->bTree_root == 0)
+        return;
+
+    _idx.seekg(iter->bTree_root);
+
+    while(true){//looking for leaf indexes
+        const uint64_t ptr = _idx.tellg();
+        bool lNode = false;
+        uint32_t pointer = 0;
+        _idx.seekg(ptr + 17);
+        _idx.read((char *) &lNode, sizeof(lNode));
+
+        if(lNode){
+            _idx.seekg(ptr);
+            break;
+        }
+
+        _idx.read((char *) &pointer, iter->ptrSize);
+
+        if(iter->index_type == 0 || iter->index_type == 12)
+            _idx.seekg(pointer);
+        else
+            throw std::runtime_error("Incorrect index compress type");
+
+        if(!_idx.good())
+            throw std::runtime_error("Database was destroyed");
+    }
+
+    int32_t indexCount = 0;
+
+    while(true){//writing base leafs
+        uint32_t nextPtr = 0;
+        uint16_t byteCount = 0;
+        const uint64_t ptr = _idx.tellg();
+
+        if(ptr == 0)
+            throw std::logic_error("This position doesn't exist");
+
+        _idx.seekg(ptr);
+        _idx.read((char *) &nextPtr, sizeof(nextPtr));
+
+        _idx.seekg(ptr + iter->ptrSize * 2);
+        _idx.read((char *) &byteCount, sizeof(byteCount));
+
+        _leaf[indexCount] = ptr;
+
+        if(nextPtr == 0)
+            break;
+
+        _idx.seekg(nextPtr);
+        indexCount += byteCount;
+
+        if(!_idx.good())
+            throw std::runtime_error("Database was destroyed");
+    }
 }
 int32_t openCtree::size() const{
     if(!isOpen())
@@ -234,55 +310,16 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
     if(index == _lastPosition)
         return currentValue();
 
-    _idx.seekg(iter->bTree_root);
+    if(iter->bTree_root == 0)
+        throw std::runtime_error("Index is empty");
 
-    while(true){//looking for leaf indexes
-        const uint64_t ptr = _idx.tellg();
-        bool lNode;
-        uint64_t pointer = 0;
-        _idx.seekg(ptr + 17);
-        _idx.read((char *) &lNode, sizeof(lNode));
+    auto iterLeaf = _leaf.lower_bound(index);
 
-        if(lNode){
-            _idx.seekg(ptr);
-            break;
-        }
+    if(iterLeaf == _leaf.cend())
+        throw std::runtime_error("Database was destroed");
 
-        _idx.read((char *) &pointer, iter->ptrSize);
-
-        if(iter->index_type == 0 || iter->index_type == 12)
-            _idx.seekg(pointer);
-        else
-            throw std::runtime_error("Incorrect index compress type");
-    }
-
-    uint64_t indexCount = 0;
-
-    while(true){//finding base pointer
-        uint32_t nextPtr = 0;
-        uint16_t byteCount = 0;
-        const uint64_t ptr = _idx.tellg();
-
-        if(ptr == 0)
-            throw std::logic_error("This position doesn't exist");
-
-        _idx.seekg(ptr + iter->ptrSize * 2);
-        _idx.read((char *) &byteCount, sizeof(byteCount));
-
-        if(indexCount + byteCount > index){
-            _idx.seekg(ptr);
-            break;
-        }
-
-        _idx.seekg(ptr);
-        _idx.read((char *) &nextPtr, sizeof(nextPtr));
-
-        _idx.seekg(nextPtr);
-        indexCount += byteCount;
-
-        if(!_idx.good())
-            throw std::runtime_error("Database was destroyed");
-    }
+    _idx.seekg(iterLeaf->second);
+    uint64_t indexCount = iterLeaf->first;
 
     const uint64_t ptr = _idx.tellg();
     uint16_t byteSize = 0;
@@ -374,6 +411,9 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
         key.append(iter->ptrSize, '\0');
     else if(key == _lastKey)
         return currentValue();
+
+    if(iter->bTree_root == 0)
+        throw std::runtime_error("Index is empty");
 
     _idx.seekg(iter->bTree_root);
     std::string keyCmp(iter->key_length, '\0');
@@ -499,6 +539,10 @@ std::string openCtree::back(const bool readDbText){
         throw std::logic_error("Database isn't open");
 
     auto iter = _header.begin() + _index;
+
+    if(iter->bTree_root == 0)
+        throw std::runtime_error("Index is empty");
+
     std::string key(iter->key_length, '\xFF');
     _idx.seekg(iter->bTree_root);
     std::string keyCmp(iter->key_length, '\0');
@@ -707,6 +751,10 @@ uint64_t openCtree::currentPosition(){
         return _lastPosition;
 
     auto iter = _header.begin() + _index;
+
+    if(iter->bTree_root == 0)
+        throw std::runtime_error("Index is empty");
+
     _idx.seekg(iter->bTree_root);
 
     while(true){//go until leaf index

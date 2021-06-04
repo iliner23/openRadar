@@ -38,6 +38,8 @@ private:
     QDir _filename, _system;
 
     inline void repaintView();
+    inline void notShowLabel() const;
+
     void resizeEvent(QResizeEvent*) override;
     void redrawPointer(QGraphicsItem *, const QVector<QGraphicsItem*> &);
     void keyPressEvent(QKeyEvent *event) override;
