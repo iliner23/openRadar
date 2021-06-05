@@ -69,7 +69,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Просто наберите ваши выборкиб разделенные посредством ENTER</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Просто наберите ваши выборки разделенные посредством ENTER&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -99,23 +99,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="plainTextEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="lineWrapMode">
-             <enum>QPlainTextEdit::NoWrap</enum>
-            </property>
-           </widget>
+           <widget class="QLineEdit" name="lineEdit"/>
           </item>
          </layout>
         </item>
@@ -210,16 +194,6 @@
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Искать во всех открытых реперториях</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </item>

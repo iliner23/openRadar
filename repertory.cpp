@@ -1,8 +1,5 @@
 #include "repertory.h"
 
-QDir repertory::getRepDir() const noexcept{
-    return _filename;
-}
 void repertory::changeFilter(QAction * action){
     if(action != nullptr){
         auto menu = qobject_cast<QMenu*>(action->parent());
@@ -265,7 +262,7 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
 
             if(label->isHiddenLabels()){
                 notShowLabel();
-                delete label;
+                label->deleteLater();
                 return;
             }
 
@@ -297,9 +294,6 @@ void repertory::setPosition(const QByteArray & pos){
     _engine->setCurrentKey(pos);
     _bar->setValue(_engine->currentPosition());
 }
-QTextCodec * repertory::getTextCodec() const noexcept{
-    return _codec;
-}
 void repertory::keyPressEvent(QKeyEvent *event){
     if(event->key() == Qt::Key_Up){
         _bar->setValue(_bar->value() - 1);
@@ -318,7 +312,7 @@ void repertory::keyPressEvent(QKeyEvent *event){
 
         if(lab->isHiddenLabels()){
             notShowLabel();
-            delete lab;
+            lab->deleteLater();
             return;
         }
 

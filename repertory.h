@@ -20,9 +20,9 @@ public:
     explicit repertory(const QDir &, const QDir &,
                        std::shared_ptr<cache> &, QTextCodec *,
                        const quint16 = -1, QWidget * = nullptr);
-    QDir getRepDir() const noexcept;
-    QTextCodec * getTextCodec() const noexcept;
-    QByteArray getCurrentPosition() const noexcept { return _pointer; }
+    QDir catalog() const noexcept { return _filename; }
+    QTextCodec * textCodec() const noexcept { return _codec; }
+    QByteArray currentPosition() const noexcept { return _pointer; }
 private:
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;

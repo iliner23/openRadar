@@ -8,11 +8,17 @@ repertoryWords::repertoryWords(const QDir & wordFile, QObject * parent): QAbstra
     setWordFile(wordFile);
 }
 void repertoryWords::setWordFile(const QDir &wordFile){
-
+    beginResetModel();
+    _word.open(wordFile.filePath("word1").toStdString());
+    endResetModel();
 }
 QVariant repertoryWords::data(const QModelIndex &index, int role) const{
-    return QVariant();//NOTE : plug
+    if(!index.isValid() || role != Qt::DisplayRole)
+        return QVariant();
+
+    return _words.at(index.row());
 }
-bool repertoryWords::setData(const QModelIndex &index, const QVariant &value, int role){
-    return true;//NOTE : plug
+int repertoryWords::rowCount(const QModelIndex &parent) const{
+    Q_UNUSED(parent);
+    return _words.size();
 }

@@ -85,7 +85,7 @@ void windowChapters::setActiveRepertory(int comboIndex){
 void windowChapters::tableRender(int comboIndex){
     ui->lineEdit->clear();
     ui->lineEdit_2->clear();
-    _codec = ui->comboBox->itemData(comboIndex).value<repertory*>()->getTextCodec();
+    _codec = ui->comboBox->itemData(comboIndex).value<repertory*>()->textCodec();
 
     constexpr int mx = 8;
     QVector<QTableWidgetItem*> items;
@@ -170,7 +170,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
         }
 
         _dirPaths.push_back(qobject_cast<repertory*>
-                            (win.at(it)->widget())->getRepDir());
+                            (win.at(it)->widget())->catalog());
     }
 
     if(ui->comboBox->count() != 0)
@@ -194,7 +194,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
             ui->comboBox->setCurrentIndex(it);
 
         _dirPaths.push_back(qobject_cast<repertory*>
-                            (win.at(it)->widget())->getRepDir());
+                            (win.at(it)->widget())->catalog());
     }
 
     if(ui->comboBox->count() != 0)
@@ -295,6 +295,7 @@ void windowChapters::returnBranch(){
 
     _filterModel->setRootIndex(root.parent());
     ui->listView->setRootIndex(root.parent());
+    ui->listView->scrollTo(root);
 
     auto rootBasicModel = _filterModel->mapToSource(root);
 

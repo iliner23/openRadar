@@ -138,6 +138,7 @@ void MainWindow::windowChanged(){
 
     ui->action_4->setEnabled(!list.isEmpty());
     ui->action_7->setEnabled(!list.isEmpty());
+    ui->action_8->setEnabled(!list.isEmpty());
 
     for(auto & it : list){
         auto atr = ui->menu_6->addAction(it->windowTitle());
@@ -159,7 +160,7 @@ void MainWindow::openChapters(){
 void MainWindow::openChaptersInCurrentPos(){
     const auto key =
             static_cast<class repertory*>
-                (ui->mdiArea->currentSubWindow()->widget())->getCurrentPosition();
+                (ui->mdiArea->currentSubWindow()->widget())->currentPosition();
 
     _chapters->show(ui->mdiArea->subWindowList(),
                     ui->mdiArea->activeSubWindow(),
@@ -173,5 +174,6 @@ void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 wi
     }
 }
 void MainWindow::openVocabulary(){
-    _vocabulary->open();
+    _vocabulary->open(ui->mdiArea->subWindowList(),
+                      ui->mdiArea->activeSubWindow());
 }
