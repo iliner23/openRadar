@@ -82,6 +82,27 @@ openCtree::openCtree(const openCtree & copy){
     if(!_idx.is_open() || !_dat.is_open())
         throw std::runtime_error("Database isn't open");
 }
+openCtree & openCtree::operator=(const openCtree & copy){
+    _header = copy._header;
+    _index = copy._index;
+    _reclen = copy._reclen;
+    _lastKey = copy._lastKey;
+    _lastValuePos = copy._lastValuePos;
+    _lastPosition = copy._lastPosition;
+    _navigate = copy._navigate;
+    _fileName = copy._fileName;
+    _leaf = copy._leaf;
+
+    _idx.open(_fileName + ".idx", std::ios::in | std::ios::binary);
+    _dat.open(_fileName + ".dat", std::ios::in | std::ios::binary);
+    _idx.sync_with_stdio(false);
+    _dat.sync_with_stdio(false);
+
+    if(!_idx.is_open() || !_dat.is_open())
+        throw std::runtime_error("Database isn't open");
+
+    return *this;
+}
 void openCtree::open(const std::string & filename){
     if(isOpen())
         close();

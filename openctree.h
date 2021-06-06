@@ -64,6 +64,9 @@ public:
     openCtree(const openCtree &);
     openCtree(openCtree &&) = default;
 
+    openCtree & operator=(const openCtree &);
+    openCtree & operator=(openCtree &&) = default;
+
     void open(const std::string&);
     void close() noexcept;
     bool isOpen() const noexcept;

@@ -1,14 +1,13 @@
 #include "searchmodel.h"
-searchModel::_node::_node(const QString & data, const QByteArray & key, bool marker, _node * parent){
+searchModel::_node::_node(const QString & data, const quint16 pos, const QByteArray & key, bool marker, _node * parent){
     _data = data;
     _parent = parent;
     _marker = marker;
     _key = key;
 
     if(_parent != nullptr){
-        _parent->_children.push_back(this);
-        auto size = _parent->_children.size();
-        _row = (size == 0) ? 0 : size - 1;
+        _parent->_children[pos] = this;
+        _row = pos;
     }
 }
 searchModel::_node * searchModel::_node::child(int pos) const noexcept{
@@ -28,9 +27,9 @@ searchModel::searchModel(const QDir & filename, const QByteArray & data, QTextCo
     setCatalogFile(filename, data, codec);
 }
 void searchModel::createHeap(_node * parent, QByteArray pos){
-    auto iter = QByteArray::fromStdString(_db.at(pos.toStdString()));
+    const auto startStr = QByteArray::fromStdString(_db.at(pos.toStdString()));
 
-    auto decode = [&](){
+    auto decode = [&](const auto & iter){
         auto return_size = [](const auto & value, const auto & _size){
             return (value == -1) ? _size : value;
         };
@@ -101,17 +100,17 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
                     Q_ASSERT("error increment key");
 
                 array[i] = (uchar) 0;
-                array[i - 1] = ((uchar) array.at(i - 1)) + 1;
             }
         }
     };
 
-    if(iter.left(6) == QByteArray(6, '\0')){
+    if(startStr.left(6) == QByteArray(6, '\0')){
         _db.close();
         return;
     }
 
-    const auto size = qFromLittleEndian<quint16>(iter.constData() + 24);
+    const auto size = qFromLittleEndian<quint16>(startStr.constData() + 24);
+    parent->_children.resize(size);
 
     pos = pos.right(6);
     pos += pos;
@@ -126,21 +125,47 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
 
     auto rev = pos.left(4);
     std::reverse(rev.begin(), rev.end());
-    iter.clear();
 
-    for(quint16 i = 0; i != size; ++i){
-        if(i == 0)
-            iter = QByteArray::fromStdString(_db.at(pos.toStdString()));
-        else
-            iter = QByteArray::fromStdString(_db.next());
+    auto threadPred = [&](openCtree data, const quint16 from, const quint16 until){
+        for(int i = from; i != until; ++i){
+            QByteArray iter;
 
-        if(iter.mid(14, 4) != rev)
-            continue;
+            if(i == from){
+                data.at(pos.toStdString(), false);
+                const auto posData = data.currentPosition() + from;
+                iter = QByteArray::fromStdString(data.at(posData));
+            }
+            else
+                iter = QByteArray::fromStdString(data.next());
 
-        auto startKey = QByteArray::fromStdString(_db.key());
-        const auto sizer = qFromLittleEndian<quint16>(iter.constData() + 24);
-        new _node(decode(), startKey, (sizer > 0) ? true : false, parent);
+            auto startKey = QByteArray::fromStdString(data.key());
+
+            if(iter.mid(14, 4) != rev){
+                parent->_children[i] = nullptr;
+                continue;
+            }
+
+            const auto sizer = qFromLittleEndian<quint16>(iter.constData() + 24);
+            new _node(decode(iter), i, startKey, (sizer > 0) ? true : false, parent);
+        }
+    };
+
+    if(size > 50){
+        const auto mult = size / 4;
+        auto thread1 = QtConcurrent::run(threadPred, _db, 0, mult);
+        auto thread2 = QtConcurrent::run(threadPred, _db, mult, mult * 2);
+        auto thread3 = QtConcurrent::run(threadPred, _db, mult * 2, mult * 3);
+        auto thread4 = QtConcurrent::run(threadPred, _db, mult * 3, size);
+
+        thread1.waitForFinished();
+        thread2.waitForFinished();
+        thread3.waitForFinished();
+        thread4.waitForFinished();
     }
+    else
+        threadPred(_db, 0, size);
+
+    parent->_children.removeAll(nullptr);
 }
 void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTextCodec * codec){
     beginResetModel();
@@ -148,7 +173,7 @@ void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTex
 
     _db.open(file.path().toStdString());
     _db.setIndex(4);
-    _root = new _node("root", pos);
+    _root = new _node("root", 0, pos);
 
     if(codec == nullptr)
         _codec = QTextCodec::codecForName("system");

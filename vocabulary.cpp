@@ -56,7 +56,7 @@ void vocabulary::renderingWords(openCtree && base){
 
     QStringList wordList(base.size());
 
-    auto pred = [&](openCtree tree, const int from, const int until){
+    auto threadFunc = [&](openCtree tree, const int from, const int until){
         for(auto i = from; i != until; ++i){
             QByteArray str;
 
@@ -81,20 +81,18 @@ void vocabulary::renderingWords(openCtree && base){
 
     if(base.size() > 20){
         const auto del = base.size() / 4;
-        auto thread1 = QtConcurrent::run(pred, base, 0 , del);
-        auto thread2 = QtConcurrent::run(pred, base, del , del * 2);
-        auto thread3 = QtConcurrent::run(pred, base, del * 2, del * 3);
-        auto thread4 = QtConcurrent::run(pred, base, del * 3, base.size());
+        auto thread1 = QtConcurrent::run(threadFunc, base, 0 , del);
+        auto thread2 = QtConcurrent::run(threadFunc, base, del , del * 2);
+        auto thread3 = QtConcurrent::run(threadFunc, base, del * 2, del * 3);
+        auto thread4 = QtConcurrent::run(threadFunc, base, del * 3, base.size());
 
         thread1.waitForFinished();
         thread2.waitForFinished();
         thread3.waitForFinished();
         thread4.waitForFinished();
     }
-    else{
-        auto thread1 = QtConcurrent::run(pred, base, 0 , base.size());
-        thread1.waitForFinished();
-    }
+    else
+        threadFunc(base, 0 , base.size());
 
     wordList.removeAll("");
     _model->setStringList(std::move(wordList));
