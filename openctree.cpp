@@ -72,6 +72,7 @@ openCtree::openCtree(const openCtree & copy){
     _lastPosition = copy._lastPosition;
     _navigate = copy._navigate;
     _fileName = copy._fileName;
+    _leaf = copy._leaf;
 
     _idx.open(_fileName + ".idx", std::ios::in | std::ios::binary);
     _dat.open(_fileName + ".dat", std::ios::in | std::ios::binary);

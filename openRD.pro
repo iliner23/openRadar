@@ -30,7 +30,6 @@ SOURCES += \
     repchose.cpp \
     repertory.cpp \
     repertoryengine.cpp \
-    repertorywords.cpp \
     searchmodel.cpp \
     vocabulary.cpp \
     windowchapters.cpp
@@ -49,7 +48,6 @@ HEADERS += \
     repchose.h \
     repertory.h \
     repertoryengine.h \
-    repertorywords.h \
     searchmodel.h \
     vocabulary.h \
     windowchapters.h

@@ -174,6 +174,5 @@ void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 wi
     }
 }
 void MainWindow::openVocabulary(){
-    _vocabulary->open(ui->mdiArea->subWindowList(),
-                      ui->mdiArea->activeSubWindow());
+    _vocabulary->open(ui->mdiArea->activeSubWindow());
 }

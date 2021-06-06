@@ -166,7 +166,7 @@
         <item>
          <widget class="QPushButton" name="pushButton">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="text">
            <string>Очистить</string>
@@ -186,7 +186,7 @@
         <item>
          <widget class="QPushButton" name="pushButton_3">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="text">
            <string>Отмена</string>
@@ -204,5 +204,22 @@
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>vocabulary</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>678</x>
+     <y>143</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

@@ -20,23 +20,28 @@ public:
 private:
     Ui::vocabulary *ui;
     int _pos = 0;
-    QVector<std::pair<QDir, QTextCodec *>> _catalogs;
-    bool _language = false;
+    QTextCodec * _codec = nullptr;
+    QDir _catalog;
 
-    QStringListModel * _word;
+    QStringListModel * _model;
     QSortFilterProxyModel * _filter;
 
-    inline void renderingWords();
+    bool _typeAdded = false;
+
+    inline void renderingWords(openCtree && base);
 signals:
     void sendChoosenChapter(QByteArray);
 private slots:
     void show() {}
     void open() {}
-    void changedLanguage(const int);
+    void changedLanguage();
     void rendering(const int);
     void filter(const QString &);
+    void selectedModelItem(const QModelIndex &);
+    void clearPlainText();
 public slots:
-    void open(QList<QMdiSubWindow*>, QMdiSubWindow*);
+    void open(QMdiSubWindow*);
+    void reject();
 };
 
 #endif // VOCABULARY_H
