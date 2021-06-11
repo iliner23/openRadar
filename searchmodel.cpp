@@ -1,14 +1,10 @@
 #include "searchmodel.h"
-searchModel::_node::_node(const QString & data, const quint16 pos, const QByteArray & key, bool marker, _node * parent){
+searchModel::_node::_node(const QString & data, const QByteArray & key, bool marker, _node * parent){
     _data = data;
     _parent = parent;
     _marker = marker;
     _key = key;
-
-    if(_parent != nullptr){
-        _parent->_children[pos] = this;
-        _row = pos;
-    }
+    _row = 0;
 }
 searchModel::_node * searchModel::_node::child(int pos) const noexcept{
     if(pos >= 0 && pos < _children.size())
@@ -110,8 +106,6 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
     }
 
     const auto size = qFromLittleEndian<quint16>(startStr.constData() + 24);
-    parent->_children.resize(size);
-
     pos = pos.right(6);
     pos += pos;
 
@@ -127,6 +121,9 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
     std::reverse(rev.begin(), rev.end());
 
     auto threadPred = [&](openCtree data, const quint16 from, const quint16 until){
+        QVector<_node*> children;
+        children.reserve(until - from);
+
         for(int i = from; i != until; ++i){
             QByteArray iter;
 
@@ -140,14 +137,14 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
 
             auto startKey = QByteArray::fromStdString(data.key());
 
-            if(iter.mid(14, 4) != rev){
-                parent->_children[i] = nullptr;
+            if(iter.mid(14, 4) != rev)
                 continue;
-            }
 
             const auto sizer = qFromLittleEndian<quint16>(iter.constData() + 24);
-            new _node(decode(iter), i, startKey, (sizer > 0) ? true : false, parent);
+            children.push_back(new _node(decode(iter), startKey, (sizer > 0) ? true : false, parent));
         }
+
+        return children;
     };
 
     if(size > 50){
@@ -157,15 +154,16 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         auto thread3 = QtConcurrent::run(threadPred, _db, mult * 2, mult * 3);
         auto thread4 = QtConcurrent::run(threadPred, _db, mult * 3, size);
 
-        thread1.waitForFinished();
-        thread2.waitForFinished();
-        thread3.waitForFinished();
-        thread4.waitForFinished();
+        parent->_children.append(thread1.result());
+        parent->_children.append(thread2.result());
+        parent->_children.append(thread3.result());
+        parent->_children.append(thread4.result());
     }
     else
-        threadPred(_db, 0, size);
+        parent->_children.append(threadPred(_db, 0, size));
 
-    parent->_children.removeAll(nullptr);
+    for(auto i = 0; i != parent->_children.size(); ++i)
+        parent->_children[i]->_row = i;
 }
 void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTextCodec * codec){
     beginResetModel();
@@ -173,7 +171,8 @@ void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTex
 
     _db.open(file.path().toStdString());
     _db.setIndex(4);
-    _root = new _node("root", 0, pos);
+
+    _root = new _node("root", pos);
 
     if(codec == nullptr)
         _codec = QTextCodec::codecForName("system");

@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     _choose = new RepChose(_reperts, this);
-    _vocabulary = new vocabulary(this);
+    _vocabulary = new vocabulary(QDir::toNativeSeparators("../system"), this);
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());

@@ -15,20 +15,21 @@ class vocabulary : public QDialog
     Q_OBJECT
 
 public:
-    explicit vocabulary(QWidget *parent = nullptr);
+    explicit vocabulary(const QDir & system, QWidget *parent = nullptr);
     ~vocabulary();
 private:
     Ui::vocabulary *ui;
-    int _pos = 0;
     QTextCodec * _codec = nullptr;
-    QDir _catalog;
+    QDir _catalog, _system;
 
     QStringListModel * _model;
     QSortFilterProxyModel * _filter;
 
     bool _typeAdded = false;
 
-    inline void renderingWords(openCtree && base);
+    inline void renderingWords(openCtree);
+    inline void renderingRoots(openCtree);
+    inline void threadsLaunch(openCtree &, std::function<QStringList (openCtree, const int, const int)>);
 signals:
     void sendChoosenChapter(QByteArray);
 private slots:
@@ -38,7 +39,7 @@ private slots:
     void rendering(const int);
     void filter(const QString &);
     void selectedModelItem(const QModelIndex &);
-    void clearPlainText();
+    void changedPlainText();
 public slots:
     void open(QMdiSubWindow*);
     void reject();

@@ -16,7 +16,9 @@ windowChapters::windowChapters(QWidget *parent) :
     _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     _filterModel->setRecursiveFilteringEnabled(false);
     _filterModel->setSourceModel(_model);
+
     ui->listView->setModel(_filterModel);
+    ui->listView->setUniformItemSizes(true);
 
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);

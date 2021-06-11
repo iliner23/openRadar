@@ -12,7 +12,7 @@ public:
     class _node{
     private:
         friend searchModel;
-        explicit _node(const QString & data, const quint16 pos, const QByteArray & key = "", bool marker = false, _node * parent = nullptr);
+        explicit _node(const QString & data, const QByteArray & key = "", bool marker = false, _node * parent = nullptr);
 
         QString _data;
         QVector<_node*> _children;
