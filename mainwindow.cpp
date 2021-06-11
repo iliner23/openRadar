@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     _choose = new RepChose(_reperts, this);
-    _vocabulary = new vocabulary(QDir::toNativeSeparators("../system"), this);
+    //_vocabulary = new vocabulary(QDir::toNativeSeparators("../system"), this);
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
@@ -174,5 +174,6 @@ void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 wi
     }
 }
 void MainWindow::openVocabulary(){
-    _vocabulary->open(ui->mdiArea->activeSubWindow());
+    auto rep = qobject_cast<repertory*>(ui->mdiArea->activeSubWindow()->widget());
+    rep->openVocabulary();
 }

@@ -6,9 +6,6 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
     QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
-    setLayout(ui->gridLayout);
-    ui->tab->setLayout(ui->verticalLayout);
-    ui->tab_2->setLayout(ui->gridLayout_2);
     _scene = new customScene(ui->tab_2);
     ui->graphicsView->setScene(_scene);
     setFixedSize(size());
@@ -29,7 +26,7 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
     _engine->setSortingRemeds(true);
     _engine->setRemedsCounter(false);
     _engine->setGetLinksStrings(true);
-    _engine->render(height(), width() - 10, true);
+    _engine->render(height(), width() - 40, true);
     _localize = _engine->IsLocalize();
 
     _linksNames[0] = _engine->synomyList();

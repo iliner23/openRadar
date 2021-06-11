@@ -28,6 +28,8 @@ repertory::repertory(const QDir & filename, const QDir & system,
 {
     setFocusPolicy(Qt::StrongFocus);
 
+    _lang = QLocale::Russian;//TODO : for working vocabulary
+
     _codec = codec;
     _filename = filename;
     _system = system;
@@ -327,4 +329,10 @@ void repertory::notShowLabel() const{
     QMessageBox msg;
     msg.setText("Этот симптом не существует в текущем уровне доверия репертория");
     msg.exec();
+}
+void repertory::openVocabulary(){
+    if(_vocabulary == nullptr)
+        _vocabulary = new vocabulary(_system, _lang, _filename, _codec, this);
+
+    _vocabulary->show();
 }

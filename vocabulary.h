@@ -3,8 +3,9 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
+#include <QtConcurrent/QtConcurrent>
 #include "openctree.h"
-#include "repertory.h"
+#include "languages.h"
 
 namespace Ui {
 class vocabulary;
@@ -15,34 +16,38 @@ class vocabulary : public QDialog
     Q_OBJECT
 
 public:
-    explicit vocabulary(const QDir & system, QWidget *parent = nullptr);
+    explicit vocabulary(const QDir & system, const QLocale::Language language,
+                        const QDir &catalog, QTextCodec *codec, QWidget *parent);
     ~vocabulary();
 private:
     Ui::vocabulary *ui;
     QTextCodec * _codec = nullptr;
+    QLocale::Language _lang;
     QDir _catalog, _system;
 
     QStringListModel * _model;
     QSortFilterProxyModel * _filter;
 
     bool _typeAdded = false;
+    bool _globalHide = true;
 
     inline void renderingWords(openCtree);
     inline void renderingRoots(openCtree);
     inline void threadsLaunch(openCtree &, std::function<QStringList (openCtree, const int, const int)>);
+    inline void clearList();
+    inline void prepareOpen();
 signals:
     void sendChoosenChapter(QByteArray);
 private slots:
-    void show() {}
-    void open() {}
     void changedLanguage();
     void rendering(const int);
     void filter(const QString &);
     void selectedModelItem(const QModelIndex &);
     void changedPlainText();
 public slots:
-    void open(QMdiSubWindow*);
-    void reject();
+    void show();
+    void open() override;
+    void reject() override;
 };
 
 #endif // VOCABULARY_H

@@ -12,6 +12,7 @@
 #include "cache.h"
 #include "author.h"
 #include "repertoryengine.h"
+#include "vocabulary.h"
 
 class repertory : public QWidget//, public abstractEngine
 {
@@ -32,8 +33,10 @@ private:
     QLabel * _label;
     QByteArray _pointer;
     repertoryEngine * _engine;
+    vocabulary * _vocabulary = nullptr;
 
     QTextCodec * _codec = nullptr;
+    QLocale::Language _lang;
     std::shared_ptr<cache> _cache;
     QDir _filename, _system;
 
@@ -52,6 +55,7 @@ private slots:
     void clickedAction(QGraphicsSimpleTextItem *item);
 public slots:
     void setPosition(const QByteArray &);
+    void openVocabulary();
 };
 
 #endif // REPERTORY_H

@@ -614,7 +614,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Словарный указатель</string>
+    <string>Расширенный поиск...</string>
    </property>
   </action>
  </widget>

@@ -8,7 +8,6 @@ remed_author::remed_author(const QDir & path, std::shared_ptr<cache> & ch,
     ui(new Ui::remed_author)
 {
     ui->setupUi(this);
-    setLayout(ui->gridLayout);
     _path = path;
     _pos = pos;
     _remFilter = remFilter;

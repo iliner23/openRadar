@@ -1,16 +1,25 @@
 #include "vocabulary.h"
 #include "ui_vocabulary.h"
 
-vocabulary::vocabulary(const QDir & system, QWidget *parent) :
+vocabulary::vocabulary(const QDir & system, const QLocale::Language language, const QDir & catalog, QTextCodec * codec, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::vocabulary)
 {
     ui->setupUi(this);
-    setLayout(ui->verticalLayout);
+    _lang = language;
+
+    setWindowFlag(Qt::Window, true);
+
     _system = system;
+    _catalog = catalog;
+    _codec = codec;
+
+    auto word2 = openCtree(_catalog.filePath("word2").toStdString());
+    _globalHide = (word2.size() == 0) ? true : false;
 
     ui->comboBox->insertItem(0, "Слова в репертории");
     ui->comboBox->insertItem(1, "Корни и формы");
+    ui->comboBox->insertItem(2, "Синонимы");
 
     ui->comboBox_3->insertItem(0, "Оригинальный");
     ui->comboBox_3->insertItem(1, "Локализация");
@@ -41,44 +50,58 @@ void vocabulary::changedLanguage(){
 void vocabulary::rendering(const int type){
     ui->listView->clearSelection();
     ui->lineEdit->clear();
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
     auto hidChange = [&](){
         if((ui->comboBox_3->isHidden()
                 && ui->comboBox_3->currentIndex() != 0)){
 
             ui->comboBox_3->disconnect();
             ui->comboBox_3->setCurrentIndex(0);
-            connect(ui->comboBox_3, &QComboBox::currentIndexChanged,
+            connect(ui->comboBox_3, qOverload<int>(&QComboBox::currentIndexChanged),
                     this, &vocabulary::changedLanguage);
         }
     };
 
-    if(type == 0){
-        auto word2 = openCtree(_catalog.filePath("word2").toStdString());
-        bool hide = (word2.size() == 0) ? true : false;
+    auto synomRoots = [&](const QString & name){
+        using namespace languages;
+        const auto langIter = std::find(radarLang.cbegin(),
+                                radarLang.cend(), _lang) - radarLang.cbegin() + 1;
+
+        openCtree root2;
+        bool hide;
+        const auto localFile = (_system.filePath(name % QString::number(langIter)));
+
+        if(!_globalHide && QFileInfo::exists(localFile % ".dat") && QFileInfo::exists(localFile % ".idx")){
+            root2 = openCtree(localFile.toStdString());
+            hide = (root2.size() == 0) ? true : false;
+        }
+        else
+            hide = true;
 
         ui->label_3->setHidden(hide);
         ui->comboBox_3->setHidden(hide);
+        hidChange();
+
+        if(ui->comboBox_3->currentIndex() == 0)
+            renderingRoots(openCtree(_system.filePath(name % '1').toStdString()));
+        else
+            renderingRoots(std::move(root2));
+    };
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if(type == 0){
+        ui->label_3->setHidden(_globalHide);
+        ui->comboBox_3->setHidden(_globalHide);
         hidChange();
 
         if(ui->comboBox_3->currentIndex() == 0)
             renderingWords(openCtree(_catalog.filePath("word1").toStdString()));
         else
-            renderingWords(std::move(word2));
+            renderingWords(openCtree(_catalog.filePath("word2").toStdString()));
     }
-    else if(type == 1){
-        auto root2 = openCtree(_system.filePath("roots10").toStdString());
-        bool hide = (root2.size() == 0) ? true : false;
-
-        ui->label_3->setHidden(hide);
-        ui->comboBox_3->setHidden(hide);
-        hidChange();
-
-        if(ui->comboBox_3->currentIndex() == 0)
-            renderingRoots(openCtree(_system.filePath("roots1").toStdString()));
-        else
-            renderingRoots(std::move(root2));
-    }
+    else if(type == 1)
+        synomRoots("roots");
+    else if(type == 2)
+        synomRoots("thes");
 }
 void vocabulary::renderingRoots(openCtree base){
     auto return_size = [](const auto & value, const auto & _size){
@@ -181,33 +204,9 @@ void vocabulary::threadsLaunch(openCtree & base, std::function<QStringList(openC
 
     _model->setStringList(std::move(wordList));
 }
-void vocabulary::open(QMdiSubWindow* symptom){
-    auto link = qobject_cast<repertory*>(symptom->widget());
-    _catalog = link->catalog();
-    _codec = link->textCodec();
-
-    ui->plainTextEdit_2->clear();
-    ui->comboBox->setCurrentIndex(0);
-    ui->comboBox_3->setCurrentIndex(0);
-
-    connect(ui->comboBox_3, &QComboBox::currentIndexChanged,
-            this, &vocabulary::changedLanguage);
-    connect(ui->comboBox, &QComboBox::currentIndexChanged,
-            this, &vocabulary::rendering);
-
-    rendering(0);
-    QDialog::open();
-}
 void vocabulary::filter(const QString & flt){
     ui->listView->selectionModel()->clearCurrentIndex();
     _filter->setFilterFixedString(flt);
-}
-void vocabulary::reject(){
-    ui->comboBox_3->disconnect();
-    ui->comboBox->disconnect();
-    _model->setStringList(QStringList());
-
-    QDialog::reject();
 }
 void vocabulary::selectedModelItem(const QModelIndex & index){
     if(!index.isValid())
@@ -234,4 +233,30 @@ void vocabulary::selectedModelItem(const QModelIndex & index){
 void vocabulary::changedPlainText(){
     if(ui->plainTextEdit_2->toPlainText().isEmpty())
         _typeAdded = false;
+}
+void vocabulary::prepareOpen(){
+    ui->comboBox->setCurrentIndex(0);
+    ui->comboBox_3->setCurrentIndex(0);
+
+    connect(ui->comboBox_3, qOverload<int>(&QComboBox::currentIndexChanged), this, &vocabulary::changedLanguage);
+    connect(ui->comboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, &vocabulary::rendering);
+
+    rendering(0);
+}
+void vocabulary::clearList(){
+    ui->comboBox_3->disconnect();
+    ui->comboBox->disconnect();
+    _model->setStringList(QStringList());
+}
+void vocabulary::show(){
+    prepareOpen();
+    QWidget::show();
+}
+void vocabulary::open(){
+    prepareOpen();
+    QDialog::open();
+}
+void vocabulary::reject(){
+    clearList();
+    return QDialog::reject();
 }
