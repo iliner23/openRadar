@@ -14,7 +14,7 @@ class RepChose : public QDialog
     Q_OBJECT
 
 public:
-    explicit RepChose(const QStringList &, QWidget *parent = nullptr);
+    explicit RepChose(const QStringList, QWidget *parent = nullptr);
     ~RepChose();
 
 private:
@@ -27,7 +27,7 @@ private:
 public slots:
     void accept();
 private slots:
-    void finding(const QString &);
+    void finding(const QString);
     void activateLevel(const QModelIndex &);
     void showLevels();
     void sendLevel(const quint16);

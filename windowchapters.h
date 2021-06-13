@@ -24,14 +24,14 @@ public:
     ~windowChapters();
 public slots:
     void show(QList<QMdiSubWindow*>, QMdiSubWindow*);
-    void show(QList<QMdiSubWindow*>, QMdiSubWindow *, const QByteArray &);
+    void show(QList<QMdiSubWindow*>, QMdiSubWindow *, const QByteArray);
     void reject();
 signals:
     void activatedBranch(const QModelIndex &, const quint32);
 private slots:
     void show() {}
-    void textFilter(const QString &);
-    void textFilter_2(const QString &);
+    void textFilter(const QString);
+    void textFilter_2(const QString);
     void selectedItemTable(QTableWidgetItem *);
     void accept_1();
     void reject_2();
@@ -41,7 +41,7 @@ private slots:
     void selectedItemList(const QModelIndex &);
     void setActiveRepertory(int);
 private:
-    void changeChapterText(const QByteArray &);
+    void changeChapterText(const QByteArray);
     void tableRender(int);
     void showListChapter(const QByteArray);
     inline void clearModel();

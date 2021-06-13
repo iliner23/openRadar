@@ -6,7 +6,7 @@
 class labelEngine : public repertoryEngine{
 public:
     explicit labelEngine(QGraphicsScene *parent = nullptr) : repertoryEngine(parent) {}
-    explicit labelEngine(const QDir & filename, const std::shared_ptr<cache> & cache
+    explicit labelEngine(const QDir filename, const std::shared_ptr<cache> cache
                     ,QGraphicsScene * scene = nullptr
                     ,QTextCodec * codec = QTextCodec::codecForName("system"))
                 : repertoryEngine(filename, cache, scene, codec) {}

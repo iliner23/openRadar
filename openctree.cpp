@@ -15,6 +15,18 @@ std::string openCtree::key() const{
 
     return _lastKey;
 }
+uint8_t openCtree::pointerSize() const{
+    if(!isOpen())
+        throw std::logic_error("Database isn't open");
+
+    return _header[_index].ptrSize;
+}
+uint16_t openCtree::keyLenght() const{
+    if(!isOpen())
+        throw std::logic_error("Database isn't open");
+
+    return _header[_index].key_length;
+}
 bool openCtree::isAlternateSequence() const{
     if(!isOpen())
         throw std::logic_error("Database isn't open");
@@ -24,15 +36,36 @@ bool openCtree::isAlternateSequence() const{
 
     return true;
 }
-std::string openCtree::convertKey(const std::string & key) const{
+std::string openCtree::encodeKey(const std::string & key) const{
+    //encode text to key value (hello -> VKbbj)
     if(!isAlternateSequence())
         throw std::logic_error("Member hasn't an alternate sequence");
 
-    auto str = key;
+    std::string str;
+    str.reserve(key.size());
+
     const auto ptr = _header[_index].altSeq;
 
-    for(auto & it : str){
-        it = ptr[(uint8_t)it];
+    for(auto & it : key)
+        str.push_back(ptr[(uint8_t)it]);
+
+    return str;
+}
+std::string openCtree::decodeKey(const std::string & key) const{
+    //decode key value to text (VKbbj -> hello)
+    if(!isAlternateSequence())
+        throw std::logic_error("Member hasn't an alternate sequence");
+
+    std::string str;
+    str.reserve(key.size());
+
+    const auto ptr = _header[_index].altSeq;
+
+    for(auto & it : key){
+        for(auto i = 0; i != 255; ++i){
+            if(it == ptr[i])
+                str.push_back((char) i);
+        }
     }
 
     return str;

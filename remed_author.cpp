@@ -1,8 +1,8 @@
 #include "remed_author.h"
 #include "ui_remed_author.h"
 
-remed_author::remed_author(const QDir & path, std::shared_ptr<cache> & ch,
-                           const QByteArray & pos,
+remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
+                           const QByteArray pos,
                            const quint16 remFilter, const quint32 localPos, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::remed_author)

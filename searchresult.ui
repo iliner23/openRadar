@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>searchResult</class>
  <widget class="QDialog" name="searchResult">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -48,33 +51,50 @@
        <item>
         <widget class="QPushButton" name="pushButton_2">
          <property name="text">
-          <string>PushButton</string>
+          <string>Запрос</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton">
          <property name="text">
-          <string>PushButton</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_3">
-         <property name="text">
-          <string>PushButton</string>
+          <string>Контекст</string>
          </property>
         </widget>
        </item>
       </layout>
      </item>
-     <item>
-      <widget class="QListView" name="listView"/>
-     </item>
     </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QListWidget" name="listWidget">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="uniformItemSizes">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>searchResult</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>554</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

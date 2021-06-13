@@ -1,5 +1,5 @@
 #include "searchmodel.h"
-searchModel::_node::_node(const QString & data, const QByteArray & key, bool marker, _node * parent){
+searchModel::_node::_node(const QString data, const QByteArray key, bool marker, _node * parent){
     _data = data;
     _parent = parent;
     _marker = marker;
@@ -19,7 +19,7 @@ searchModel::_node::~_node(){
     }
 }
 
-searchModel::searchModel(const QDir & filename, const QByteArray & data, QTextCodec * codec, QObject * object): QAbstractItemModel(object){
+searchModel::searchModel(const QDir filename, const QByteArray data, QTextCodec * codec, QObject * object): QAbstractItemModel(object){
     setCatalogFile(filename, data, codec);
 }
 void searchModel::createHeap(_node * parent, QByteArray pos){
@@ -165,7 +165,7 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
     for(auto i = 0; i != parent->_children.size(); ++i)
         parent->_children[i]->_row = i;
 }
-void searchModel::setCatalogFile(const QDir & file, const QByteArray & pos, QTextCodec * codec){
+void searchModel::setCatalogFile(const QDir file, const QByteArray pos, QTextCodec * codec){
     beginResetModel();
     delete _root;
 
@@ -268,7 +268,7 @@ void searchModel::setTextCodec(QTextCodec * codec){
 
     _codec = codec;
 }
-QModelIndex searchModel::keyToIndex(const QByteArray & key, const QModelIndex & parent){
+QModelIndex searchModel::keyToIndex(const QByteArray key, const QModelIndex & parent){
     _node * ptrData = nullptr;
 
     if(parent.isValid())

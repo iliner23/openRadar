@@ -183,7 +183,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
     _layout->setCurrentIndex(0);
     QWidget::show();
 }
-void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, const QByteArray & key){
+void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, const QByteArray key){
     setWindowTitle("Окно выбора симптома");
     ui->comboBox->clear();
     _dirPaths.clear();
@@ -239,13 +239,13 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     _layout->setCurrentIndex(1);
     QWidget::show();
 }
-void windowChapters::textFilter(const QString & text){
+void windowChapters::textFilter(const QString text){
     auto items = ui->tableWidget->findItems(text, Qt::MatchFlag::MatchContains);
 
     if(!items.isEmpty())
         ui->tableWidget->setCurrentItem(items.at(0));
 }
-void windowChapters::textFilter_2(const QString & text){
+void windowChapters::textFilter_2(const QString text){
     _filterModel->setFilterFixedString(text);
 }
 void windowChapters::selectedItemTable(QTableWidgetItem * item){
@@ -308,7 +308,7 @@ void windowChapters::returnBranch(){
         changeChapterText(rootPtr->parent()->key().right(6));
     }
 }
-void windowChapters::changeChapterText(const QByteArray & key){
+void windowChapters::changeChapterText(const QByteArray key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     sym.at(key.toStdString(), false);
     ui->label_2->setText(repertoryEngine::renderingLabel(sym, false, _codec));

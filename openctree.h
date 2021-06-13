@@ -90,11 +90,14 @@ public:
     std::string back(const bool readDbText = true);
 
     std::string key() const;
-    std::string convertKey(const std::string&) const;
+    std::string encodeKey(const std::string&) const;
+    std::string decodeKey(const std::string&) const;
 
     std::string currentValue();
 
     bool haveKey(std::string);
+    uint16_t keyLenght() const;
+    uint8_t pointerSize() const;
 
     uint64_t currentPosition();
 

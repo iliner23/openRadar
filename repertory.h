@@ -18,7 +18,7 @@ class repertory : public QWidget//, public abstractEngine
 {
     Q_OBJECT
 public:
-    explicit repertory(const QDir &, const QDir &,
+    explicit repertory(const QDir, const QDir,
                        std::shared_ptr<cache> &, QTextCodec *,
                        const quint16 = -1, QWidget * = nullptr);
     QDir catalog() const noexcept { return _filename; }
@@ -54,7 +54,7 @@ private slots:
     void doubleClickedAction(QGraphicsSimpleTextItem *item);
     void clickedAction(QGraphicsSimpleTextItem *item);
 public slots:
-    void setPosition(const QByteArray &);
+    void setPosition(const QByteArray);
     void openVocabulary();
 };
 

@@ -18,15 +18,15 @@ public:
     };
 
     explicit repertoryEngine(QGraphicsScene *parent = nullptr);
-    explicit repertoryEngine(const QDir & filename, const std::shared_ptr<cache> & cache
+    explicit repertoryEngine(const QDir filename, const std::shared_ptr<cache> & cache
                     ,QGraphicsScene * scene = nullptr
                     ,QTextCodec * codec = QTextCodec::codecForName("system"));
 
-    virtual void reset(const QDir & filename, const std::shared_ptr<cache> & cache
+    virtual void reset(const QDir filename, const std::shared_ptr<cache> & cache
                , QTextCodec * codec = QTextCodec::codecForName("system"));
 
     void setCurrentPosition(int pos);
-    void setCurrentKey(const QByteArray & key);
+    void setCurrentKey(const QByteArray key);
 
     QByteArray currentKey() const noexcept { return _private.index; }
     int currentPosition() { return _symptom.currentPosition(); }

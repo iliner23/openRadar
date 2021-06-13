@@ -12,7 +12,7 @@ public:
     class _node{
     private:
         friend searchModel;
-        explicit _node(const QString & data, const QByteArray & key = "", bool marker = false, _node * parent = nullptr);
+        explicit _node(const QString data, const QByteArray key = "", bool marker = false, _node * parent = nullptr);
 
         QString _data;
         QVector<_node*> _children;
@@ -32,13 +32,13 @@ public:
     };
 
     searchModel(QObject * parent = nullptr): QAbstractItemModel(parent) { _root = new _node("root", 0); }
-    searchModel(const QDir &, const QByteArray &, QTextCodec * codec = nullptr, QObject * parent = nullptr);
+    searchModel(const QDir, const QByteArray, QTextCodec * codec = nullptr, QObject * parent = nullptr);
     ~searchModel();
 
-    void setCatalogFile(const QDir &, const QByteArray &, QTextCodec * codec = nullptr);
+    void setCatalogFile(const QDir, const QByteArray, QTextCodec * codec = nullptr);
     void setTextCodec(QTextCodec *);
     QTextCodec * getTextCodec() const noexcept { return _codec; }
-    QModelIndex keyToIndex(const QByteArray &, const QModelIndex &);
+    QModelIndex keyToIndex(const QByteArray, const QModelIndex &);
 
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex index(int row, int column,

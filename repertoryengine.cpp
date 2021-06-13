@@ -2,7 +2,7 @@
 repertoryEngine::repertoryEngine(QGraphicsScene *parent): QObject(parent){
     initFonts();
 }
-repertoryEngine::repertoryEngine(const QDir & filename, const std::shared_ptr<cache> & cache
+repertoryEngine::repertoryEngine(const QDir filename, const std::shared_ptr<cache> & cache
                                  , QGraphicsScene *parent, QTextCodec * codec) : QObject(parent){
     initFonts();
     repertoryEngine::reset(filename, cache, codec);
@@ -16,7 +16,7 @@ void repertoryEngine::initFonts(){
     _fonts.smallFont = QFont(_fonts.fontName, 8);
     _fonts.boldFont = QFont(_fonts.fontName, 10, QFont::Bold);
 }
-void repertoryEngine::reset(const QDir &filename, const std::shared_ptr<cache> &cache, QTextCodec *codec){
+void repertoryEngine::reset(const QDir filename, const std::shared_ptr<cache> &cache, QTextCodec *codec){
     _symptom.open(filename.filePath("symptom").toStdString());
     _symptom.back(false);
     _private.endIndex = QByteArray::fromStdString(_symptom.key());
@@ -118,7 +118,7 @@ void repertoryEngine::renderingChapter(const quint64 firstZero, const quint64 se
         lab[it] = textItem;
     }
 }
-void repertoryEngine::setCurrentKey(const QByteArray &key){
+void repertoryEngine::setCurrentKey(const QByteArray key){
     _symptom.at(key.toStdString(), false);
     _private.index = key;
 }

@@ -1,7 +1,7 @@
 #include "author.h"
 #include "ui_author.h"
 
-author::author(const quint32 authorPos, std::shared_ptr<cache> & ch, QWidget *parent) :
+author::author(const quint32 authorPos, std::shared_ptr<cache> ch, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::author)
 {

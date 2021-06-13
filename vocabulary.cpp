@@ -1,7 +1,7 @@
 #include "vocabulary.h"
 #include "ui_vocabulary.h"
 
-vocabulary::vocabulary(const QDir & system, const QLocale::Language language, const QDir & catalog, QTextCodec * codec, QWidget *parent) :
+vocabulary::vocabulary(const QDir system, const QLocale::Language language, const QDir catalog, QTextCodec * codec, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::vocabulary)
 {
@@ -13,6 +13,7 @@ vocabulary::vocabulary(const QDir & system, const QLocale::Language language, co
     _system = system;
     _catalog = catalog;
     _codec = codec;
+    _results = new searchResult(this);
 
     auto word2 = openCtree(_catalog.filePath("word2").toStdString());
     _globalHide = (word2.size() == 0) ? true : false;
@@ -36,8 +37,9 @@ vocabulary::vocabulary(const QDir & system, const QLocale::Language language, co
     ui->listView->setUniformItemSizes(true);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &vocabulary::filter);
-    connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &vocabulary::selectedModelItem);
+    connect(ui->listView, &QListView::clicked, this, &vocabulary::selectedModelItem);
     connect(ui->plainTextEdit_2, &QPlainTextEdit::textChanged, this, &vocabulary::changedPlainText);
+    connect(ui->pushButton_2, &QPushButton::clicked, this, &vocabulary::openResults);
 }
 vocabulary::~vocabulary()
 {
@@ -204,7 +206,7 @@ void vocabulary::threadsLaunch(openCtree & base, std::function<QStringList(openC
 
     _model->setStringList(std::move(wordList));
 }
-void vocabulary::filter(const QString & flt){
+void vocabulary::filter(const QString flt){
     ui->listView->selectionModel()->clearCurrentIndex();
     _filter->setFilterFixedString(flt);
 }
@@ -221,7 +223,9 @@ void vocabulary::selectedModelItem(const QModelIndex & index){
             ui->plainTextEdit_2->insertPlainText(" OR ");
     }
 
-    if(ui->comboBox->currentIndex() == 0 || ui->comboBox->currentIndex() == 1){
+    if(ui->comboBox->currentIndex() == 0 ||
+       ui->comboBox->currentIndex() == 1 ||
+       ui->comboBox->currentIndex() == 2){
         if(*text.constData() == ' ' && *(text.constData() + 1) == ' ')
             ui->plainTextEdit_2->insertPlainText("[word:" % text.mid(2) % "]");
         else
@@ -259,4 +263,16 @@ void vocabulary::open(){
 void vocabulary::reject(){
     clearList();
     return QDialog::reject();
+}
+void vocabulary::openResults(){
+    QFileInfo word, symptom(_catalog.filePath("symptom"));
+
+    if(ui->comboBox_3->currentIndex() == 0)
+        word.setFile(_catalog.filePath("word1"));
+    else
+        word.setFile(_catalog.filePath("word2"));
+
+    _results->setData(word, symptom,
+                                ui->plainTextEdit_2->toPlainText(), _codec);
+    _results->show();
 }

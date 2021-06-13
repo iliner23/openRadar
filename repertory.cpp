@@ -23,7 +23,7 @@ void repertory::changeFilter(QAction * action){
             repaintView();
     }
 }
-repertory::repertory(const QDir & filename, const QDir & system,
+repertory::repertory(const QDir filename, const QDir system,
     std::shared_ptr<cache> & ch, QTextCodec * codec, const quint16 remFilter, QWidget *parent) : QWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
@@ -292,7 +292,7 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
     widget->setAttribute(Qt::WA_DeleteOnClose);
     widget->show();
 }
-void repertory::setPosition(const QByteArray & pos){
+void repertory::setPosition(const QByteArray pos){
     _engine->setCurrentKey(pos);
     _bar->setValue(_engine->currentPosition());
 }

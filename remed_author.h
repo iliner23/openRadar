@@ -28,8 +28,8 @@ private:
 private slots:
     void showTextInformation(QListWidgetItem*);
 public:
-    explicit remed_author(const QDir &, std::shared_ptr<cache> &,
-                          const QByteArray &, const quint16, const quint32, QWidget *parent = nullptr);
+    explicit remed_author(const QDir, std::shared_ptr<cache>,
+                          const QByteArray, const quint16, const quint32, QWidget *parent = nullptr);
     ~remed_author();
 
 private:

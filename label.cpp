@@ -1,8 +1,8 @@
 #include "label.h"
 #include "ui_label.h"
 
-Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
-             const QByteArray & pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
+Label::Label(std::shared_ptr<cache> ch, const QDir path,
+             const QByteArray pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
     QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
