@@ -138,31 +138,70 @@ void searchResult::logicalParser(){
     QStringList list;
     QVector<QByteArray> keysList;
 
+    auto func = [&](const QVector<QByteArray> & bigList, const QVector<QByteArray> & list, QVector<QByteArray> & tempList){
+        for(const auto & it : bigList){
+            try{
+                _symptom.at(it.toStdString(), false);
+                const auto path = repertoryEngine::getRootPath(_symptom);
+
+                try{
+                    for(const auto & ir : list){
+                        _symptom.at(ir.toStdString(), false);
+                        const auto pathPtr = repertoryEngine::getRootPath(_symptom);
+
+                        {
+                            const auto iter = pathPtr.indexOf(it);
+
+                            if(iter != -1 && tempList.indexOf(pathPtr.at(0)) == -1){
+                                tempList.push_back(pathPtr.at(0));
+                                continue;
+                            }
+                        }
+                        {
+                            const auto iter = path.indexOf(ir);
+
+                            if(iter != -1 && tempList.indexOf(path.at(0)) == -1){
+                                tempList.push_back(path.at(0));
+                                continue;
+                            }
+                        }
+                    }
+                } catch(std::exception) {}
+            } catch(std::exception) {}
+        }
+    };
+
     for(auto mult = 0; mult != multiKeys.size(); ++mult){
         QVector<QByteArray> tempList;
 
-        for(const auto & keyIt : multiKeys.at(mult).first){
-            if(mult != 0){
-                const auto ptr = keysList.indexOf(keyIt);
-
-                if(multiKeys.at(mult).second == operation::AND && ptr != -1)
-                    tempList.push_back(keysList.at(ptr));
-                else if(multiKeys.at(mult).second == operation::OR && ptr == -1)
-                    tempList += keyIt;
-            }
+        if(multiKeys.at(mult).second == operation::none){
+            keysList.append(multiKeys.at(mult).first);
+        }
+        else if(multiKeys.at(mult).second == operation::AND){
+            if(multiKeys.at(mult).first.size() > keysList.size())
+                func(keysList, multiKeys.at(mult).first, tempList);
             else
-                tempList += keyIt;
+                func(multiKeys.at(mult).first, keysList, tempList);
+
+            keysList = tempList;
+        }
+        else{
+            for(const auto & it : multiKeys.at(mult).first){
+                const auto kel = keysList.indexOf(it);
+
+                if(kel == -1)
+                   keysList.push_back(it);
+            }
         }
 
-        if(multiKeys.at(mult).second == operation::AND)
-            keysList = tempList;
-        else
-            keysList += tempList;
     }
 
     for(const auto & it : keysList){
-        _symptom.at(it.toStdString());
-        list.push_back(repertoryEngine::renderingLabel(_symptom, false, _codec));
+        try{
+            _symptom.at(it.toStdString(), false);
+            list.push_back(repertoryEngine::renderingLabel(_symptom, false, _codec));
+        }
+        catch(std::exception){}
     }
 
     ui->listWidget->addItems(list);

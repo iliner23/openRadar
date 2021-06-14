@@ -397,49 +397,52 @@ void repertoryEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array,
             star = '*';
         }
 
-        const auto & rmStr = _cache->_cacheRemed.at(remed);
-        const auto & auStr = _cache->_cacheAuthor.at(author);
-        auto itN = rmStr.find('\0', _cache->_lenRem);
-        auto itA = auStr.find('\0', _cache->_lenAuthor);
-        auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
-        auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
+        try{
+            const auto & rmStr = _cache->_cacheRemed.at(remed);
+            const auto & auStr = _cache->_cacheAuthor.at(author);
+            auto itN = rmStr.find('\0', _cache->_lenRem);
+            auto itA = auStr.find('\0', _cache->_lenAuthor);
+            auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
+            auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-        if(_private.pos.y() >= _private.heightView)
-            break;
+            if(_private.pos.y() >= _private.heightView)
+                break;
 
-        if(rLevel == 0 || rLevel > 4)
-            continue;
+            if(rLevel == 0 || rLevel > 4)
+                continue;
 
-        if(prevRemed == remed)
-            authorsSym(authorName, author, arrayPtr->back(), true);
-        else{
-            auto remedItem = new QGraphicsSimpleTextItem;
-            const QFont * remedFonts[] = {&_fonts.defaultFont, &_fonts.italicFont, &_fonts.boldFont};
-            const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
+            if(prevRemed == remed)
+                authorsSym(authorName, author, arrayPtr->back(), true);
+            else{
+                auto remedItem = new QGraphicsSimpleTextItem;
+                const QFont * remedFonts[] = {&_fonts.defaultFont, &_fonts.italicFont, &_fonts.boldFont};
+                const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
 
-            remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
-            remedItem->setBrush(remedColors[rLevel - 1]);
-            remedItem->setText((rLevel > 2) ? remedName.toUpper() : remedName);
+                remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
+                remedItem->setBrush(remedColors[rLevel - 1]);
+                remedItem->setText((rLevel > 2) ? remedName.toUpper() : remedName);
 
-            remedItem->setData(0, 3);
-            remedItem->setData(1, startLabelsEnd);
-            remedItem->setData(2, QByteArray::fromStdString(_symptom.key()));
+                remedItem->setData(0, 3);
+                remedItem->setData(1, startLabelsEnd);
+                remedItem->setData(2, QByteArray::fromStdString(_symptom.key()));
 
-            auto group = new QGraphicsItemGroup;
-            group->addToGroup(remedItem);
-            group->setHandlesChildEvents(false);
-            group->setFlag(QGraphicsItem::ItemHasNoContents);
+                auto group = new QGraphicsItemGroup;
+                group->addToGroup(remedItem);
+                group->setHandlesChildEvents(false);
+                group->setFlag(QGraphicsItem::ItemHasNoContents);
 
-            if(sorting)
-                arrayPtr = &array[rLevel - 1];
-            else
-                arrayPtr = &array[0];
+                if(sorting)
+                    arrayPtr = &array[rLevel - 1];
+                else
+                    arrayPtr = &array[0];
 
-            arrayPtr->push_back(group);
+                arrayPtr->push_back(group);
 
-            authorsSym(authorName, author, arrayPtr->back());
-            ++remed_size;
+                authorsSym(authorName, author, arrayPtr->back());
+                ++remed_size;
+            }
         }
+        catch(std::exception){ qDebug() << "error index" << author << remed; }
 
         prevRemed = remed;
     }
