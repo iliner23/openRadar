@@ -38,7 +38,7 @@ private:
     QTextCodec * _codec;
 
     inline void expressionParser(const QString expr);
-    QVector<QByteArray> keysParser(const std::string & key, QSet<QByteArray> &set);
+    inline QVector<QByteArray> keysParser(const std::string & key, QSet<QByteArray> &set);
     inline void logicalParser();
     inline void clearValues();
 };

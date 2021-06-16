@@ -139,44 +139,50 @@ void searchResult::logicalParser(){
     QVector<QByteArray> keysList;
 
     auto func = [&](const QVector<QByteArray> & bigList, const QVector<QByteArray> & list, QVector<QByteArray> & tempList){
+        QVector<QVector<QByteArray>> fList, sList;
+
         for(const auto & it : bigList){
-            try{
-                _symptom.at(it.toStdString(), false);
-                const auto path = repertoryEngine::getRootPath(_symptom);
+            _symptom.at(it.toStdString(), false);
+            fList += repertoryEngine::getRootPath(_symptom);
+        }
 
-                try{
-                    for(const auto & ir : list){
-                        _symptom.at(ir.toStdString(), false);
-                        const auto pathPtr = repertoryEngine::getRootPath(_symptom);
+        for(const auto & ir : list){
+            _symptom.at(ir.toStdString(), false);
+            sList += repertoryEngine::getRootPath(_symptom);
+        }
 
-                        {
-                            const auto iter = pathPtr.indexOf(it);
+        for(auto it = bigList.constBegin(); it != bigList.constEnd(); ++it){
+            for(auto ir = list.constBegin(); ir != list.constEnd(); ++ir){
+                if(*it == *ir && tempList.indexOf(*ir) == -1){
+                    tempList.push_back(*it);
+                    qDebug() << "middle";
+                }
+                else if(*it < *ir && tempList.indexOf(*ir) == -1){
+                    const auto iter = sList.at(ir - list.constBegin()).indexOf(*it);
 
-                            if(iter != -1 && tempList.indexOf(pathPtr.at(0)) == -1){
-                                tempList.push_back(pathPtr.at(0));
-                                continue;
-                            }
-                        }
-                        {
-                            const auto iter = path.indexOf(ir);
-
-                            if(iter != -1 && tempList.indexOf(path.at(0)) == -1){
-                                tempList.push_back(path.at(0));
-                                continue;
-                            }
-                        }
+                    if(iter != -1){
+                        tempList.push_back(*ir);
+                        qDebug() << "up";
                     }
-                } catch(std::exception) {}
-            } catch(std::exception) {}
+                }
+                else if(*it > *ir && tempList.indexOf(*it) == -1){
+                    const auto iter = fList.at(it - bigList.constBegin()).indexOf(*ir);
+
+                    if(iter != -1){
+                        tempList.push_back(*it);
+                        qDebug() << "down";
+                    }
+                }
+            }
         }
     };
 
     for(auto mult = 0; mult != multiKeys.size(); ++mult){
         QVector<QByteArray> tempList;
 
-        if(multiKeys.at(mult).second == operation::none){
+        if(multiKeys.at(mult).second == operation::none)
             keysList.append(multiKeys.at(mult).first);
-        }
+
         else if(multiKeys.at(mult).second == operation::AND){
             if(multiKeys.at(mult).first.size() > keysList.size())
                 func(keysList, multiKeys.at(mult).first, tempList);

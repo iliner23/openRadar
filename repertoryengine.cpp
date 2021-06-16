@@ -454,17 +454,21 @@ QString repertoryEngine::renderingLabel(const bool pass){
     _symptom.at(_private.index.toStdString(), false);
     return renderingLabel(_symptom, pass, _codec);
 }
-QVector<QByteArray> repertoryEngine::getRootPath(openCtree & symptom){
+QVector<QByteArray> repertoryEngine::getRootPath(openCtree & symptom, quint16 deep){
     QVector<QByteArray> array;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');
 
     std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, ind.begin());
 
-    while(true){
+    for(quint16 i = 0;; ++i){
         quint8 attach = 0;
 
         array.push_back(ind);
+
+        if(i == deep)
+            break;
+
         text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
 
         attach = text.at(21);

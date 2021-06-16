@@ -55,7 +55,8 @@ public:
     QVector<QByteArray> getRootPath() { return getRootPath(_symptom); }
     static QString renderingLabel(openCtree &symptom,
                 bool passLastChapter = true, QTextCodec * codec = QTextCodec::codecForName("system"));
-    static QVector<QByteArray> getRootPath(openCtree &);
+
+    static QVector<QByteArray> getRootPath(openCtree &, quint16 deep = std::numeric_limits<quint16>::max());
 protected:
     QTextCodec * _codec = nullptr;
 
