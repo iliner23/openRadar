@@ -24,7 +24,6 @@ void searchResult::setData(const QFileInfo word, const QFileInfo symptom, const 
 
     expressionParser(expression);
     logicalParser();
-    _expr.clear();
 }
 void searchResult::expressionParser(const QString expr){
     ui->label->setText(expr);
@@ -95,10 +94,6 @@ QVector<QByteArray> searchResult::keysParser(const std::string & key, QSet<QByte
     return keys;
 }
 void searchResult::logicalParser(){
-    /*auto return_size = [](const auto & value, const auto & _size){
-        return (value == -1) ? _size : value;
-    };*/
-
     QVector<std::pair<QVector<QByteArray>, operation>> multiKeys;
 
     for(auto exprIt = 0; exprIt != _expr.size(); ++exprIt){
@@ -134,48 +129,10 @@ void searchResult::logicalParser(){
         multiKeys.push_back(std::make_pair(tempPar, oper));
     }
 
+    _expr.clear();
     ui->listWidget->setUpdatesEnabled(false);
-    QStringList list;
+
     QVector<QByteArray> keysList;
-
-    auto func = [&](const QVector<QByteArray> & bigList, const QVector<QByteArray> & list, QVector<QByteArray> & tempList){
-        QVector<QVector<QByteArray>> fList, sList;
-
-        for(const auto & it : bigList){
-            _symptom.at(it.toStdString(), false);
-            fList += repertoryEngine::getRootPath(_symptom);
-        }
-
-        for(const auto & ir : list){
-            _symptom.at(ir.toStdString(), false);
-            sList += repertoryEngine::getRootPath(_symptom);
-        }
-
-        for(auto it = bigList.constBegin(); it != bigList.constEnd(); ++it){
-            for(auto ir = list.constBegin(); ir != list.constEnd(); ++ir){
-                if(*it == *ir && tempList.indexOf(*ir) == -1){
-                    tempList.push_back(*it);
-                    qDebug() << "middle";
-                }
-                else if(*it < *ir && tempList.indexOf(*ir) == -1){
-                    const auto iter = sList.at(ir - list.constBegin()).indexOf(*it);
-
-                    if(iter != -1){
-                        tempList.push_back(*ir);
-                        qDebug() << "up";
-                    }
-                }
-                else if(*it > *ir && tempList.indexOf(*it) == -1){
-                    const auto iter = fList.at(it - bigList.constBegin()).indexOf(*ir);
-
-                    if(iter != -1){
-                        tempList.push_back(*it);
-                        qDebug() << "down";
-                    }
-                }
-            }
-        }
-    };
 
     for(auto mult = 0; mult != multiKeys.size(); ++mult){
         QVector<QByteArray> tempList;
@@ -184,11 +141,7 @@ void searchResult::logicalParser(){
             keysList.append(multiKeys.at(mult).first);
 
         else if(multiKeys.at(mult).second == operation::AND){
-            if(multiKeys.at(mult).first.size() > keysList.size())
-                func(keysList, multiKeys.at(mult).first, tempList);
-            else
-                func(multiKeys.at(mult).first, keysList, tempList);
-
+            logicalANDparser(keysList, multiKeys.at(mult).first, tempList);
             keysList = tempList;
         }
         else{
@@ -199,20 +152,154 @@ void searchResult::logicalParser(){
                    keysList.push_back(it);
             }
         }
-
     }
 
-    for(const auto & it : keysList){
-        try{
-            _symptom.at(it.toStdString(), false);
-            list.push_back(repertoryEngine::renderingLabel(_symptom, false, _codec));
+    QStringList list;
+
+    auto thread = [&](openCtree symptom, auto begin, auto end){
+        QStringList lst;
+
+        for(auto it = begin; it != end; ++it){
+            try{
+                symptom.at(it->toStdString(), false);
+                lst.push_back(repertoryEngine::renderingLabel(symptom, false, _codec));
+            }
+            catch(std::exception){}
         }
-        catch(std::exception){}
+
+        return lst;
+    };
+
+    if(keysList.size() > 500){
+        const auto del = keysList.size() / 4;
+        auto thread1 = QtConcurrent::run(thread, _symptom, keysList.constBegin(), keysList.constBegin() + del);
+        auto thread2 = QtConcurrent::run(thread, _symptom, keysList.constBegin() + del, keysList.constBegin() + del * 2);
+        auto thread3 = QtConcurrent::run(thread, _symptom, keysList.constBegin() + del * 2, keysList.constBegin() + del * 3);
+        auto thread4 = QtConcurrent::run(thread, _symptom, keysList.constBegin() + del * 3, keysList.constEnd());
+
+        list.append(thread1.result());
+        list.append(thread2.result());
+        list.append(thread3.result());
+        list.append(thread4.result());
     }
+    else
+        list.append(thread(_symptom, keysList.constBegin(), keysList.constEnd()));
 
     ui->listWidget->addItems(list);
     ui->label_2->setText(QString::number(list.size()));
     ui->listWidget->setUpdatesEnabled(true);
+}
+void searchResult::logicalANDparser(const QVector<QByteArray> firstList, const QVector<QByteArray> secondList, QVector<QByteArray> & tempList){
+    const QVector<QByteArray> * list1, * list2;
+
+    if(firstList.size() < secondList.size()){
+        list2 = &secondList;
+        list1 = &firstList;
+    }
+    else{
+        list1 = &secondList;
+        list2 = &firstList;
+    }
+
+    QVector<QVector<QByteArray>> fList, sList;
+
+    auto listFiller = [](openCtree symptom,
+                            const auto & sourceList, auto begin, auto end){
+        QVector<QVector<QByteArray>> flist;
+
+        for(auto i = begin; i != end; ++i){
+            symptom.at(sourceList.at(i).toStdString(), false);
+            flist += repertoryEngine::getRootPath(symptom);
+        }
+
+        return flist;
+    };
+
+    auto thread1 = QtConcurrent::run([&](){
+        return threadsParent(*list1, listFiller); });
+    auto thread2 = QtConcurrent::run([&](){
+        return threadsParent(*list2, listFiller); });
+
+    fList = thread1.result();
+    sList = thread2.result();
+
+    if(firstList == secondList){
+        tempList = firstList;
+        return;
+    }
+
+    auto compareThread = QtConcurrent::run([&](){ return firstList == secondList; });
+
+    auto threadFor = [&](auto begin, auto end){
+        QVector<QByteArray> tpList;
+
+        for(auto it = begin; it != end; ++it){
+            for(auto ir = list2->constBegin(); ir != list2->constEnd(); ++ir){
+                if(*it == *ir && tempList.indexOf(*ir) == -1 &&
+                                    tpList.indexOf(*ir) == -1){
+                    tpList.push_back(*it);
+                    qDebug() << "middle";
+                }
+                else if(*it < *ir && tempList.indexOf(*ir) == -1 &&
+                                        tpList.indexOf(*ir) == -1){
+                    const auto iter = sList.at(ir - list2->constBegin()).indexOf(*it);
+
+                    if(iter != -1){
+                        tpList.push_back(*ir);
+                        qDebug() << "up";
+                    }
+                }
+                else if(*it > *ir && tempList.indexOf(*it) == -1 &&
+                                        tpList.indexOf(*it) == -1){
+                    const auto iter = fList.at(it - list1->constBegin()).indexOf(*ir);
+
+                    if(iter != -1){
+                        tpList.push_back(*it);
+                        qDebug() << "down";
+                    }
+                }
+            }
+        }
+
+        return tpList;
+    };
+
+    if(list1->size() > 50){
+        const auto del = list1->size() / 4;
+        auto thread1 = QtConcurrent::run(threadFor, list1->constBegin(), list1->constBegin() + del);
+        auto thread2 = QtConcurrent::run(threadFor, list1->constBegin() + del , list1->constBegin() + del * 2);
+        auto thread3 = QtConcurrent::run(threadFor, list1->constBegin() + del * 2, list1->constBegin() + del * 3);
+        auto thread4 = QtConcurrent::run(threadFor, list1->constBegin() + del * 3, list1->constEnd());
+
+        tempList.append(thread1.result());
+        tempList.append(thread2.result());
+        tempList.append(thread3.result());
+        tempList.append(thread4.result());
+    }
+    else
+        tempList.append(threadFor(list1->constBegin(), list1->constEnd()));
+}
+QVector<QVector<QByteArray>> searchResult::threadsParent(const QVector<QByteArray> & sourceList,
+                                 std::function<QVector<QVector<QByteArray>>(openCtree symptom, const QVector<QByteArray> & , quint32 , quint32 )> threadFunc){
+    QVector<QVector<QByteArray>> fillerList;
+
+    if(sourceList.size() > 500){
+        const auto del = sourceList.size() / 4;
+
+        auto thread1 = QtConcurrent::run(threadFunc, _symptom, sourceList, 0, del);
+        auto thread2 = QtConcurrent::run(threadFunc, _symptom, sourceList, del, del * 2);
+        auto thread3 = QtConcurrent::run(threadFunc, _symptom, sourceList, del * 2, del * 3);
+        auto thread4 = QtConcurrent::run(threadFunc, _symptom, sourceList, del * 3,  sourceList.size());
+
+        fillerList.append(thread1.result());
+        fillerList.append(thread2.result());
+        fillerList.append(thread3.result());
+        fillerList.append(thread4.result());
+    }
+    else
+        fillerList = threadFunc(_symptom, sourceList, 0, sourceList.size());
+
+    return fillerList;
 }
 searchResult::~searchResult()
 {

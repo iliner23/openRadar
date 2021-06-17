@@ -3,6 +3,7 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
+#include <QtConcurrent/QtConcurrent>
 #include <openctree.h>
 #include <repertoryengine.h>
 
@@ -37,10 +38,15 @@ private:
     QVector<std::pair<QString, operation>> _expr;
     QTextCodec * _codec;
 
-    inline void expressionParser(const QString expr);
-    inline QVector<QByteArray> keysParser(const std::string & key, QSet<QByteArray> &set);
+    inline void expressionParser(const QString);
+    inline QVector<QByteArray> keysParser(const std::string &, QSet<QByteArray> &);
+    inline void logicalANDparser(const QVector<QByteArray>,
+                                 const QVector<QByteArray>, QVector<QByteArray> &);
     inline void logicalParser();
     inline void clearValues();
+    inline QVector<QVector<QByteArray>> threadsParent(const QVector<QByteArray> & ,
+                    std::function<QVector<QVector<QByteArray>>(openCtree symptom,
+                    const QVector<QByteArray> & , quint32 , quint32)>);
 };
 
 #endif // SEARCHRESULT_H

@@ -189,7 +189,7 @@ void vocabulary::renderingWords(openCtree base){
 void vocabulary::threadsLaunch(openCtree & base, std::function<QStringList(openCtree, const int, const int)> threadFunc){
     QStringList wordList;
 
-    if(base.size() > 20){
+    if(base.size() > 500){
         const auto del = base.size() / 4;
         auto thread1 = QtConcurrent::run(threadFunc, base, 0 , del);
         auto thread2 = QtConcurrent::run(threadFunc, base, del , del * 2);
