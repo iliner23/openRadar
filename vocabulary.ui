@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>vocabulary</class>
- <widget class="QDialog" name="vocabulary">
+ <widget class="QWidget" name="vocabulary">
   <property name="windowModality">
-   <enum>Qt::WindowModal</enum>
+   <enum>Qt::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -200,7 +200,7 @@
    <sender>pushButton_3</sender>
    <signal>clicked()</signal>
    <receiver>vocabulary</receiver>
-   <slot>reject()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>678</x>

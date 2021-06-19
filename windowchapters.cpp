@@ -208,7 +208,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     db.open(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     db.at(key.toStdString(), false);
 
-    auto path = repertoryEngine::getRootPath(db);
+    auto path = functions::getRootPath(db);
     showListChapter(QByteArray(6, '\0') + path.back());
     auto iterPath = (path.size() > 1) ? path.cbegin() + 1 : path.cbegin();
     changeChapterText(*iterPath);
@@ -311,7 +311,7 @@ void windowChapters::returnBranch(){
 void windowChapters::changeChapterText(const QByteArray key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     sym.at(key.toStdString(), false);
-    ui->label_2->setText(repertoryEngine::renderingLabel(sym, false, _codec));
+    ui->label_2->setText(functions::renderingLabel(sym, false, _codec));
 }
 void windowChapters::sendActivatedBranch(){
     QModelIndex index;

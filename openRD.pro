@@ -18,6 +18,7 @@ greaterThan(QT_MAJOR_VERSION, 5): DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x0600
 
 SOURCES += \
     author.cpp \
+    commonfunctions.cpp \
     customscene.cpp \
     delegate.cpp \
     label.cpp \
@@ -38,6 +39,7 @@ SOURCES += \
 HEADERS += \
     author.h \
     cache.h \
+    commonfunctions.h \
     customscene.h \
     delegate.h \
     label.h \

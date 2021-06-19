@@ -6,7 +6,7 @@
 #include "openctree.h"
 #include <memory>
 #include "cache.h"
-#include "repertoryengine.h"
+#include "commonfunctions.h"
 
 namespace Ui {
 class remed_author;

@@ -3,6 +3,7 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
+#include "commonfunctions.h"
 #include "openctree.h"
 #include "cache.h"
 
@@ -52,11 +53,7 @@ public:
     bool IsRemedsCounter() const noexcept { return _counter; }
 
     QString renderingLabel(const bool passLastChapter = false);//from current key
-    QVector<QByteArray> getRootPath() { return getRootPath(_symptom); }
-    static QString renderingLabel(openCtree &symptom,
-                bool passLastChapter = true, QTextCodec * codec = QTextCodec::codecForName("system"));
-
-    static QVector<QByteArray> getRootPath(openCtree &, quint16 deep = std::numeric_limits<quint16>::max());
+    QVector<QByteArray> getRootPath() { return functions::getRootPath(_symptom); }
 protected:
     QTextCodec * _codec = nullptr;
 

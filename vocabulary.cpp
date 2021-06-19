@@ -2,18 +2,18 @@
 #include "ui_vocabulary.h"
 
 vocabulary::vocabulary(const QDir system, const QLocale::Language language, const QDir catalog, QTextCodec * codec, QWidget *parent) :
-    QDialog(parent),
+    QWidget(parent),
     ui(new Ui::vocabulary)
 {
     ui->setupUi(this);
-    _lang = language;
-
     setWindowFlag(Qt::Window, true);
+
+    _lang = language;
 
     _system = system;
     _catalog = catalog;
     _codec = codec;
-    _results = new searchResult(this);
+    _results = new searchResult();
 
     auto word2 = openCtree(_catalog.filePath("word2").toStdString());
     _globalHide = (word2.size() == 0) ? true : false;
@@ -40,10 +40,17 @@ vocabulary::vocabulary(const QDir system, const QLocale::Language language, cons
     connect(ui->listView, &QListView::clicked, this, &vocabulary::selectedModelItem);
     connect(ui->plainTextEdit_2, &QPlainTextEdit::textChanged, this, &vocabulary::changedPlainText);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &vocabulary::openResults);
+    connect(_results, &searchResult::sendKey, this, &vocabulary::sendOn);
 }
 vocabulary::~vocabulary()
 {
+    delete _results;
     delete ui;
+}
+void vocabulary::sendOn(QByteArray key){
+    emit sendKey(key);
+    ui->plainTextEdit_2->clear();
+    hide();
 }
 void vocabulary::changedLanguage(){
     ui->plainTextEdit_2->clear();
@@ -252,17 +259,13 @@ void vocabulary::clearList(){
     ui->comboBox->disconnect();
     _model->setStringList(QStringList());
 }
-void vocabulary::show(){
-    prepareOpen();
-    QWidget::show();
-}
-void vocabulary::open(){
-    prepareOpen();
-    QDialog::open();
-}
-void vocabulary::reject(){
+void vocabulary::closeEvent(QCloseEvent *event){
     clearList();
-    return QDialog::reject();
+    event->accept();
+}
+void vocabulary::showEvent(QShowEvent *event){
+    prepareOpen();
+    event->accept();
 }
 void vocabulary::openResults(){
     QFileInfo word, symptom(_catalog.filePath("symptom"));
@@ -272,7 +275,6 @@ void vocabulary::openResults(){
     else
         word.setFile(_catalog.filePath("word2"));
 
-    _results->setData(word, symptom,
-                                ui->plainTextEdit_2->toPlainText(), _codec);
+    _results->setData(word, symptom, ui->plainTextEdit_2->toPlainText(), _codec);
     _results->show();
 }

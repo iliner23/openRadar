@@ -8,7 +8,7 @@
 #include "searchmodel.h"
 #include "delegate.h"
 #include "proxysearchmodel.h"
-#include "repertoryengine.h"
+#include "commonfunctions.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

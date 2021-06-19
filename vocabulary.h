@@ -12,13 +12,13 @@ namespace Ui {
 class vocabulary;
 }
 
-class vocabulary : public QDialog
+class vocabulary : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit vocabulary(const QDir system, const QLocale::Language language,
-                        const QDir catalog, QTextCodec *codec, QWidget *parent);
+                        const QDir catalog, QTextCodec *codec, QWidget *parent = nullptr);
     ~vocabulary();
 private:
     Ui::vocabulary *ui;
@@ -39,8 +39,11 @@ private:
     inline void threadsLaunch(openCtree &, std::function<QStringList (openCtree, const int, const int)>);
     inline void clearList();
     inline void prepareOpen();
+protected:
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 signals:
-    void sendChoosenChapter(QByteArray);
+    void sendKey(QByteArray);
 private slots:
     void changedLanguage();
     void rendering(const int);
@@ -48,10 +51,7 @@ private slots:
     void selectedModelItem(const QModelIndex &);
     void changedPlainText();
     void openResults();
-public slots:
-    void show();
-    void open() override;
-    void reject() override;
+    void sendOn(QByteArray);
 };
 
 #endif // VOCABULARY_H

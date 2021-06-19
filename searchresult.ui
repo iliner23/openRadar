@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Результат поиска</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -57,6 +57,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="pushButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Контекст</string>
          </property>
@@ -88,6 +91,22 @@
    <hints>
     <hint type="sourcelabel">
      <x>554</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>searchResult</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>641</x>
      <y>48</y>
     </hint>
     <hint type="destinationlabel">

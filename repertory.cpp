@@ -331,8 +331,10 @@ void repertory::notShowLabel() const{
     msg.exec();
 }
 void repertory::openVocabulary(){
-    if(_vocabulary == nullptr)
+    if(_vocabulary == nullptr){
         _vocabulary = new vocabulary(_system, _lang, _filename, _codec, this);
+        connect(_vocabulary, &vocabulary::sendKey, this, &repertory::setPosition);
+    }
 
     _vocabulary->show();
 }
