@@ -336,5 +336,6 @@ void repertory::openVocabulary(){
         connect(_vocabulary, &vocabulary::sendKey, this, &repertory::setPosition);
     }
 
-    _vocabulary->show();
+    _vocabulary->showNormal();
+    QApplication::setActiveWindow(_vocabulary);
 }

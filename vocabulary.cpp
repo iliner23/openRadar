@@ -8,12 +8,15 @@ vocabulary::vocabulary(const QDir system, const QLocale::Language language, cons
     ui->setupUi(this);
     setWindowFlag(Qt::Window, true);
 
+    if(parent != nullptr)
+        setWindowTitle(windowTitle() + " - [" + parent->windowTitle() + ']');
+
     _lang = language;
 
     _system = system;
     _catalog = catalog;
     _codec = codec;
-    _results = new searchResult();
+    _results = new searchResult(this);
 
     auto word2 = openCtree(_catalog.filePath("word2").toStdString());
     _globalHide = (word2.size() == 0) ? true : false;
@@ -40,15 +43,15 @@ vocabulary::vocabulary(const QDir system, const QLocale::Language language, cons
     connect(ui->listView, &QListView::clicked, this, &vocabulary::selectedModelItem);
     connect(ui->plainTextEdit_2, &QPlainTextEdit::textChanged, this, &vocabulary::changedPlainText);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &vocabulary::openResults);
-    connect(_results, &searchResult::sendKey, this, &vocabulary::sendOn);
+    connect(_results, &searchResult::accepted, this, &vocabulary::sendOn);
 }
 vocabulary::~vocabulary()
 {
     delete _results;
     delete ui;
 }
-void vocabulary::sendOn(QByteArray key){
-    emit sendKey(key);
+void vocabulary::sendOn(){
+    emit sendKey(_results->key());
     ui->plainTextEdit_2->clear();
     hide();
 }
@@ -276,5 +279,5 @@ void vocabulary::openResults(){
         word.setFile(_catalog.filePath("word2"));
 
     _results->setData(word, symptom, ui->plainTextEdit_2->toPlainText(), _codec);
-    _results->show();
+    _results->open();
 }

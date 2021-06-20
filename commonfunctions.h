@@ -15,8 +15,9 @@ namespace functions {
     class linksParser{
     public:
         linksParser() = delete;
-        static std::pair<QStringList, QVector<QByteArray>> mainParser(openCtree symptom, openCtree word, const QString expression, QTextCodec * codec = QTextCodec::codecForName("system"),
-                const bool getStrings = true);
+        static std::pair<QStringList, QVector<QByteArray>> mainParser(
+                openCtree symptom, openCtree word, const QString expression,
+                QTextCodec * codec = QTextCodec::codecForName("system"));
     private:
         enum class operation : quint8 {AND, OR, none};
 
@@ -27,8 +28,7 @@ namespace functions {
                                      const QVector<QByteArray>, QVector<QByteArray> &);
 
         static std::pair<QStringList, QVector<QByteArray>> logicalParser(openCtree &, openCtree &,
-                                        QVector<std::pair<QString, operation>> &,
-                                        const bool, QTextCodec * codec);
+                                        QVector<std::pair<QString, operation>> &, QTextCodec * codec);
         static void clearValues();
         static QVector<QVector<QByteArray>> threadsParent(openCtree &, const QVector<QByteArray> & ,
                         std::function<QVector<QVector<QByteArray>>(openCtree symptom,

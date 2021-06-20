@@ -51,7 +51,7 @@ private slots:
     void selectedModelItem(const QModelIndex &);
     void changedPlainText();
     void openResults();
-    void sendOn(QByteArray);
+    void sendOn();
 };
 
 #endif // VOCABULARY_H

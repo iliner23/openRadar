@@ -22,6 +22,8 @@ public:
                           QTextCodec * codec = QTextCodec::codecForName("system"),
                           QWidget *parent = nullptr);
     ~searchResult();
+
+    QByteArray key() const noexcept { return _key; }
 public slots:
     void setData(const QFileInfo word, const QFileInfo symptom,
                  const QString expression,
@@ -30,12 +32,11 @@ public slots:
     void accept() override;
 private slots:
     void acceptKey(QListWidgetItem *);
-signals:
-    void sendKey(QByteArray);
 private:
     Ui::searchResult *ui;
     openCtree _word, _symptom;
     QVector<QByteArray> _keys;
+    QByteArray _key;
     QTextCodec * _codec;
 
     inline void clearValues();

@@ -1,10 +1,10 @@
 #include "commonfunctions.h"
 
-std::pair<QStringList, QVector<QByteArray>> functions::linksParser::mainParser(openCtree symptom, openCtree word, const QString expression, QTextCodec * codec, const bool getStrings){
+std::pair<QStringList, QVector<QByteArray>> functions::linksParser::mainParser(openCtree symptom, openCtree word, const QString expression, QTextCodec * codec){
     QVector<std::pair<QString, operation>> expr;
 
     expressionParser(expression, expr);
-    return logicalParser(symptom, word, expr, getStrings, codec);
+    return logicalParser(symptom, word, expr, codec);
 }
 void functions::linksParser::expressionParser(const QString expr, QVector<std::pair<QString, operation>> & exAr){
     QRegularExpression re(R"(\[word:(\S+)\]\s*(AND|OR|\s*))",
@@ -72,7 +72,7 @@ QVector<QByteArray> functions::linksParser::keysParser(openCtree & word, const s
 
     return keys;
 }
-std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParser(openCtree & symptom, openCtree & word, QVector<std::pair<QString, operation>> & expr, const bool getStrings, QTextCodec *codec){
+std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParser(openCtree & symptom, openCtree & word, QVector<std::pair<QString, operation>> & expr, QTextCodec *codec){
     QVector<std::pair<QVector<QByteArray>, operation>> multiKeys;
 
     for(auto exprIt = 0; exprIt != expr.size(); ++exprIt){

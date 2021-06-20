@@ -50,7 +50,7 @@ void searchResult::reject(){
     QDialog::reject();
 }
 void searchResult::accept(){
-    emit sendKey(_keys.at(ui->listWidget->currentRow()));
+    _key = _keys.at(ui->listWidget->currentRow());
     clearValues();
     QDialog::accept();
 }
