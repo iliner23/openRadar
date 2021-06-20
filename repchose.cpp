@@ -1,7 +1,7 @@
 #include "repchose.h"
 #include "ui_repchose.h"
 
-RepChose::RepChose(const QStringList & repertories, QWidget *parent) :
+RepChose::RepChose(const QStringList repertories, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RepChose)
 {
@@ -77,7 +77,7 @@ RepChose::~RepChose()
 {
     delete ui;
 }
-void RepChose::finding(const QString & str){
+void RepChose::finding(const QString str){
     _proxyModel->setFilterFixedString(str);
 
     if(ui->listView->currentIndex().isValid()){

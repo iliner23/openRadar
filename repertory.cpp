@@ -1,8 +1,5 @@
 #include "repertory.h"
 
-QDir repertory::getRepDir() const noexcept{
-    return _filename;
-}
 void repertory::changeFilter(QAction * action){
     if(action != nullptr){
         auto menu = qobject_cast<QMenu*>(action->parent());
@@ -26,10 +23,12 @@ void repertory::changeFilter(QAction * action){
             repaintView();
     }
 }
-repertory::repertory(const QDir & filename, const QDir & system,
+repertory::repertory(const QDir filename, const QDir system,
     std::shared_ptr<cache> & ch, QTextCodec * codec, const quint16 remFilter, QWidget *parent) : QWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
+
+    _lang = QLocale::Russian;//TODO : for working vocabulary
 
     _codec = codec;
     _filename = filename;
@@ -260,8 +259,16 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
      //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
     switch (item->data(0).toInt()) {
         case 0 :{
-            widget = new Label(_cache, _filename,
-                                     item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+            auto label = new Label(_cache, _filename,
+                item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+
+            if(label->isHiddenLabels()){
+                notShowLabel();
+                label->deleteLater();
+                return;
+            }
+
+            widget = label;
             break;
         }
         case 1 :
@@ -285,12 +292,9 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
     widget->setAttribute(Qt::WA_DeleteOnClose);
     widget->show();
 }
-void repertory::setPosition(const QByteArray & pos){
+void repertory::setPosition(const QByteArray pos){
     _engine->setCurrentKey(pos);
     _bar->setValue(_engine->currentPosition());
-}
-QTextCodec * repertory::getTextCodec() const noexcept{
-    return _codec;
 }
 void repertory::keyPressEvent(QKeyEvent *event){
     if(event->key() == Qt::Key_Up){
@@ -307,10 +311,31 @@ void repertory::keyPressEvent(QKeyEvent *event){
 
         auto lab = new Label(_cache, _filename,
                     _pointer, _engine->chaptersFilter(), _codec, this);
+
+        if(lab->isHiddenLabels()){
+            notShowLabel();
+            lab->deleteLater();
+            return;
+        }
+
         lab->setAttribute(Qt::WA_DeleteOnClose);
         lab->show();
         return;
     }
 
     QWidget::keyPressEvent(event);
+}
+void repertory::notShowLabel() const{
+    QMessageBox msg;
+    msg.setText("Этот симптом не существует в текущем уровне доверия репертория");
+    msg.exec();
+}
+void repertory::openVocabulary(){
+    if(_vocabulary == nullptr){
+        _vocabulary = new vocabulary(_system, _lang, _filename, _codec, this);
+        connect(_vocabulary, &vocabulary::sendKey, this, &repertory::setPosition);
+    }
+
+    _vocabulary->showNormal();
+    QApplication::setActiveWindow(_vocabulary);
 }

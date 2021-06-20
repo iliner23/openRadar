@@ -1,14 +1,13 @@
 #include "remed_author.h"
 #include "ui_remed_author.h"
 
-remed_author::remed_author(const QDir & path, std::shared_ptr<cache> & ch,
-                           const QByteArray & pos,
+remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
+                           const QByteArray pos,
                            const quint16 remFilter, const quint32 localPos, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::remed_author)
 {
     ui->setupUi(this);
-    setLayout(ui->gridLayout);
     _path = path;
     _pos = pos;
     _remFilter = remFilter;
@@ -120,7 +119,7 @@ void remed_author::rendering(){
         }
     }
 
-    ui->label->setText(repertoryEngine::renderingLabel(_sym, false));
+    ui->label->setText(functions::renderingLabel(_sym, false));
 }
 remed_author::~remed_author()
 {

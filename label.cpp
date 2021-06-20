@@ -1,20 +1,16 @@
 #include "label.h"
 #include "ui_label.h"
 
-Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
-             const QByteArray & pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
+Label::Label(std::shared_ptr<cache> ch, const QDir path,
+             const QByteArray pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
     QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
-    setLayout(ui->gridLayout);
-    ui->tab->setLayout(ui->verticalLayout);
-    ui->tab_2->setLayout(ui->gridLayout_2);
     _scene = new customScene(ui->tab_2);
     ui->graphicsView->setScene(_scene);
     setFixedSize(size());
 
     _cache = ch;
-    _remFilter = remFilter;
     _filename = path;
 
     if(codec == nullptr)
@@ -30,7 +26,7 @@ Label::Label(std::shared_ptr<cache> & ch, const QDir & path,
     _engine->setSortingRemeds(true);
     _engine->setRemedsCounter(false);
     _engine->setGetLinksStrings(true);
-    _engine->render(height(), width() - 10, true);
+    _engine->render(height(), width() - 40, true);
     _localize = _engine->IsLocalize();
 
     _linksNames[0] = _engine->synomyList();
@@ -109,16 +105,6 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     QWidget * widget = nullptr;
 
     switch (item->data(0).toInt()) {
-        case 0 :{
-            widget = new Label(_cache, _filename,
-                        item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
-            break;
-        }
-        case 1 :
-            return;
-        case 2 :{
-            return;
-        }
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
                                           , _engine->chaptersFilter(), item->data(1).toUInt(), this);

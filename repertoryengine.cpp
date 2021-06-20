@@ -1,9 +1,8 @@
 #include "repertoryengine.h"
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 repertoryEngine::repertoryEngine(QGraphicsScene *parent): QObject(parent){
     initFonts();
 }
-repertoryEngine::repertoryEngine(const QDir & filename, const std::shared_ptr<cache> & cache
+repertoryEngine::repertoryEngine(const QDir filename, const std::shared_ptr<cache> & cache
                                  , QGraphicsScene *parent, QTextCodec * codec) : QObject(parent){
     initFonts();
     repertoryEngine::reset(filename, cache, codec);
@@ -17,7 +16,7 @@ void repertoryEngine::initFonts(){
     _fonts.smallFont = QFont(_fonts.fontName, 8);
     _fonts.boldFont = QFont(_fonts.fontName, 10, QFont::Bold);
 }
-void repertoryEngine::reset(const QDir &filename, const std::shared_ptr<cache> &cache, QTextCodec *codec){
+void repertoryEngine::reset(const QDir filename, const std::shared_ptr<cache> &cache, QTextCodec *codec){
     _symptom.open(filename.filePath("symptom").toStdString());
     _symptom.back(false);
     _private.endIndex = QByteArray::fromStdString(_symptom.key());
@@ -73,7 +72,7 @@ void repertoryEngine::authorsSym(const QString & autr, const quint16 author, QGr
     aut->setX(allrm->boundingRect().width() + 3);
     allrm->addToGroup(aut);
 }
-void repertoryEngine::renderingChapter(const quint64 firstZero, const quint64 secondZero){
+void repertoryEngine::renderingChapter(const quint64 firstZero, const quint64 secondZero, std::array<QGraphicsSimpleTextItem*, 2> & lab){
     if((_filterType & repertoryFilterType::chapter) == 0)
         return;
 
@@ -82,8 +81,6 @@ void repertoryEngine::renderingChapter(const quint64 firstZero, const quint64 se
                 _private.fullStr.mid(_symptom.serviceDataLenght(), firstZero - _symptom.serviceDataLenght()));
     labelText[1] = _codec->toUnicode
                 (_private.fullStr.mid(firstZero + 1, secondZero - firstZero - 1));
-
-    //_private.localize = !labelText[1].isEmpty();
 
     const QString filler[] = {"", "", "-", ". ", "", "", " ", "  "};
     const auto isLocalize = ((_private.localize) ? 2 : 1);
@@ -111,29 +108,17 @@ void repertoryEngine::renderingChapter(const quint64 firstZero, const quint64 se
                 + filler[lessAttach - 1 + ((it == 0) ? 0 : 4)];
 
         textItem->setText(fillStr + labelText[it] + ((star) ? "*" : "") +
-                          ((_private.maxDrug != 0 && it == isLocalize - 1) ? ": " : ""));
+                 ((_private.maxDrug != 0 && it == isLocalize - 1) ? ": " : "  "));
 
         const QFontMetrics metric(textItem->font());
         _private.labelWidth = metric.horizontalAdvance(fillStr);
 
         textItem->setData(0, 0);
         textItem->setData(1, QByteArray::fromStdString(_symptom.key()));
-        addLabel(textItem);
-
-        if(it == 0 && _navigation && textItem->y() + textItem->boundingRect().height() <= _private.heightView){
-            auto pos = new QGraphicsSimpleTextItem("->");
-            pos->setX(textItem->x());
-            pos->setY(textItem->y());
-            pos->hide();
-            pos->setData(0, 5);
-            pos->setData(1, QByteArray::fromStdString(_symptom.key()));
-
-            qobject_cast<QGraphicsScene*>(parent())->addItem(pos);
-            _private.labelsVec.push_back(pos);
-        }
+        lab[it] = textItem;
     }
 }
-void repertoryEngine::setCurrentKey(const QByteArray &key){
+void repertoryEngine::setCurrentKey(const QByteArray key){
     _symptom.at(key.toStdString(), false);
     _private.index = key;
 }
@@ -144,11 +129,16 @@ void repertoryEngine::setCurrentPosition(int pos){
 void repertoryEngine::render(const int heightView, const int widthView, const bool oneChapter){
     _private.fullStr =
             QByteArray::fromStdString(_symptom.at(_private.index.toStdString()));
-    _private.heightView = heightView;
+
     _private.widthView = widthView;
 
-    qobject_cast<QGraphicsScene*>(parent())->
-            setSceneRect(0, 0, _private.widthView, _private.heightView);
+    if(!oneChapter){
+        _private.heightView = heightView;
+        qobject_cast<QGraphicsScene*>(parent())->
+                setSceneRect(0, 0, _private.widthView, _private.heightView);
+    }
+    else
+        _private.heightView = std::numeric_limits<int>::max();
 
     _private.labelWidth = 0;
     qobject_cast<QGraphicsScene*>(parent())->clear();
@@ -176,6 +166,7 @@ bool repertoryEngine::loopRender(){
     _private.size.setWidth(0);
 
     QVector<QGraphicsItem*> linksSynomys;
+    std::array<QGraphicsSimpleTextItem*, 2> labels = {nullptr, nullptr};
     linksSynomys.reserve(100);
 
     _private.attach = qFromLittleEndian<quint8>(_private.fullStr.constData() + 21);
@@ -197,14 +188,35 @@ bool repertoryEngine::loopRender(){
         _private.labelsEnd = secondZero;
         _private.localize = (secondZero - firstZero - 1 <= 0) ? false : true;
 
-        renderingChapter(firstZero, secondZero);//label subfunction
+        renderingChapter(firstZero, secondZero, labels);//label subfunction
+        processingChapter(firstZero, secondZero);
+    }
+
+    linksRender(linksSynomys, labels);//synonyms and links
+
+    if((_filterType & repertoryFilterType::chapter) != 0){
+        addLabel(labels[0]);//add labels after added synomy text
+
+        if(_private.localize)
+            addLabel(labels[1]);
+
+        if(_navigation && labels[0]->y() + labels[0]->boundingRect().height() <= _private.heightView){
+            auto pos = new QGraphicsSimpleTextItem("->");
+            pos->setX(labels[0]->x());
+            pos->setY(labels[0]->y());
+            pos->hide();
+            pos->setData(0, 5);
+            pos->setData(1, QByteArray::fromStdString(_symptom.key()));
+
+            qobject_cast<QGraphicsScene*>(parent())->addItem(pos);
+            _private.labelsVec.push_back(pos);
+        }
     }
 
     if(!_private.hideLabel){
-        linksRender(linksSynomys);//synonyms and links
-
         quint64 remed_size = 0;
         QVector<QVector<QGraphicsItemGroup*>> remeds(1);
+        processingRemeds();
         remedRender(remeds, _sorting, &remed_size);
 
         if((_filterType & repertoryFilterType::remeds) != 0){//remeds
@@ -238,44 +250,26 @@ void repertoryEngine::sortRemeds(QVector<QVector<QGraphicsItemGroup*>> & remeds)
             addRemeds(iter);
     }
 }
-void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText, QVector<QGraphicsItem *> & linksSynomys){
-    if((_filterType & repertoryFilterType::links) == 0)
-        return;
-
+void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText, QVector<QGraphicsItem *> & linksSynomys, std::array<QGraphicsSimpleTextItem*, 2> & chapters){
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
 
     const uint8_t lessAttach = (_private.attach > 4) ? 1 : _private.attach;
 
-    if(synLinkText.size() > 2 && synLinkText.left(3) == " (="){
-        const QString constSynomy[] =
-                { "Synomy : ", "Synomy : ", " Synomy : ", " Synomy : "};
-        auto textItem = new QGraphicsSimpleTextItem;
+    if((_filterType & repertoryFilterType::chapter) != 0 &&
+            synLinkText.size() > 2 && synLinkText.left(3) == " (="){
 
-        if(type == 2)
-            textItem->setBrush(QBrush(Qt::blue));
+        if(type == 2 && _private.localize){
+            auto tpText = chapters[1]->text();
+            chapters[1]->setText(tpText.insert(tpText.size() - 2, synLinkText));
+        }
         else if(type == 3){
-            if(_private.localize)
-                textItem->setBrush(QBrush(Qt::red));
-            else
-                textItem->setBrush(QBrush(Qt::blue));
+            auto tpText = chapters[0]->text();
+            chapters[0]->setText(tpText.insert(tpText.size() - 2, synLinkText));
         }
-        else{
-            delete textItem;
-            return;
-        }
-
-        if(_private.attach == 1)
-            textItem->setFont(_fonts.labelChapterFont);
-        else
-            textItem->setFont(_fonts.commonFont);
-
-        textItem->setText(QString(_private.attach * _private.attachRatio, ' ')
-                          + constSynomy[lessAttach - 1] + synLinkText.mid(1));
-        linksSynomys.push_back(textItem);
     }
-    else{
+    else if((_filterType & repertoryFilterType::links) != 0 && !_private.hideLabel){
         const QString constLinks[] =
                         {u8" \u2b08", u8" \u2b08", u8"  \u2b08", u8"   \u2b08"};
         const QString constSee[] = {"(see ", "(see ", " (see ", "  (see "};
@@ -320,7 +314,7 @@ void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText,
         }
     }
 }
-void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
+void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys, std::array<QGraphicsSimpleTextItem*, 2> & labels){
     //synonyms and links
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
@@ -354,7 +348,8 @@ void repertoryEngine::linksRender(QVector<QGraphicsItem *> & linksSynomys){
         synLinkText.prepend(' ');
         _private.labelsEnd = tmpLinkIter;
 
-        linksItems(type, synLinkText, linksSynomys);
+        linksItems(type, synLinkText, linksSynomys, labels);
+        processingLinks(type, synLinkText);
 
         if(type == 0)
             break;
@@ -402,49 +397,52 @@ void repertoryEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array,
             star = '*';
         }
 
-        const auto & rmStr = _cache->_cacheRemed.at(remed);
-        const auto & auStr = _cache->_cacheAuthor.at(author);
-        auto itN = rmStr.find('\0', _cache->_lenRem);
-        auto itA = auStr.find('\0', _cache->_lenAuthor);
-        auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
-        auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
+        try{
+            const auto & rmStr = _cache->_cacheRemed.at(remed);
+            const auto & auStr = _cache->_cacheAuthor.at(author);
+            auto itN = rmStr.find('\0', _cache->_lenRem);
+            auto itA = auStr.find('\0', _cache->_lenAuthor);
+            auto authorName = QString::fromStdString(auStr.substr(_cache->_lenAuthor, itA - _cache->_lenAuthor)) + star;
+            auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-        if(_private.pos.y() >= _private.heightView)
-            break;
+            if(_private.pos.y() >= _private.heightView)
+                break;
 
-        if(rLevel == 0 || rLevel > 4)
-            continue;
+            if(rLevel == 0 || rLevel > 4)
+                continue;
 
-        if(prevRemed == remed)
-            authorsSym(authorName, author, arrayPtr->back(), true);
-        else{
-            auto remedItem = new QGraphicsSimpleTextItem;
-            const QFont * remedFonts[] = {&_fonts.defaultFont, &_fonts.italicFont, &_fonts.boldFont};
-            const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
+            if(prevRemed == remed)
+                authorsSym(authorName, author, arrayPtr->back(), true);
+            else{
+                auto remedItem = new QGraphicsSimpleTextItem;
+                const QFont * remedFonts[] = {&_fonts.defaultFont, &_fonts.italicFont, &_fonts.boldFont};
+                const QColor remedColors[] = {Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
 
-            remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
-            remedItem->setBrush(remedColors[rLevel - 1]);
-            remedItem->setText((rLevel > 2) ? remedName.toUpper() : remedName);
+                remedItem->setFont(*remedFonts[((rLevel == 4) ? 2 : rLevel - 1)]);
+                remedItem->setBrush(remedColors[rLevel - 1]);
+                remedItem->setText((rLevel > 2) ? remedName.toUpper() : remedName);
 
-            remedItem->setData(0, 3);
-            remedItem->setData(1, startLabelsEnd);
-            remedItem->setData(2, QByteArray::fromStdString(_symptom.key()));
+                remedItem->setData(0, 3);
+                remedItem->setData(1, startLabelsEnd);
+                remedItem->setData(2, QByteArray::fromStdString(_symptom.key()));
 
-            auto group = new QGraphicsItemGroup;
-            group->addToGroup(remedItem);
-            group->setHandlesChildEvents(false);
-            group->setFlag(QGraphicsItem::ItemHasNoContents);
+                auto group = new QGraphicsItemGroup;
+                group->addToGroup(remedItem);
+                group->setHandlesChildEvents(false);
+                group->setFlag(QGraphicsItem::ItemHasNoContents);
 
-            if(sorting)
-                arrayPtr = &array[rLevel - 1];
-            else
-                arrayPtr = &array[0];
+                if(sorting)
+                    arrayPtr = &array[rLevel - 1];
+                else
+                    arrayPtr = &array[0];
 
-            arrayPtr->push_back(group);
+                arrayPtr->push_back(group);
 
-            authorsSym(authorName, author, arrayPtr->back());
-            ++remed_size;
+                authorsSym(authorName, author, arrayPtr->back());
+                ++remed_size;
+            }
         }
+        catch(std::exception){ qDebug() << "error index" << author << remed; }
 
         prevRemed = remed;
     }
@@ -454,115 +452,5 @@ void repertoryEngine::remedRender(QVector<QVector<QGraphicsItemGroup*>> & array,
 }
 QString repertoryEngine::renderingLabel(const bool pass){
     _symptom.at(_private.index.toStdString(), false);
-    return renderingLabel(_symptom, pass, _codec);
-}
-QVector<QByteArray> repertoryEngine::getRootPath(openCtree & symptom){
-    QVector<QByteArray> array;
-    auto text = QByteArray::fromStdString(symptom.currentValue());
-    QByteArray ind(6, '\0');
-
-    std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, ind.begin());
-
-    while(true){
-        quint8 attach = 0;
-
-        array.push_back(ind);
-        text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
-
-        attach = text.at(21);
-        QByteArray midCompare(6, '\0');
-        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, midCompare.begin());
-        std::reverse_copy(text.cbegin() + 12, text.cbegin() + 18, ind.begin());
-
-        if(midCompare.left(4) != ind.left(4)){
-            ind.replace(ind.size() - 2, 2, "\0\0", 2);}
-
-        else if(ind.back() != '\0' || ind.at(ind.size() - 1) != '\0'){
-            auto decrease = qFromBigEndian<quint16>(ind.right(2)) - 1;
-            decrease = qToBigEndian<quint16>(decrease);
-            ind.replace(ind.size() - 2, 2, (char *)&decrease, 2);
-        }
-
-        if(attach == 0)
-            Q_ASSERT("attach == 0");
-        else if(attach <= 1 || ind == "\0\0\0\0\0\0")
-            break;
-    }
-
-    return array;
-}
-QString repertoryEngine::renderingLabel(openCtree & symptom, bool pass, QTextCodec * codec){
-    QStringList original, localization;
-    auto text = QByteArray::fromStdString(symptom.currentValue());
-    QByteArray ind(6, '\0');
-    bool fis = true;
-
-    auto return_size = [](const auto & value, const auto & size){
-        return (value == -1) ? size : value;
-    };
-
-    if(pass == false){
-        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, ind.begin());
-        fis = false;
-    }
-
-    while(true){
-        quint8 attach = 0;
-
-        if(!fis){
-            text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
-            const auto first = return_size(text.indexOf('\0', symptom.serviceDataLenght()), text.size());
-            const auto second = return_size(text.indexOf('\0', first + 1), text.size()) - first - 1;
-            const auto local = codec->toUnicode(text.mid(first + 1, second));
-
-            original.push_back(codec->toUnicode(text.mid(symptom.serviceDataLenght()
-                                                          , first - symptom.serviceDataLenght())));
-            if(!local.isEmpty())
-                localization.push_back(local);
-        }
-
-        attach = text.at(21);
-        QByteArray midCompare(6, '\0');
-        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, midCompare.begin());
-        std::reverse_copy(text.cbegin() + 12, text.cbegin() + 18, ind.begin());
-
-        if(midCompare.left(4) != ind.left(4)){
-            ind.replace(ind.size() - 2, 2, "\0\0", 2);}
-
-        else if(ind.back() != '\0' || ind.at(ind.size() - 1) != '\0'){
-            auto decrease = qFromBigEndian<quint16>(ind.right(2)) - 1;
-            decrease = qToBigEndian<quint16>(decrease);
-            ind.replace(ind.size() - 2, 2, (char *)&decrease, 2);
-        }
-
-        if(attach == 0)
-            Q_ASSERT("attach == 0");
-        else if(attach <= 1 || ind == "\0\0\0\0\0\0")
-            break;
-
-        fis = false;
-    }
-
-    if(original.isEmpty())
-        return QString();
-
-    QString org, lz;
-
-    for(auto it = original.size() - 1; it != -1; --it){
-        if(it == original.size() - 1)
-            org += original[it];
-        else
-            org += " - " + original[it];
-    }
-
-    if(!localization.isEmpty()){
-        for(auto it = localization.size() - 1; it != -1; --it){
-            if(it == localization.size() - 1)
-                lz += localization[it];
-            else
-                lz += " - " + localization[it];
-        }
-    }
-
-    return org + ((localization.isEmpty()) ? "" : '\n' + lz);
+    return functions::renderingLabel(_symptom, pass, _codec);
 }

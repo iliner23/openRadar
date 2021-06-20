@@ -3,6 +3,7 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
+#include "commonfunctions.h"
 #include "openctree.h"
 #include "cache.h"
 
@@ -18,15 +19,15 @@ public:
     };
 
     explicit repertoryEngine(QGraphicsScene *parent = nullptr);
-    explicit repertoryEngine(const QDir & filename, const std::shared_ptr<cache> & cache
+    explicit repertoryEngine(const QDir filename, const std::shared_ptr<cache> & cache
                     ,QGraphicsScene * scene = nullptr
                     ,QTextCodec * codec = QTextCodec::codecForName("system"));
 
-    virtual void reset(const QDir & filename, const std::shared_ptr<cache> & cache
+    virtual void reset(const QDir filename, const std::shared_ptr<cache> & cache
                , QTextCodec * codec = QTextCodec::codecForName("system"));
 
     void setCurrentPosition(int pos);
-    void setCurrentKey(const QByteArray & key);
+    void setCurrentKey(const QByteArray key);
 
     QByteArray currentKey() const noexcept { return _private.index; }
     int currentPosition() { return _symptom.currentPosition(); }
@@ -52,10 +53,7 @@ public:
     bool IsRemedsCounter() const noexcept { return _counter; }
 
     QString renderingLabel(const bool passLastChapter = false);//from current key
-    QVector<QByteArray> getRootPath() { return getRootPath(_symptom); }
-    static QString renderingLabel(openCtree &symptom,
-                bool passLastChapter = true, QTextCodec * codec = QTextCodec::codecForName("system"));
-    static QVector<QByteArray> getRootPath(openCtree &);
+    QVector<QByteArray> getRootPath() { return functions::getRootPath(_symptom); }
 protected:
     QTextCodec * _codec = nullptr;
 
@@ -69,12 +67,13 @@ protected:
               boldFont;
     } _fonts;
 
-    //this function call for add remeds in sortRemeds function
+    //for adding remeds in function sortRemeds
     inline void addRemeds(QGraphicsItem *);
 
     //this functions may be reinplement in child class
-    virtual void renderingChapter(const quint64, const quint64);
-    virtual void linksItems(const quint8, const QString &, QVector<QGraphicsItem *> &);
+    virtual void processingChapter(const quint64, const quint64) {}
+    virtual void processingLinks(const quint8, const QString &) {};
+    virtual void processingRemeds() {};
     virtual void sortRemeds(QVector<QVector<QGraphicsItemGroup*>> &);
 
     //this functions may call in virtual functions for get some parametres
@@ -84,9 +83,6 @@ protected:
     quint16 maxDrug() const noexcept { return _private.maxDrug; }
     quint16 indexFilter() const noexcept { return _private.filter; }
     bool IsLocalize() const noexcept { return _private.localize; }
-
-    void setPixelWidthLabel(int pixelWidth) noexcept { _private.labelWidth = pixelWidth; }
-    int pixelWidthLabel() const noexcept { return _private.labelWidth; }
 private:
     bool _counter = true;
     bool _sorting = false;
@@ -116,11 +112,15 @@ private:
     inline void initFonts();
     inline void authorsSym(const QString &, const quint16, QGraphicsItemGroup *, const bool next = false);
 
-    inline void linksRender(QVector<QGraphicsItem*> &);
+    inline void linksRender(QVector<QGraphicsItem*> &, std::array<QGraphicsSimpleTextItem*, 2> &);
     inline bool loopRender();
     inline void remedRender(QVector<QVector<QGraphicsItemGroup*>> &,
                      bool sorting = false, quint64 * remedSize = nullptr);
     inline void addLabel(QGraphicsItem *);
+
+    inline void renderingChapter(const quint64, const quint64, std::array<QGraphicsSimpleTextItem*, 2> &);
+    inline void linksItems(const quint8, const QString &,
+           QVector<QGraphicsItem *> &, std::array<QGraphicsSimpleTextItem*, 2> &);
 };
 
 #endif // REPERTORYENGINE_H

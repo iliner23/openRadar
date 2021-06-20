@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <QTextCodec>
+#include <QtConcurrent/QtConcurrent>
 #include "openctree.h"
 
 class searchModel : public QAbstractItemModel
@@ -11,10 +12,10 @@ public:
     class _node{
     private:
         friend searchModel;
-        explicit _node(const QString & data, const QByteArray & key = "", bool marker = false, _node * parent = nullptr);
+        explicit _node(const QString data, const QByteArray key = "", bool marker = false, _node * parent = nullptr);
 
         QString _data;
-        std::vector<_node*> _children;
+        QVector<_node*> _children;
         _node * _parent = nullptr;
         quint16 _row = 0;
         QByteArray _key;
@@ -30,14 +31,14 @@ public:
         bool marker() const noexcept { return _marker;};
     };
 
-    searchModel(QObject * parent = nullptr): QAbstractItemModel(parent) { _root = new _node("root"); }
-    searchModel(const QDir &, const QByteArray &, QTextCodec * codec = nullptr, QObject * parent = nullptr);
+    searchModel(QObject * parent = nullptr): QAbstractItemModel(parent) { _root = new _node("root", 0); }
+    searchModel(const QDir, const QByteArray, QTextCodec * codec = nullptr, QObject * parent = nullptr);
     ~searchModel();
 
-    void setCatalogFile(const QDir &, const QByteArray &, QTextCodec * codec = nullptr);
+    void setCatalogFile(const QDir, const QByteArray, QTextCodec * codec = nullptr);
     void setTextCodec(QTextCodec *);
     QTextCodec * getTextCodec() const noexcept { return _codec; }
-    QModelIndex keyToIndex(const QByteArray &, const QModelIndex &);
+    QModelIndex keyToIndex(const QByteArray, const QModelIndex &);
 
     QVariant data(const QModelIndex &index, int role) const override;
     QModelIndex index(int row, int column,

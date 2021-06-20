@@ -1,23 +1,57 @@
 #ifndef VOCABULARY_H
 #define VOCABULARY_H
 
-#include <QDialog>
-#include "repertorywords.h"
+#include <QtWidgets>
+#include <QTextCodec>
+#include <QtConcurrent/QtConcurrent>
+#include "openctree.h"
+#include "languages.h"
+#include "searchresult.h"
 
 namespace Ui {
 class vocabulary;
 }
 
-class vocabulary : public QDialog
+class vocabulary : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit vocabulary(QWidget *parent = nullptr);
+    explicit vocabulary(const QDir system, const QLocale::Language language,
+                        const QDir catalog, QTextCodec *codec, QWidget *parent = nullptr);
     ~vocabulary();
-
 private:
     Ui::vocabulary *ui;
+    QTextCodec * _codec = nullptr;
+    QLocale::Language _lang;
+    QDir _catalog, _system;
+
+    QStringListModel * _model;
+    QSortFilterProxyModel * _filter;
+
+    searchResult * _results;
+
+    bool _typeAdded = false;
+    bool _globalHide = true;
+
+    inline void renderingWords(openCtree);
+    inline void renderingRoots(openCtree);
+    inline void threadsLaunch(openCtree &, std::function<QStringList (openCtree, const int, const int)>);
+    inline void clearList();
+    inline void prepareOpen();
+protected:
+    void closeEvent(QCloseEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+signals:
+    void sendKey(QByteArray);
+private slots:
+    void changedLanguage();
+    void rendering(const int);
+    void filter(const QString);
+    void selectedModelItem(const QModelIndex &);
+    void changedPlainText();
+    void openResults();
+    void sendOn();
 };
 
 #endif // VOCABULARY_H

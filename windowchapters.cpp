@@ -16,7 +16,9 @@ windowChapters::windowChapters(QWidget *parent) :
     _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     _filterModel->setRecursiveFilteringEnabled(false);
     _filterModel->setSourceModel(_model);
+
     ui->listView->setModel(_filterModel);
+    ui->listView->setUniformItemSizes(true);
 
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);
@@ -85,7 +87,7 @@ void windowChapters::setActiveRepertory(int comboIndex){
 void windowChapters::tableRender(int comboIndex){
     ui->lineEdit->clear();
     ui->lineEdit_2->clear();
-    _codec = ui->comboBox->itemData(comboIndex).value<repertory*>()->getTextCodec();
+    _codec = ui->comboBox->itemData(comboIndex).value<repertory*>()->textCodec();
 
     constexpr int mx = 8;
     QVector<QTableWidgetItem*> items;
@@ -170,7 +172,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
         }
 
         _dirPaths.push_back(qobject_cast<repertory*>
-                            (win.at(it)->widget())->getRepDir());
+                            (win.at(it)->widget())->catalog());
     }
 
     if(ui->comboBox->count() != 0)
@@ -181,7 +183,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub){
     _layout->setCurrentIndex(0);
     QWidget::show();
 }
-void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, const QByteArray & key){
+void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, const QByteArray key){
     setWindowTitle("Окно выбора симптома");
     ui->comboBox->clear();
     _dirPaths.clear();
@@ -194,7 +196,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
             ui->comboBox->setCurrentIndex(it);
 
         _dirPaths.push_back(qobject_cast<repertory*>
-                            (win.at(it)->widget())->getRepDir());
+                            (win.at(it)->widget())->catalog());
     }
 
     if(ui->comboBox->count() != 0)
@@ -206,7 +208,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     db.open(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     db.at(key.toStdString(), false);
 
-    auto path = repertoryEngine::getRootPath(db);
+    auto path = functions::getRootPath(db);
     showListChapter(QByteArray(6, '\0') + path.back());
     auto iterPath = (path.size() > 1) ? path.cbegin() + 1 : path.cbegin();
     changeChapterText(*iterPath);
@@ -237,13 +239,13 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     _layout->setCurrentIndex(1);
     QWidget::show();
 }
-void windowChapters::textFilter(const QString & text){
+void windowChapters::textFilter(const QString text){
     auto items = ui->tableWidget->findItems(text, Qt::MatchFlag::MatchContains);
 
     if(!items.isEmpty())
         ui->tableWidget->setCurrentItem(items.at(0));
 }
-void windowChapters::textFilter_2(const QString & text){
+void windowChapters::textFilter_2(const QString text){
     _filterModel->setFilterFixedString(text);
 }
 void windowChapters::selectedItemTable(QTableWidgetItem * item){
@@ -295,6 +297,7 @@ void windowChapters::returnBranch(){
 
     _filterModel->setRootIndex(root.parent());
     ui->listView->setRootIndex(root.parent());
+    ui->listView->scrollTo(root);
 
     auto rootBasicModel = _filterModel->mapToSource(root);
 
@@ -305,10 +308,10 @@ void windowChapters::returnBranch(){
         changeChapterText(rootPtr->parent()->key().right(6));
     }
 }
-void windowChapters::changeChapterText(const QByteArray & key){
+void windowChapters::changeChapterText(const QByteArray key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     sym.at(key.toStdString(), false);
-    ui->label_2->setText(repertoryEngine::renderingLabel(sym, false, _codec));
+    ui->label_2->setText(functions::renderingLabel(sym, false, _codec));
 }
 void windowChapters::sendActivatedBranch(){
     QModelIndex index;

@@ -12,17 +12,18 @@
 #include "cache.h"
 #include "author.h"
 #include "repertoryengine.h"
+#include "vocabulary.h"
 
 class repertory : public QWidget//, public abstractEngine
 {
     Q_OBJECT
 public:
-    explicit repertory(const QDir &, const QDir &,
+    explicit repertory(const QDir, const QDir,
                        std::shared_ptr<cache> &, QTextCodec *,
                        const quint16 = -1, QWidget * = nullptr);
-    QDir getRepDir() const noexcept;
-    QTextCodec * getTextCodec() const noexcept;
-    QByteArray getCurrentPosition() const noexcept { return _pointer; }
+    QDir catalog() const noexcept { return _filename; }
+    QTextCodec * textCodec() const noexcept { return _codec; }
+    QByteArray currentPosition() const noexcept { return _pointer; }
 private:
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;
@@ -32,12 +33,16 @@ private:
     QLabel * _label;
     QByteArray _pointer;
     repertoryEngine * _engine;
+    vocabulary * _vocabulary = nullptr;
 
     QTextCodec * _codec = nullptr;
+    QLocale::Language _lang;
     std::shared_ptr<cache> _cache;
     QDir _filename, _system;
 
     inline void repaintView();
+    inline void notShowLabel() const;
+
     void resizeEvent(QResizeEvent*) override;
     void redrawPointer(QGraphicsItem *, const QVector<QGraphicsItem*> &);
     void keyPressEvent(QKeyEvent *event) override;
@@ -49,7 +54,8 @@ private slots:
     void doubleClickedAction(QGraphicsSimpleTextItem *item);
     void clickedAction(QGraphicsSimpleTextItem *item);
 public slots:
-    void setPosition(const QByteArray &);
+    void setPosition(const QByteArray);
+    void openVocabulary();
 };
 
 #endif // REPERTORY_H
