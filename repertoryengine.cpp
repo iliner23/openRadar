@@ -309,7 +309,7 @@ void repertoryEngine::linksItems(const quint8 type, const QString & synLinkText,
 
             textItem->setData(1, linkText);
             textItem->setData(2, QByteArray::fromStdString(_symptom.key()));
-            textItem->setData(3, !_private.localize);
+            textItem->setData(3, type == 2 || type == 0);
             linksSynomys.push_back(textItem);
         }
     }

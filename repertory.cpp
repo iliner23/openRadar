@@ -272,8 +272,46 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
             break;
         }
         case 1 :
-            return;
         case 2 :{
+            QString expr, digit;
+            QRegularExpression reg(R"((\d*)(\w+))");
+            auto glMatch = reg.globalMatch(item->data(1).toString());
+
+            while(glMatch.hasNext()){
+                auto match = glMatch.next();
+                const auto dg = match.captured(1);
+
+                if(!dg.isEmpty())
+                    digit = dg;
+
+                expr += "[word:" % match.captured(2) % "] AND ";
+            }
+
+            qDebug() << item->data(1).toString();
+            qDebug() << expr;
+            openCtree word;
+
+            if(!item->data(3).toBool()){
+                word.open(_filename.filePath("word1").toStdString());
+                qDebug() << "word1";
+            }
+            else{
+                word.open(_filename.filePath("word2").toStdString());
+                qDebug() << "word2";
+            }
+
+            const auto variants = functions::linksParser()
+                    (_engine->symptomFile(), std::move(word), expr, _codec);
+
+            if(variants.second.front().isEmpty()){
+                QMessageBox mbox;
+                mbox.setText("Позиция не найдена");
+                mbox.show();
+                return;
+            }
+
+            setPosition(variants.second.front());//TODO : debug this
+            qDebug() << variants.first.front();
             return;
         }
         case 3 : {

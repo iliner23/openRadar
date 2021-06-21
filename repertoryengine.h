@@ -53,7 +53,9 @@ public:
     bool IsRemedsCounter() const noexcept { return _counter; }
 
     QString renderingLabel(const bool passLastChapter = false);//from current key
-    QVector<QByteArray> getRootPath() { return functions::getRootPath(_symptom); }
+    QVector<QByteArray> rootPath() { return functions::getRootPath(_symptom); }
+
+    openCtree symptomFile() const { return _symptom; }
 protected:
     QTextCodec * _codec = nullptr;
 
