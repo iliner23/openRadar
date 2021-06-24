@@ -464,8 +464,12 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
 
     if(iter->dublicate)
         key.append(iter->ptrSize, '\0');
-    else if(key == _lastKey)
-        return currentValue();
+    else if(key == _lastKey){
+        if(savePos)
+            return currentValue();
+        else
+            return true;
+    }
 
     if(iter->bTree_root == 0)
         throw std::runtime_error("Index is empty");

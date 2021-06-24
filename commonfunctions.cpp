@@ -67,7 +67,9 @@ QVector<QByteArray> functions::linksParser::keysParser(const std::string & key, 
                 continue;
 
             set.insert(ptr);
-            keys.push_back(ptr);
+
+            if(_symptom.haveKey(ptr.toStdString()))
+                keys.push_back(ptr);
         }
 
         oldSubRublic = subRublic;
@@ -185,8 +187,11 @@ void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstLis
         QVector<QVector<QByteArray>> flist;
 
         for(auto i = begin; i != end; ++i){
-            symptom.at(sourceList.at(i).toStdString(), false);
-            flist += getRootPath(symptom);//TODO : add exception handler
+            try{
+                symptom.at(sourceList.at(i).toStdString(), false);
+                flist += getRootPath(symptom);
+            }
+            catch(std::exception) {}
         }
 
         return flist;
@@ -204,8 +209,6 @@ void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstLis
         tempList = firstList;
         return;
     }
-
-    auto compareThread = QtConcurrent::run([&](){ return firstList == secondList; });
 
     auto threadFor = [&](auto begin, auto end){
         QVector<QByteArray> tpList;

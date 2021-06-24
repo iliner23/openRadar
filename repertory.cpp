@@ -273,7 +273,9 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
         }
         case 1 :
         case 2 :{
-            QString expr, digit;
+            QString expr;
+            QStringList epList;
+            quint8 digit = 0;
             QRegularExpression reg(R"((\d*)(\w+))");
             auto glMatch = reg.globalMatch(item->data(1).toString());
 
@@ -282,13 +284,15 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                 const auto dg = match.captured(1);
 
                 if(!dg.isEmpty())
-                    digit = dg;
+                    digit = dg.toUShort();
 
+                epList += match.captured(2);
                 expr += "[word:" % match.captured(2) % "] AND ";
             }
 
             qDebug() << item->data(1).toString();
             qDebug() << expr;
+
             openCtree word;
 
             if(!item->data(3).toBool()){
@@ -310,8 +314,34 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                 return;
             }
 
-            setPosition(variants.second.front());//TODO : debug this
-            qDebug() << variants.first.front();
+            for(auto it = 0; it != variants.first.size(); ++it){
+                QRegularExpression reg(R"(([\w\s][^-\n]+))");
+                auto glMatch = reg.globalMatch(variants.first.at(it));
+                uint8_t ptr = 0;
+
+                while(glMatch.hasNext()){
+                    auto match = glMatch.next();
+                    const auto dg = match.captured(1);
+
+                    if(ptr == digit - 2 + epList.size()){
+                        if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) != -1){
+                            setPosition(variants.second.at(it));
+                            return;
+                        }
+
+                        break;
+                    }
+                    else if(ptr >= digit - 1){
+                        if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) == -1)
+                            break;
+                    }
+
+                    ++ptr;
+                }
+            }
+
+            //setPosition(variants.second.front());//FIXME : debug this
+            //qDebug() << variants.first.front();
             return;
         }
         case 3 : {
