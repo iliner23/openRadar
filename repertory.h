@@ -14,7 +14,7 @@
 #include "repertoryengine.h"
 #include "vocabulary.h"
 
-class repertory : public QWidget//, public abstractEngine
+class repertory : public QWidget
 {
     Q_OBJECT
 public:

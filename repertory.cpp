@@ -273,10 +273,16 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
         }
         case 1 :
         case 2 :{
+            auto mesBox = [&](){
+                QMessageBox mbox(this);
+                mbox.setText("Позиция не найдена");
+                mbox.exec();
+            };
+
             QString expr;
             QStringList epList;
             quint8 digit = 0;
-            QRegularExpression reg(R"((\d*)(\w+))");
+            QRegularExpression reg(R"(\s*(\d*)([\w\s][^-\n\r]+))");
             auto glMatch = reg.globalMatch(item->data(1).toString());
 
             while(glMatch.hasNext()){
@@ -286,8 +292,13 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                 if(!dg.isEmpty())
                     digit = dg.toUShort();
 
-                epList += match.captured(2);
-                expr += "[word:" % match.captured(2) % "] AND ";
+                auto str = match.captured(2);
+
+                while(str.back() == ' ')
+                    str.chop(1);
+
+                epList += str;
+                expr += "[word:" % str % "] AND ";
             }
 
             qDebug() << item->data(1).toString();
@@ -304,18 +315,22 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                 qDebug() << "word2";
             }
 
-            const auto variants = functions::linksParser()
-                    (_engine->symptomFile(), std::move(word), expr, _codec);
+            auto symFile = _engine->symptomFile();
 
-            if(variants.second.front().isEmpty()){
-                QMessageBox mbox;
-                mbox.setText("Позиция не найдена");
-                mbox.show();
+            const auto variants = functions::linksParser()
+                    (symFile, std::move(word), expr, _codec);
+
+            QVector<QByteArray> originalPos;
+            symFile.at(item->data(2).toByteArray().toStdString());
+            originalPos = functions::getRootPath(symFile);
+
+            if(originalPos.size() < digit){
+                mesBox();
                 return;
             }
 
             for(auto it = 0; it != variants.first.size(); ++it){
-                QRegularExpression reg(R"(([\w\s][^-\n]+))");
+                QRegularExpression reg(R"(([\w\s][^-\n\r]+))");
                 auto glMatch = reg.globalMatch(variants.first.at(it));
                 uint8_t ptr = 0;
 
@@ -323,25 +338,36 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                     auto match = glMatch.next();
                     const auto dg = match.captured(1);
 
-                    if(ptr == digit - 2 + epList.size()){
-                        if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) != -1){
-                            setPosition(variants.second.at(it));
-                            return;
-                        }
+                    if(ptr < digit - 1){
+                        symFile.at(variants.second.at(it).toStdString());
+                        auto origPtrs = functions::getRootPath(symFile);
 
-                        break;
-                    }
-                    else if(ptr >= digit - 1){
-                        if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) == -1)
+                        if(origPtrs.size() < digit)
                             break;
+
+                        if(origPtrs.at(origPtrs.size() - ptr - 1) != originalPos.at(originalPos.size() - ptr - 1))
+                            break;
+                    }
+                    else{
+                        if(ptr == digit - 2 + epList.size()){
+                            if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) != -1){
+                                setPosition(variants.second.at(it));
+                                return;
+                            }
+
+                            break;
+                        }
+                        else{
+                            if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) == -1)
+                                break;
+                        }
                     }
 
                     ++ptr;
                 }
             }
 
-            //setPosition(variants.second.front());//FIXME : debug this
-            //qDebug() << variants.first.front();
+            mesBox();
             return;
         }
         case 3 : {

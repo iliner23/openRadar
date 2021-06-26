@@ -22,6 +22,7 @@ namespace functions {
         enum class operation : quint8 {AND, OR, none};
         openCtree _symptom, _word;
         QTextCodec * _codec;
+        QMutex _syMut, _wordMut;
 
         void expressionParser(const QString, QVector<std::pair<QString, operation>> &);
         QVector<QByteArray> keysParser(const std::string &, QSet<QByteArray> &);
