@@ -36,21 +36,22 @@ private:
     std::ifstream _dat;
     std::ifstream _idx;
     std::vector<index_header> _header;
-    std::map<uint64_t, uint64_t, std::greater<>> _leaf;//first - index pos, second - basePtr
+    std::shared_ptr<
+        std::map<uint64_t, uint64_t, std::greater<>>> _leaf;//first - index pos, second - basePtr
 
-    uint16_t _index = 0;
     uint16_t _reclen = 0;
-    std::string _lastKey;
-    uint64_t _lastValuePos = 0;
-    uint64_t _lastPosition = std::numeric_limits<uint64_t>::max();
 
     std::string _fileName;
 
     struct{
-        uint32_t _nextHope = 0;
-        uint16_t _byteSize = 0;
-        uint64_t _leafPtr = 0;
-        uint64_t _basePtr = 0;
+        uint16_t index = 0;
+        std::string lastKey;
+        uint64_t lastValuePos = 0;
+        uint64_t lastPosition = std::numeric_limits<uint64_t>::max();
+        uint32_t nextHope = 0;
+        uint16_t byteSize = 0;
+        uint64_t leafPtr = 0;
+        uint64_t basePtr = 0;
     } _navigate;
 
     inline std::string gtData(const uint64_t);

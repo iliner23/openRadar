@@ -66,10 +66,10 @@ QVector<QByteArray> functions::linksParser::keysParser(const std::string & key, 
             if(set.constFind(ptr) != set.cend())
                 continue;
 
-            set.insert(ptr);
-
-            if(_symptom.haveKey(ptr.toStdString()))
+            if(_symptom.haveKey(ptr.toStdString())){
+                set.insert(ptr);
                 keys.push_back(ptr);
+            }
         }
 
         oldSubRublic = subRublic;
@@ -81,8 +81,10 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
     QVector<std::pair<QVector<QByteArray>, operation>> multiKeys;
 
     for(auto exprIt = 0; exprIt != expr.size(); ++exprIt){
+        QElapsedTimer tm1;//NOTE : tm1
+
         std::string key;
-        const operation oper = (exprIt == 0) ? operation::none : expr.at(exprIt - 1).second;
+        const operation oper = /*(exprIt == 0) ? operation::none :*/ expr.at(exprIt /*- 1*/).second;
         auto string = expr.at(exprIt).first;
 
         for(auto & it : string){
@@ -107,6 +109,8 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
             key.back() = key.back() + 1;
         }
 
+        qDebug() << "tm1 : " << tm1.elapsed() / 1000;
+
         if(tempPar.isEmpty())
             continue;
 
@@ -115,18 +119,22 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
 
     QVector<QByteArray> keysList;
 
-    for(auto mult = 0; mult != multiKeys.size(); ++mult){
+    //for(auto mult = 0; mult != multiKeys.size(); ++mult){
+    for(auto mult = multiKeys.crbegin(); mult != multiKeys.crend(); ++mult){
         QVector<QByteArray> tempList;
 
-        if(multiKeys.at(mult).second == operation::none)
-            keysList.append(multiKeys.at(mult).first);
+        //if(mult->second == operation::none)
+        if(mult == multiKeys.crbegin())
+            keysList.append(mult->first);
 
-        else if(multiKeys.at(mult).second == operation::AND){
-            logicalANDparser(keysList, multiKeys.at(mult).first, tempList);
+        else if(mult->second == operation::AND){
+            QElapsedTimer tm2;//NOTE : tm2
+            logicalANDparser(keysList, mult->first, tempList);
             keysList = tempList;
+            qDebug() << "tm2 : " << tm2.elapsed() / 1000;
         }
         else{
-            for(const auto & it : multiKeys.at(mult).first){
+            for(const auto & it : mult->first){
                 const auto kel = keysList.indexOf(it);
 
                 if(kel == -1)
@@ -151,6 +159,8 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
         return lst;
     };
 
+    QElapsedTimer tm3;//NOTE : tm3
+
     if(keysList.size() > 500){
         const auto del = keysList.size() / 4;
         auto thread1 = QtConcurrent::run(thread, _symptom, keysList.constBegin(), keysList.constBegin() + del);
@@ -165,6 +175,8 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
     }
     else
         list = thread(_symptom, keysList.constBegin(), keysList.constEnd());
+
+    qDebug() << "tm3 : " << tm3.elapsed() / 1000;
 
     return std::make_pair(list, keysList);
 }

@@ -318,11 +318,10 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
             auto symFile = _engine->symptomFile();
 
             const auto variants = functions::linksParser()
-                    (symFile, std::move(word), expr, _codec);
+                    (symFile, std::move(word), expr, _codec);//TODO : rework this is using similar method like in searchModel class
 
-            QVector<QByteArray> originalPos;
             symFile.at(item->data(2).toByteArray().toStdString());
-            originalPos = functions::getRootPath(symFile);
+            auto originalPos = functions::getRootPath(symFile);
 
             if(originalPos.size() < digit){
                 mesBox();
@@ -334,14 +333,14 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                 auto glMatch = reg.globalMatch(variants.first.at(it));
                 uint8_t ptr = 0;
 
+                symFile.at(variants.second.at(it).toStdString());
+                auto origPtrs = functions::getRootPath(symFile);
+
                 while(glMatch.hasNext()){
                     auto match = glMatch.next();
                     const auto dg = match.captured(1);
 
                     if(ptr < digit - 1){
-                        symFile.at(variants.second.at(it).toStdString());
-                        auto origPtrs = functions::getRootPath(symFile);
-
                         if(origPtrs.size() < digit)
                             break;
 
@@ -357,10 +356,8 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
 
                             break;
                         }
-                        else{
-                            if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) == -1)
-                                break;
-                        }
+                        else if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) == -1)
+                            break;
                     }
 
                     ++ptr;
