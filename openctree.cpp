@@ -276,6 +276,12 @@ void openCtree::setIndex(const uint16_t member){
 
     writeLeafs();//save leafs ptr and index pos into map
 }
+uint16_t openCtree::index() const{
+    if(!isOpen())
+        throw std::logic_error("Database isn't open");
+
+    return _navigate.index;
+}
 void openCtree::writeLeafs(){
     _leaf = std::make_shared
             <std::map<uint64_t, uint64_t, std::greater<>>>();
@@ -436,29 +442,34 @@ std::string openCtree::at(const uint32_t index, const bool readDbText){
     }
 }
 std::string openCtree::at(std::string key, const bool readDbText){//if key is dublicate than input key size == full key size - 4
-    return std::get<std::string>(commonAtKey(key, true, readDbText));
+    return std::get<std::string>(commonAtKey(key, true, false, readDbText));
+}
+std::string openCtree::firstFind(std::string partOfKey, const bool readDbText){
+    return std::get<std::string>(commonAtKey(partOfKey, true, true, readDbText));
 }
 bool openCtree::haveKey(std::string key){
-    return std::get<bool>(commonAtKey(key, false, false));
+    return std::get<bool>(commonAtKey(key, false, false, false));
 }
-std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bool savePos, const bool readDbText){
+std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bool savePos, const bool finding, const bool readDbText){
     if(!isOpen())
         throw std::logic_error("Database isn't open");
 
     auto iter = _header.begin() + _navigate.index;
 
-    if(!iter->dublicate && key.size() != iter->key_length)
-        throw std::logic_error("Incoorect key size");
-    else if(iter->dublicate && key.size() != iter->key_length - iter->ptrSize)
-        throw std::logic_error("Incoorect key size");
+    if(!finding){
+        if(!iter->dublicate && key.size() != iter->key_length)
+            throw std::logic_error("Incoorect key size");
+        else if(iter->dublicate && key.size() != iter->key_length - iter->ptrSize)
+            throw std::logic_error("Incoorect key size");
 
-    if(iter->dublicate)
-        key.append(iter->ptrSize, '\0');
-    else if(key == _navigate.lastKey){
-        if(savePos)
-            return currentValue();
-        else
-            return true;
+        if(iter->dublicate)
+            key.append(iter->ptrSize, '\0');
+        else if(key == _navigate.lastKey){
+            if(savePos)
+                return currentValue();
+            else
+                return true;
+        }
     }
 
     if(iter->bTree_root == 0)
@@ -467,117 +478,143 @@ std::variant<bool, std::string> openCtree::commonAtKey(std::string key, const bo
     _idx.seekg(iter->bTree_root);
     std::string keyCmp(iter->key_length, '\0');
 
-    while(true){
-        uint16_t byteSize = 0;
-        bool lNode = false;
-        const uint64_t ptr = _idx.tellg();
-        _idx.read((char *) &_navigate.nextHope, sizeof(_navigate.nextHope));
+    uint64_t pointer = 0;
+    uint16_t byteSize = 0;
+    uint64_t ptr = 0;
 
-        _idx.seekg(ptr + 10);
-        _idx.read((char *) &byteSize, sizeof(byteSize));
-        _idx.seekg(ptr + 17);
-        _idx.read((char *) &lNode, sizeof(lNode));
+    bool lNode = false;
+    bool useInit = true;
+
+    while(true){
+        auto initFunc = [&](){
+            byteSize = 0;
+            ptr = _idx.tellg();
+
+            _idx.read((char *) &_navigate.nextHope, sizeof(_navigate.nextHope));
+
+            _idx.seekg(ptr + 10);
+            _idx.read((char *) &byteSize, sizeof(byteSize));
+            _idx.seekg(ptr + 17);
+            _idx.read((char *) &lNode, sizeof(lNode));
+        };
+
+        if(useInit)
+            initFunc();
+        else
+            useInit = true;
 
         if(savePos){
             _navigate.byteSize = byteSize;
             _navigate.basePtr = ptr;
         }
 
-        while(true){
-            {
-                const auto pointerTemp = _idx.tellg();
+        if(lNode)
+            break;
 
-                if(pointerTemp < 0 || ptr + 18 + byteSize <= (uint64_t) pointerTemp){
-                    if(savePos)
-                        throw std::runtime_error("Incorrect key");
+        pointer = 0;
 
-                    return false;
-                }
-            }
+        //leaf dublicate node hasn't poiner in begin
+        _idx.read((char *) &pointer, iter->ptrSize);
 
-            uint64_t pointer = 0;
+        if(iter->index_type == 0){//for uncompress indexes
+            _idx.read(keyCmp.data(), iter->key_length);
 
-            if(!(iter->dublicate && lNode))//leaf dublicate node hasn't poiner in begin
-                _idx.read((char *) &pointer, iter->ptrSize);
-
-            if(iter->index_type == 0){//for uncompress indexes
-                _idx.read(keyCmp.data(), iter->key_length);
-
-                if(!lNode){//there is branch
-                    if(keyCmp >= key){
-                        _idx.seekg(pointer);
-                        break;
-                    }
-                }
-                else{//there is leaf
-                    if(iter->dublicate){
-                        pointer = 0;
-                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
-                        std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
-                    }
-
-                    if(savePos){
-                        _navigate.lastValuePos = pointer;
-                        _navigate.leafPtr = _idx.tellg();
-                    }
-
-                    if(keyCmp == key){
-                        if(!savePos)
-                            return true;
-                        else{
-                            _navigate.lastKey = keyCmp;
-
-                            if(iter->dublicate)
-                                std::copy((char *) &pointer, ((char *) &pointer) + iter->ptrSize, _navigate.lastKey.rbegin());
-                        }
-
-                        _navigate.lastPosition = std::numeric_limits<uint64_t>::max();
-                        return readOrNot(readDbText, pointer);
-                    }
-                }
-            }
-            else if(iter->index_type == 12){//for compress indexes
-                keyCmp = uncompressString(keyCmp);
-
-                if(!lNode){//there is branch
-                    if(keyCmp >= key){
-                        _idx.seekg(pointer);
-                        break;
-                    }
-                }
-                else{//there is leaf
-                    if(iter->dublicate){
-                        pointer = 0;
-                        std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
-                        std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
-                    }
-
-                    if(savePos){
-                        _navigate.lastValuePos = pointer;
-                        _navigate.leafPtr = _idx.tellg();
-                    }
-
-                    if(keyCmp == key){
-                        if(!savePos)
-                            return true;
-                        else{
-                            _navigate.lastKey = keyCmp;
-
-                            if(iter->dublicate)
-                                std::copy((char *) &pointer, ((char *) &pointer) + iter->ptrSize, _navigate.lastKey.rbegin());
-                        }
-
-                        _navigate.lastPosition = std::numeric_limits<uint64_t>::max();
-                        return readOrNot(readDbText, pointer);
-                    }
-                }
-            }
+            if(keyCmp >= key)
+                _idx.seekg(pointer);
             else
-                throw std::runtime_error("Incorrect index compress type");
-
-            if(!_idx.good())
-                throw std::runtime_error("Database was destroyed");
+                useInit = false;
         }
+        else if(iter->index_type == 12){//for compress indexes
+            keyCmp = uncompressString(keyCmp);
+
+            if(keyCmp >= key)
+                _idx.seekg(pointer);
+            else
+                useInit = false;
+        }
+        else
+            throw std::runtime_error("Incorrect index compress type");
+
+        if(!_idx.good())
+            throw std::runtime_error("Database was destroyed");
+    }
+
+    while(true){
+        {
+            const auto pointerTemp = _idx.tellg();
+
+            if(pointerTemp < 0 || ptr + 18 + byteSize <= (uint64_t) pointerTemp){
+                if(savePos)
+                    throw std::runtime_error("Incorrect key");
+
+                return false;
+            }
+        }
+
+        if(!iter->dublicate)//leaf dublicate node hasn't poiner in begin
+            _idx.read((char *) &pointer, iter->ptrSize);
+
+        if(iter->index_type == 0){//for uncompress indexes
+            _idx.read(keyCmp.data(), iter->key_length);
+
+            if(iter->dublicate){
+                pointer = 0;
+                std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
+                std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
+            }
+
+            if(savePos){
+                _navigate.lastValuePos = pointer;
+                _navigate.leafPtr = _idx.tellg();
+            }
+
+            if(keyCmp == key || (finding) ? keyCmp.find(key) != std::string::npos : false){
+                if(!savePos)
+                    return true;
+                else{
+                    _navigate.lastKey = keyCmp;
+
+                    if(iter->dublicate)
+                        std::copy((char *) &pointer, ((char *) &pointer) + iter->ptrSize, _navigate.lastKey.rbegin());
+                }
+
+                _navigate.lastPosition = std::numeric_limits<uint64_t>::max();
+                return readOrNot(readDbText, pointer);
+            }
+        }
+        else if(iter->index_type == 12){//for compress indexes
+            keyCmp = uncompressString(keyCmp);
+
+            if(iter->dublicate){
+                pointer = 0;
+                std::copy(keyCmp.crbegin(), keyCmp.crbegin() + iter->ptrSize, (char *) &pointer);
+                std::fill(keyCmp.rbegin(), keyCmp.rbegin() + iter->ptrSize, 0);
+            }
+
+            if(savePos){
+                _navigate.lastValuePos = pointer;
+                _navigate.leafPtr = _idx.tellg();
+            }
+
+            if(keyCmp == key || (finding) ? keyCmp.find(key) != std::string::npos : false){
+                if(!savePos)
+                    return true;
+                else{
+                    _navigate.lastKey = keyCmp;
+
+                    if(iter->dublicate)
+                        std::copy((char *) &pointer, ((char *) &pointer) + iter->ptrSize, _navigate.lastKey.rbegin());
+                }
+
+                _navigate.lastPosition = std::numeric_limits<uint64_t>::max();
+                return readOrNot(readDbText, pointer);
+            }
+        }
+        else
+            throw std::runtime_error("Incorrect index compress type");
+
+        if(!_idx.good())
+            throw std::runtime_error("Database was destroyed");
     }
 }
 std::string openCtree::front(const bool readDbText){

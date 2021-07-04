@@ -81,8 +81,6 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
     QVector<std::pair<QVector<QByteArray>, operation>> multiKeys;
 
     for(auto exprIt = 0; exprIt != expr.size(); ++exprIt){
-        QElapsedTimer tm1;//NOTE : tm1
-
         std::string key;
         const operation oper = /*(exprIt == 0) ? operation::none :*/ expr.at(exprIt /*- 1*/).second;
         auto string = expr.at(exprIt).first;
@@ -109,8 +107,6 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
             key.back() = key.back() + 1;
         }
 
-        qDebug() << "tm1 : " << tm1.elapsed() / 1000;
-
         if(tempPar.isEmpty())
             continue;
 
@@ -128,10 +124,8 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
             keysList.append(mult->first);
 
         else if(mult->second == operation::AND){
-            QElapsedTimer tm2;//NOTE : tm2
             logicalANDparser(keysList, mult->first, tempList);
             keysList = tempList;
-            qDebug() << "tm2 : " << tm2.elapsed() / 1000;
         }
         else{
             for(const auto & it : mult->first){
@@ -159,8 +153,6 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
         return lst;
     };
 
-    QElapsedTimer tm3;//NOTE : tm3
-
     if(keysList.size() > 500){
         const auto del = keysList.size() / 4;
         auto thread1 = QtConcurrent::run(thread, _symptom, keysList.constBegin(), keysList.constBegin() + del);
@@ -175,8 +167,6 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
     }
     else
         list = thread(_symptom, keysList.constBegin(), keysList.constEnd());
-
-    qDebug() << "tm3 : " << tm3.elapsed() / 1000;
 
     return std::make_pair(list, keysList);
 }
@@ -290,7 +280,7 @@ QVector<QVector<QByteArray>> functions::linksParser::threadsParent(const QVector
 }
 
 
-QString functions::renderingLabel(openCtree & symptom, bool pass, QTextCodec * codec){
+QString functions::renderingLabel(openCtree symptom, bool pass, QTextCodec * codec){
     QStringList original, localization;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');
@@ -365,7 +355,59 @@ QString functions::renderingLabel(openCtree & symptom, bool pass, QTextCodec * c
 
     return org + ((localization.isEmpty()) ? "" : '\n' + lz);
 }
-QVector<QByteArray> functions::getRootPath(openCtree & symptom, quint16 deep){
+std::pair<QStringList, QStringList> functions::renderingLabel(openCtree symptom, QTextCodec * codec){
+    QStringList original, localization;
+    auto text = QByteArray::fromStdString(symptom.currentValue());
+    QByteArray ind(6, '\0');
+    bool fis = true;
+
+    auto return_size = [](const auto & value, const auto & size){
+        return (value == -1) ? size : value;
+    };
+
+    std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, ind.begin());
+    fis = false;
+
+    while(true){
+        quint8 attach = 0;
+
+        if(!fis){
+            text = QByteArray::fromStdString(symptom.at(ind.toStdString()));
+            const auto first = return_size(text.indexOf('\0', symptom.serviceDataLenght()), text.size());
+            const auto second = return_size(text.indexOf('\0', first + 1), text.size()) - first - 1;
+            const auto local = codec->toUnicode(text.mid(first + 1, second));
+
+            original.push_back(codec->toUnicode(text.mid(symptom.serviceDataLenght()
+                                                          , first - symptom.serviceDataLenght())));
+            if(!local.isEmpty())
+                localization.push_back(local);
+        }
+
+        attach = text.at(21);
+        QByteArray midCompare(6, '\0');
+        std::reverse_copy(text.cbegin() + 6, text.cbegin() + 12, midCompare.begin());
+        std::reverse_copy(text.cbegin() + 12, text.cbegin() + 18, ind.begin());
+
+        if(midCompare.left(4) != ind.left(4)){
+            ind.replace(ind.size() - 2, 2, "\0\0", 2);}
+
+        else if(ind.back() != '\0' || ind.at(ind.size() - 1) != '\0'){
+            auto decrease = qFromBigEndian<quint16>(ind.right(2)) - 1;
+            decrease = qToBigEndian<quint16>(decrease);
+            ind.replace(ind.size() - 2, 2, (char *)&decrease, 2);
+        }
+
+        if(attach == 0)
+            Q_ASSERT("attach == 0");
+        else if(attach <= 1 || ind == "\0\0\0\0\0\0")
+            break;
+
+        fis = false;
+    }
+
+    return std::make_pair(original, localization);
+}
+QVector<QByteArray> functions::getRootPath(openCtree symptom, quint16 deep){
     QVector<QByteArray> array;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');

@@ -6,10 +6,13 @@
 #include "openctree.h"
 
 namespace functions {
-    QString renderingLabel(openCtree & symptom, bool passLastChapter = true,
+    QString renderingLabel(openCtree symptom, bool passLastChapter,
                            QTextCodec * codec = QTextCodec::codecForName("system"));
 
-    QVector<QByteArray> getRootPath(openCtree & symptom,
+    std::pair<QStringList, QStringList> renderingLabel
+        (openCtree symptom, QTextCodec * codec = QTextCodec::codecForName("system"));
+
+    QVector<QByteArray> getRootPath(openCtree symptom,
                                     quint16 deep = std::numeric_limits<quint16>::max());
 
     class linksParser{

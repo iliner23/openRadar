@@ -272,100 +272,102 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
             break;
         }
         case 1 :
-        case 2 :{
+        case 2 :{//TODO : add localize support for searching
             auto mesBox = [&](){
                 QMessageBox mbox(this);
                 mbox.setText("Позиция не найдена");
                 mbox.exec();
             };
 
-            QString expr;
-            QStringList epList;
-            quint8 digit = 0;
-            QRegularExpression reg(R"(\s*(\d*)([\w\s][^-\n\r]+))");
-            auto glMatch = reg.globalMatch(item->data(1).toString());
-
-            while(glMatch.hasNext()){
-                auto match = glMatch.next();
-                const auto dg = match.captured(1);
-
-                if(!dg.isEmpty())
-                    digit = dg.toUShort();
-
-                auto str = match.captured(2);
-
-                while(str.back() == ' ')
-                    str.chop(1);
-
-                epList += str;
-                expr += "[word:" % str % "] AND ";
-            }
-
-            qDebug() << item->data(1).toString();
-            qDebug() << expr;
-
-            openCtree word;
-
-            if(!item->data(3).toBool()){
-                word.open(_filename.filePath("word1").toStdString());
-                qDebug() << "word1";
-            }
-            else{
-                word.open(_filename.filePath("word2").toStdString());
-                qDebug() << "word2";
-            }
-
-            auto symFile = _engine->symptomFile();
-
-            const auto variants = functions::linksParser()
-                    (symFile, std::move(word), expr, _codec);//TODO : rework this is using similar method like in searchModel class
-
-            symFile.at(item->data(2).toByteArray().toStdString());
-            auto originalPos = functions::getRootPath(symFile);
-
-            if(originalPos.size() < digit){
-                mesBox();
-                return;
-            }
-
-            for(auto it = 0; it != variants.first.size(); ++it){
-                QRegularExpression reg(R"(([\w\s][^-\n\r]+))");
-                auto glMatch = reg.globalMatch(variants.first.at(it));
-                uint8_t ptr = 0;
-
-                symFile.at(variants.second.at(it).toStdString());
-                auto origPtrs = functions::getRootPath(symFile);
+            try{
+                QStringList epList;
+                quint8 digit = 0;
+                QRegularExpression reg(R"(\s*(\d*)([\w\s][^-\n\r]+))");
+                auto glMatch = reg.globalMatch(item->data(1).toString());
 
                 while(glMatch.hasNext()){
                     auto match = glMatch.next();
                     const auto dg = match.captured(1);
 
-                    if(ptr < digit - 1){
-                        if(origPtrs.size() < digit)
-                            break;
+                    if(!dg.isEmpty())
+                        digit = dg.toUShort();
 
-                        if(origPtrs.at(origPtrs.size() - ptr - 1) != originalPos.at(originalPos.size() - ptr - 1))
-                            break;
-                    }
-                    else{
-                        if(ptr == digit - 2 + epList.size()){
-                            if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) != -1){
-                                setPosition(variants.second.at(it));
+                    auto str = match.captured(2);
+
+                    while(str.back() == ' ')
+                        str.chop(1);
+
+                    epList += str;
+                }
+
+                auto symFile = _engine->symptomFile();
+                symFile.at(item->data(2).toByteArray().toStdString());
+
+                QByteArrayList originalPos;
+
+                if(digit > 1){
+                    originalPos = functions::getRootPath(symFile);
+                    originalPos.remove(0, originalPos.size() - digit + 1);
+                }
+
+                auto iterEpList = epList.begin();
+
+                symFile.setIndex(1);
+
+                while(true){
+                    const auto size = iterEpList->size() - 20;
+
+                    if(size > 0)
+                        iterEpList->chop(size);
+
+                    const auto encodeKey = ((!originalPos.isEmpty()) ? originalPos.front().toStdString() : std::string(6, '\0')) +
+                                            symFile.encodeKey(iterEpList->toUpper().toStdString());
+
+                    symFile.firstFind(encodeKey, false);
+
+                    while(true){
+                        auto iterFile = symFile;
+                        auto keyPos = symFile.currentValue().substr(0, 6);
+                        std::reverse(keyPos.begin(), keyPos.end());
+
+                        iterFile.setIndex(0);
+                        iterFile.at(keyPos, false);
+
+                        const auto pos = functions::getRootPath(iterFile);
+
+                        if(pos.size() != originalPos.size() + 1){
+                            symFile.next(false);
+                            continue;
+                        }
+
+                        if(!std::equal(pos.crbegin(), pos.crend() - 1, originalPos.crbegin())){
+                            symFile.next(false);
+                            continue;
+                        }
+
+                        const auto val = functions::renderingLabel(iterFile, _codec);
+
+                        if(val.first.front().indexOf(*iterEpList, 0, Qt::CaseInsensitive) != -1){
+                            if(pos.size() == digit - 1 + epList.size()){
+                                setPosition(pos.first());
                                 return;
                             }
 
+                            originalPos.prepend(pos.first());
+                            ++iterEpList;
+
                             break;
                         }
-                        else if(dg.indexOf(epList.at(ptr - (digit - 1)), 0, Qt::CaseInsensitive) == -1)
-                            break;
+                        else{
+                            mesBox();
+                            return;
+                        }
                     }
-
-                    ++ptr;
                 }
+            } catch(...){
+              mesBox();
+              return;
             }
-
-            mesBox();
-            return;
         }
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()

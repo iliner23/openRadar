@@ -57,7 +57,7 @@ private:
     inline std::string gtData(const uint64_t);
     inline std::string readOrNot(const bool, const uint64_t);
     inline std::string uncompressString(const std::string &);
-    inline std::variant<bool, std::string> commonAtKey(std::string, const bool, const bool);
+    inline std::variant<bool, std::string> commonAtKey(std::string, const bool, const bool, const bool);
     inline void writeLeafs();
 public:
     openCtree(const std::string & filename) { open(filename); }
@@ -78,6 +78,7 @@ public:
 
     uint16_t indexCount() const;
     void setIndex(const uint16_t);
+    uint16_t index() const;
 
     int32_t size() const;
 
@@ -85,6 +86,7 @@ public:
 
     std::string at(const uint32_t, const bool readDbText = true);
     std::string at(std::string, const bool readDbText = true);
+    std::string firstFind(std::string, const bool readDbText = true);
 
     std::string next(const bool readDbText = true);
     std::string front(const bool readDbText = true);
