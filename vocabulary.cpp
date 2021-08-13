@@ -198,21 +198,19 @@ void vocabulary::renderingWords(openCtree base){
 }
 void vocabulary::threadsLaunch(openCtree & base, std::function<QStringList(openCtree, const int, const int)> threadFunc){
     QStringList wordList;
+    QVector<QFuture<QStringList>> threads;
 
-    if(base.size() > 500){
-        const auto del = base.size() / 4;
-        auto thread1 = QtConcurrent::run(threadFunc, base, 0 , del);
-        auto thread2 = QtConcurrent::run(threadFunc, base, del , del * 2);
-        auto thread3 = QtConcurrent::run(threadFunc, base, del * 2, del * 3);
-        auto thread4 = QtConcurrent::run(threadFunc, base, del * 3, base.size());
+    const auto maxThreads = (base.size() > QThread::idealThreadCount()) ?
+                QThread::idealThreadCount() : base.size();
+    const auto del = base.size() / maxThreads;
 
-        wordList.append(thread1.result());
-        wordList.append(thread2.result());
-        wordList.append(thread3.result());
-        wordList.append(thread4.result());
+    for(auto i = 0; i != maxThreads; ++i){
+        threads.append(QtConcurrent::run(threadFunc, base, del * i ,
+            (i == maxThreads - 1) ? base.size() : del * (i + 1)));
     }
-    else
-        wordList = threadFunc(base, 0 , base.size());
+
+    for(auto & it : threads)
+        wordList.append(it.result());
 
     _model->setStringList(std::move(wordList));
 }

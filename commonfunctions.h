@@ -12,13 +12,13 @@ namespace functions {
     std::pair<QStringList, QStringList> renderingLabel
         (openCtree symptom, QTextCodec * codec = QTextCodec::codecForName("system"));
 
-    QVector<QByteArray> getRootPath(openCtree symptom,
+    QByteArrayList getRootPath(openCtree symptom,
                                     quint16 deep = std::numeric_limits<quint16>::max());
 
     class linksParser{
     public:
         linksParser() = default;
-        std::pair<QStringList, QVector<QByteArray>> operator() (
+        std::pair<QStringList, QByteArrayList> operator() (
                 openCtree symptom, openCtree word, const QString expression,
                 QTextCodec * codec = QTextCodec::codecForName("system"));
     private:
@@ -28,17 +28,17 @@ namespace functions {
         QMutex _syMut, _wordMut;
 
         void expressionParser(const QString, QVector<std::pair<QString, operation>> &);
-        QVector<QByteArray> keysParser(const std::string &, QSet<QByteArray> &);
+        QByteArrayList keysParser(const std::string &, QSet<QByteArray> &);
 
-        void logicalANDparser(const QVector<QByteArray>,
-                                     const QVector<QByteArray>, QVector<QByteArray> &);
+        void logicalANDparser(const QByteArrayList,
+                                     const QByteArrayList, QByteArrayList &);
 
-        std::pair<QStringList, QVector<QByteArray>> logicalParser(
+        std::pair<QStringList, QByteArrayList> logicalParser(
                                         QVector<std::pair<QString, operation>> &);
         void clearValues();
-        QVector<QVector<QByteArray>> threadsParent(const QVector<QByteArray> & ,
-                        std::function<QVector<QVector<QByteArray>>(openCtree symptom,
-                        const QVector<QByteArray> & , quint32 , quint32)>);
+        QVector<QByteArrayList> threadsParent(const QByteArrayList & ,
+                        std::function<QVector<QByteArrayList>(openCtree symptom,
+                        const QByteArrayList & , quint32 , quint32)>);
     };
 }
 #endif // COMMONFUNCTIONS_H

@@ -22,7 +22,7 @@ SOURCES += \
     customscene.cpp \
     delegate.cpp \
     label.cpp \
-    labelengine.cpp \
+    labelrender.cpp \
     main.cpp \
     mainwindow.cpp \
     openctree.cpp \
@@ -30,7 +30,8 @@ SOURCES += \
     remed_author.cpp \
     repchose.cpp \
     repertory.cpp \
-    repertoryengine.cpp \
+    repertorydata.cpp \
+    repertoryrender.cpp \
     searchmodel.cpp \
     searchresult.cpp \
     vocabulary.cpp \
@@ -43,7 +44,7 @@ HEADERS += \
     customscene.h \
     delegate.h \
     label.h \
-    labelengine.h \
+    labelrender.h \
     languages.h \
     mainwindow.h \
     openctree.h \
@@ -51,7 +52,8 @@ HEADERS += \
     remed_author.h \
     repchose.h \
     repertory.h \
-    repertoryengine.h \
+    repertorydata.h \
+    repertoryrender.h \
     searchmodel.h \
     searchresult.h \
     vocabulary.h \

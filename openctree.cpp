@@ -70,7 +70,7 @@ std::string openCtree::decodeKey(const std::string & key) const{
 
     return str;
 }
-std::string openCtree::gtData(const uint64_t datPos){
+std::string openCtree::gtData(const uint64_t datPos) const{
     uint8_t sig[2];
     _dat.seekg(datPos);
     _dat.read((char *) &sig, 2);
@@ -813,7 +813,7 @@ uint16_t openCtree::serviceDataLenght() const{
 bool openCtree::isOpen() const noexcept{
     return !_header.empty();
 }
-std::string openCtree::currentValue(){
+std::string openCtree::currentValue() const{
     if(!isOpen())
         throw std::logic_error("Database isn't open");
 

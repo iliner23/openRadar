@@ -18,25 +18,23 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
     else
         _codec = codec;
 
-    _engine = new labelEngine(_filename, _cache, _scene, _codec);
+    _engine = new labelRender(_filename, _cache, _codec);
 
     _engine->setCurrentKey(pos);
     _engine->setChaptersFilter(remFilter);
-    _engine->setFilterElements(labelEngine::remeds);
-    _engine->setSortingRemeds(true);
-    _engine->setRemedsCounter(false);
-    _engine->setGetLinksStrings(true);
-    _engine->render(height(), width() - 40, true);
-    _localize = _engine->IsLocalize();
+    _scene->addItem(_engine->render(QSize(height(), width() - 40)).front());
+    _localize = _engine->isLocalize();
 
-    _linksNames[0] = _engine->synomyList();
-    _linksNames[1] = _engine->masterReferensesList();
-    _linksNames[2] = _engine->crossReferensesList();
+    _synonyms = _engine->synonymList();
+    _links = _engine->masterReferensesList();
+    _crossLinks = _engine->crossReferensesList();;
 
-    _remedSize[3] = _engine->remeds1TypeCount();
-    _remedSize[2] = _engine->remeds2TypeCount();
-    _remedSize[1] = _engine->remeds3TypeCount();
-    _remedSize[0] = _engine->remeds4TypeCount();
+    const auto rem = _engine->remedsCount();
+
+    _remedSize[0] = rem.at(0);
+    _remedSize[1] = rem.at(1);
+    _remedSize[2] = rem.at(2);
+    _remedSize[3] = rem.at(3);
 
     if(!_localize){
         ui->label_4->setHidden(true);
@@ -58,11 +56,11 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
     ui->listWidget_3->addItem("Мастер синонимы");
     ui->listWidget_3->addItem("Перекрестные ссылки");
 
-    if(_linksNames[0].isEmpty())
+    if(_synonyms.first.isEmpty() && _synonyms.second.isEmpty())
         ui->listWidget_3->item(0)->setHidden(true);
-    if(_linksNames[1].isEmpty())
+    if(_links.first.isEmpty() && _links.second.isEmpty())
         ui->listWidget_3->item(1)->setHidden(true);
-    if(_linksNames[2].isEmpty())
+    if(_crossLinks.first.isEmpty() && _crossLinks.second.isEmpty())
         ui->listWidget_3->item(2)->setHidden(true);
 
     connect(ui->listWidget_3, &QListWidget::itemClicked, this, &Label::showTextInformation);
@@ -77,21 +75,21 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
     }
 }
 void Label::showTextInformation(QListWidgetItem * item){
-    auto addStr = [&](auto & list){
-        ui->listWidget->clear();
-        ui->listWidget_2->clear();
+    ui->listWidget->clear();
+    ui->listWidget_2->clear();
 
-        for(auto it = 1; it != list.size() + 1; ++it){
-            if(!list.at(it - 1).isEmpty()){
-                if(it % 2 != 0 || !_localize)
-                    ui->listWidget->addItem(list.at(it - 1));
-                else
-                    ui->listWidget_2->addItem(list.at(it - 1));
-            }
-        }
-    };
-
-    addStr(_linksNames[ui->listWidget_3->row(item)]);
+    if(ui->listWidget_3->row(item) == 0){
+        ui->listWidget->addItems(QStringList(_synonyms.first));
+        ui->listWidget_2->addItems(QStringList(_synonyms.second));
+    }
+    else if(ui->listWidget_3->row(item) == 1){
+        ui->listWidget->addItems(_links.first);
+        ui->listWidget_2->addItems(_links.second);
+    }
+    else{
+        ui->listWidget->addItems(_crossLinks.first);
+        ui->listWidget_2->addItems(_crossLinks.second);
+    }
 }
 Label::~Label()
 {

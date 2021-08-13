@@ -1,6 +1,6 @@
 #include "commonfunctions.h"
 
-std::pair<QStringList, QVector<QByteArray>> functions::linksParser::operator() (openCtree symptom, openCtree word, const QString expression, QTextCodec * codec){
+std::pair<QStringList, QByteArrayList> functions::linksParser::operator() (openCtree symptom, openCtree word, const QString expression, QTextCodec * codec){
     QVector<std::pair<QString, operation>> expr;
 
     _codec = codec;
@@ -34,7 +34,7 @@ void functions::linksParser::expressionParser(const QString expr, QVector<std::p
         exAr.push_back(pair);
     }
 }
-QVector<QByteArray> functions::linksParser::keysParser(const std::string & key, QSet<QByteArray> & set){
+QByteArrayList functions::linksParser::keysParser(const std::string & key, QSet<QByteArray> & set){
     auto data = QByteArray::fromStdString(_word.at(key));
     const auto lastPos = data.indexOf('\0', _word.serviceDataLenght()) + 1;
     data = data.mid(lastPos);
@@ -42,7 +42,7 @@ QVector<QByteArray> functions::linksParser::keysParser(const std::string & key, 
     auto iterSec = data.cbegin();
     char oldSubRublic = 127;
     int tp = 0;
-    QVector<QByteArray> keys;
+    QByteArrayList keys;
 
     while(iterSec != data.cend()){
         QByteArray ptr(6, '\0');
@@ -77,12 +77,12 @@ QVector<QByteArray> functions::linksParser::keysParser(const std::string & key, 
 
     return keys;
 }
-std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParser(QVector<std::pair<QString, operation>> & expr){
-    QVector<std::pair<QVector<QByteArray>, operation>> multiKeys;
+std::pair<QStringList, QByteArrayList> functions::linksParser::logicalParser(QVector<std::pair<QString, operation>> & expr){
+    QVector<std::pair<QByteArrayList, operation>> multiKeys;
 
     for(auto exprIt = 0; exprIt != expr.size(); ++exprIt){
         std::string key;
-        const operation oper = /*(exprIt == 0) ? operation::none :*/ expr.at(exprIt /*- 1*/).second;
+        const operation oper = expr.at(exprIt).second;
         auto string = expr.at(exprIt).first;
 
         for(auto & it : string){
@@ -96,7 +96,7 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
         key.back() = '\0';
 
         QSet<QByteArray> set;
-        QVector<QByteArray> tempPar;
+        QByteArrayList tempPar;
 
         while(_word.haveKey(key)){
             tempPar.append(keysParser(key, set));
@@ -113,13 +113,11 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
         multiKeys.push_back(std::make_pair(tempPar, oper));
     }
 
-    QVector<QByteArray> keysList;
+    QByteArrayList keysList;
 
-    //for(auto mult = 0; mult != multiKeys.size(); ++mult){
     for(auto mult = multiKeys.crbegin(); mult != multiKeys.crend(); ++mult){
-        QVector<QByteArray> tempList;
+        QByteArrayList tempList;
 
-        //if(mult->second == operation::none)
         if(mult == multiKeys.crbegin())
             keysList.append(mult->first);
 
@@ -153,25 +151,26 @@ std::pair<QStringList, QVector<QByteArray>> functions::linksParser::logicalParse
         return lst;
     };
 
-    if(keysList.size() > 500){
-        const auto del = keysList.size() / 4;
-        auto thread1 = QtConcurrent::run(thread, _symptom, keysList.constBegin(), keysList.constBegin() + del);
-        auto thread2 = QtConcurrent::run(thread, _symptom, keysList.constBegin() + del, keysList.constBegin() + del * 2);
-        auto thread3 = QtConcurrent::run(thread, _symptom, keysList.constBegin() + del * 2, keysList.constBegin() + del * 3);
-        auto thread4 = QtConcurrent::run(thread, _symptom, keysList.constBegin() + del * 3, keysList.constEnd());
+    QVector<QFuture<QStringList>> threads;
 
-        list.append(thread1.result());
-        list.append(thread2.result());
-        list.append(thread3.result());
-        list.append(thread4.result());
+    const auto maxThreads = (keysList.size() > QThread::idealThreadCount()) ?
+                QThread::idealThreadCount() : keysList.size();
+    const auto del = keysList.size() / maxThreads;
+
+    for(auto i = 0; i != maxThreads; ++i){
+        threads.append(QtConcurrent::run(thread, _symptom,
+            keysList.constBegin() + del * i ,
+            (i == maxThreads - 1) ? keysList.constEnd()
+                                  : keysList.constBegin() + del * (i + 1)));
     }
-    else
-        list = thread(_symptom, keysList.constBegin(), keysList.constEnd());
+
+    for(auto & it : threads)
+        list.append(it.result());
 
     return std::make_pair(list, keysList);
 }
-void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstList, const QVector<QByteArray> secondList, QVector<QByteArray> & tempList){
-    const QVector<QByteArray> * list1, * list2;
+void functions::linksParser::logicalANDparser(const QByteArrayList firstList, const QByteArrayList secondList, QByteArrayList & tempList){
+    const QByteArrayList * list1, * list2;
 
     if(firstList.size() < secondList.size()){
         list2 = &secondList;
@@ -182,11 +181,11 @@ void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstLis
         list2 = &firstList;
     }
 
-    QVector<QVector<QByteArray>> fList, sList;
+    QVector<QByteArrayList> fList, sList;
 
     auto listFiller = [](openCtree symptom,
                             const auto & sourceList, auto begin, auto end){
-        QVector<QVector<QByteArray>> flist;
+        QVector<QByteArrayList> flist;
 
         for(auto i = begin; i != end; ++i){
             try{
@@ -199,13 +198,8 @@ void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstLis
         return flist;
     };
 
-    auto thread1 = QtConcurrent::run([&](){
-        return threadsParent(*list1, listFiller); });
-    auto thread2 = QtConcurrent::run([&](){
-        return threadsParent(*list2, listFiller); });
-
-    fList = thread1.result();
-    sList = thread2.result();
+    fList = threadsParent(*list1, listFiller);
+    sList = threadsParent(*list2, listFiller);
 
     if(firstList == secondList){
         tempList = firstList;
@@ -213,7 +207,7 @@ void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstLis
     }
 
     auto threadFor = [&](auto begin, auto end){
-        QVector<QByteArray> tpList;
+        QByteArrayList tpList;
 
         for(auto it = begin; it != end; ++it){
             for(auto ir = list2->constBegin(); ir != list2->constEnd(); ++ir){
@@ -241,40 +235,39 @@ void functions::linksParser::logicalANDparser(const QVector<QByteArray> firstLis
         return tpList;
     };
 
-    if(list1->size() > 50){
-        const auto del = list1->size() / 4;
-        auto thread1 = QtConcurrent::run(threadFor, list1->constBegin(), list1->constBegin() + del);
-        auto thread2 = QtConcurrent::run(threadFor, list1->constBegin() + del , list1->constBegin() + del * 2);
-        auto thread3 = QtConcurrent::run(threadFor, list1->constBegin() + del * 2, list1->constBegin() + del * 3);
-        auto thread4 = QtConcurrent::run(threadFor, list1->constBegin() + del * 3, list1->constEnd());
+    QVector<QFuture<QByteArrayList>> threads;
 
-        tempList.append(thread1.result());
-        tempList.append(thread2.result());
-        tempList.append(thread3.result());
-        tempList.append(thread4.result());
+    const auto maxThreads = (list1->size() > QThread::idealThreadCount()) ?
+                QThread::idealThreadCount() : list1->size();
+    const auto del = list1->size() / maxThreads;
+
+    for(auto i = 0; i != maxThreads; ++i){
+        threads.append(QtConcurrent::run(threadFor,
+            list1->constBegin() + del * i ,
+            (i == maxThreads - 1) ? list1->constEnd() :
+                                    list1->constBegin() + del * (i + 1)));
     }
-    else
-        tempList.append(threadFor(list1->constBegin(), list1->constEnd()));
+
+    for(auto & it : threads)
+        tempList.append(it.result());
 }
-QVector<QVector<QByteArray>> functions::linksParser::threadsParent(const QVector<QByteArray> & sourceList,
-                                 std::function<QVector<QVector<QByteArray>>(openCtree symptom, const QVector<QByteArray> & , quint32 , quint32 )> threadFunc){
-    QVector<QVector<QByteArray>> fillerList;
+QVector<QByteArrayList> functions::linksParser::threadsParent(const QByteArrayList & sourceList,
+                                 std::function<QVector<QByteArrayList>(openCtree symptom, const QByteArrayList & , quint32 , quint32 )> threadFunc){
+    QVector<QByteArrayList> fillerList;
 
-    if(sourceList.size() > 500){
-        const auto del = sourceList.size() / 4;
+    QVector<QFuture<QVector<QByteArrayList>>> threads;
 
-        auto thread1 = QtConcurrent::run(threadFunc, _symptom, sourceList, 0, del);
-        auto thread2 = QtConcurrent::run(threadFunc, _symptom, sourceList, del, del * 2);
-        auto thread3 = QtConcurrent::run(threadFunc, _symptom, sourceList, del * 2, del * 3);
-        auto thread4 = QtConcurrent::run(threadFunc, _symptom, sourceList, del * 3,  sourceList.size());
+    const auto maxThreads = (sourceList.size() > QThread::idealThreadCount()) ?
+                QThread::idealThreadCount() : sourceList.size();
+    const auto del = sourceList.size() / maxThreads;
 
-        fillerList.append(thread1.result());
-        fillerList.append(thread2.result());
-        fillerList.append(thread3.result());
-        fillerList.append(thread4.result());
+    for(auto i = 0; i != maxThreads; ++i){
+        threads.append(QtConcurrent::run(threadFunc, _symptom, sourceList, del * i ,
+            (i == maxThreads - 1) ? sourceList.size() : del * (i + 1)));
     }
-    else
-        fillerList = threadFunc(_symptom, sourceList, 0, sourceList.size());
+
+    for(auto & it : threads)
+        fillerList.append(it.result());
 
     return fillerList;
 }
@@ -407,8 +400,8 @@ std::pair<QStringList, QStringList> functions::renderingLabel(openCtree symptom,
 
     return std::make_pair(original, localization);
 }
-QVector<QByteArray> functions::getRootPath(openCtree symptom, quint16 deep){
-    QVector<QByteArray> array;
+QByteArrayList functions::getRootPath(openCtree symptom, quint16 deep){
+    QByteArrayList array;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');
 

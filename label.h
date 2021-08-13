@@ -9,7 +9,7 @@
 #include "cache.h"
 #include "remed_author.h"
 #include "author.h"
-#include "labelengine.h"
+#include "labelrender.h"
 
 namespace Ui {
 class Label;
@@ -25,8 +25,12 @@ private:
     customScene * _scene;
     std::shared_ptr<cache> _cache;
     QDir _filename;
-    QStringList _linksNames[3];//_synomSL, _masterSL, _referSL
-    labelEngine * _engine;
+
+    std::pair<QString, QString> _synonyms;
+    std::pair<QStringList, QStringList> _links;
+    std::pair<QStringList, QStringList> _crossLinks;
+
+    labelRender * _engine;
     QTextCodec * _codec;
 
     void renderingChapter();
@@ -37,7 +41,7 @@ public:
     explicit Label(std::shared_ptr<cache>, const QDir, const QByteArray,
                    const quint16 , QTextCodec *, QWidget *parent = nullptr);
 
-    bool isHiddenLabels() const noexcept { return _engine->IsHidden(); }
+    bool isHiddenLabels() const noexcept { return _engine->isHidden(); }
     ~Label();
 };
 

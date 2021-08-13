@@ -2,16 +2,13 @@
 #define REPERTORY_H
 
 #include <QtWidgets>
-#include <QtConcurrent/QtConcurrent>
 #include <unordered_map>
 #include <memory>
-#include "openctree.h"
 #include "customscene.h"
 #include "label.h"
 #include "remed_author.h"
-#include "cache.h"
 #include "author.h"
-#include "repertoryengine.h"
+#include "repertoryrender.h"
 #include "vocabulary.h"
 
 class repertory : public QWidget
@@ -32,7 +29,7 @@ private:
     QMenu * _menu;
     QLabel * _label;
     QByteArray _pointer;
-    repertoryEngine * _engine;
+    repertoryRender _engine;
     vocabulary * _vocabulary = nullptr;
 
     QTextCodec * _codec = nullptr;
@@ -44,10 +41,8 @@ private:
     inline void notShowLabel() const;
 
     void resizeEvent(QResizeEvent*) override;
-    void redrawPointer(QGraphicsItem *, const QVector<QGraphicsItem*> &);
     void keyPressEvent(QKeyEvent *event) override;
     void rendering();
-    void redrawing();
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);

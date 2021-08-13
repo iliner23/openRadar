@@ -8,7 +8,7 @@ void repertory::changeFilter(QAction * action){
             return;
 
         auto array = menu->actions();
-        _engine->setChaptersFilter((quint16) action->data().toInt());
+        _engine.setChaptersFilter((quint16) action->data().toInt());
         menu->setTitle(action->text());
 
         for(auto & it : array){
@@ -39,10 +39,9 @@ repertory::repertory(const QDir filename, const QDir system,
     auto hlayout = new QHBoxLayout(this);
     _scene = new customScene(this);
 
-    _engine = new repertoryEngine(filename, _cache, _scene, _codec);
-    _engine->setChaptersFilter(remFilter);
-    _engine->setCurrentPosition(0);
-    _engine->setUsingNavigationItems(true);
+    _engine.reset(filename, _cache, codec);
+    _engine.setChaptersFilter(remFilter);
+    _engine.setCurrentPosition(0);
 
     _viewLeft = new QGraphicsView(_scene, this);
     _viewRight = new QGraphicsView(_scene, this);
@@ -61,7 +60,7 @@ repertory::repertory(const QDir filename, const QDir system,
     frm->setCheckable(true);
     frm->setData(-1);
 
-    if(_engine->chaptersFilter() == (quint16)-1){
+    if(_engine.chaptersFilter() == (quint16)-1){
         changeFilter(frm);
     }
 
@@ -73,7 +72,7 @@ repertory::repertory(const QDir filename, const QDir system,
         ps->setData(mask);
         ps->setCheckable(true);
 
-        if(mask == _engine->chaptersFilter()){
+        if(mask == _engine.chaptersFilter()){
             changeFilter(ps);
         }
 
@@ -81,7 +80,7 @@ repertory::repertory(const QDir filename, const QDir system,
     }
     _bar = new QScrollBar(Qt::Vertical, this);
     _bar->setMinimum(0);
-    _bar->setMaximum(_engine->chaptersSize() - 1);
+    _bar->setMaximum(_engine.chapterSize() - 1);
 
     hlayout->addWidget(_viewLeft);
     hlayout->addWidget(_viewRight);
@@ -101,8 +100,8 @@ repertory::repertory(const QDir filename, const QDir system,
     _viewRight->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
     _viewRight->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 
-    _viewLeft->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    _viewRight->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    _viewLeft->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    _viewRight->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
     _scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
@@ -117,23 +116,21 @@ repertory::repertory(const QDir filename, const QDir system,
     _viewRight->setFocusPolicy(Qt::NoFocus);
 }
 void repertory::rendering(){
-    _engine->render(_viewLeft->height() * 2, _viewLeft->width());
+    _scene->clear();
+    auto group = _engine.render(QSize(_viewLeft->width(), _viewLeft->height() * 2));
+
+    for(auto & it : group)
+        _scene->addItem(it);
+
     _viewLeft->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height());
-    _viewRight->setSceneRect(0, _viewRight->height(), _viewRight->width(), _viewRight->height());
-}
-void repertory::redrawing(){
-    auto threadDraw = [](auto * draw){ draw->viewport()->update(); };
-    auto fut1 = QtConcurrent::run(threadDraw, _viewRight);
-    auto fut2 = QtConcurrent::run(threadDraw, _viewLeft);
-    fut1.waitForFinished();
-    fut2.waitForFinished();
+    _viewRight->setSceneRect(0, _viewLeft->height(), _viewRight->width(), _viewRight->height());
 }
 void repertory::repaintView(){
     rendering();
-    const auto labelsVec = _engine->navigationItems();
+    const auto labelsVec = _engine.navigationItems();
 
     if(_pointer.isEmpty())
-        _pointer = _engine->currentKey();
+        _pointer = _engine.currentKey();
 
     auto pred = [&](const auto & it){
         return (it->data(1).toByteArray() == _pointer) ? true : false;
@@ -143,29 +140,24 @@ void repertory::repaintView(){
 
     if(iter != labelsVec.cend()){
         for(auto & it : labelsVec){
-            if(it->data(1).toByteArray() != (*iter)->data(1).toByteArray())
+            if(it->data(1).toByteArray() != _pointer)
                 it->hide();
             else
                 it->show();
         }
     }
-
-    redrawing();
 }
 void repertory::resizeEvent(QResizeEvent * event){
     event->ignore();
     repaintView();
 }
 void repertory::changedPos(const int pos){
-    const auto oldKey = _engine->currentKey();
-    _engine->setCurrentPosition(pos);
-    const auto newIndex = _engine->currentKey();
+    const auto oldKey = _engine.currentKey();
+    _engine.setCurrentPosition(pos);
+    const auto newIndex = _engine.currentKey();
 
-    const auto label = _engine->renderingLabel(true);
-    const bool oldVis = _label->isVisible();
-    auto labelsVec = _engine->navigationItems();
-
-    _engine->setCurrentKey(oldKey);
+    const auto label = _engine.renderingLabel(true);
+    auto oldVis = _label->isVisible();
 
     _label->setText(label);
     _label->setVisible(!label.isEmpty());
@@ -174,17 +166,20 @@ void repertory::changedPos(const int pos){
         return (it->data(1).toByteArray() == newIndex) ? true : false;
     };
 
+    auto labelsVec = _engine.navigationItems();
+
     if(oldVis != _label->isVisible()){
-        auto iter = std::find_if(labelsVec.cbegin(), labelsVec.cend(), pred);
+        _viewLeft->setSceneRect(0, 0, _viewLeft->width(), _viewLeft->height());
+
+        if(_label->isVisible())
+            _viewRight->setSceneRect(0, _viewLeft->height(), _viewRight->width(), _viewRight->height());
+        else
+            _viewRight->setSceneRect(0, _viewLeft->height() + _label->height(), _viewRight->width(), _viewRight->height());
+    }
+
+    if(std::find_if(labelsVec.cbegin(), labelsVec.cend(), pred) != labelsVec.cend()){
+        _engine.setCurrentKey(oldKey);
         _pointer = newIndex;
-
-        if(iter == labelsVec.cend() ||
-                _scene->height() - _label->height() <= (*iter)->y() + (*iter)->boundingRect().height()){
-             _engine->setCurrentKey(newIndex);
-        }
-
-        rendering();
-        labelsVec = _engine->navigationItems();
 
         for(auto & it : labelsVec){
             if(it->data(1).toByteArray() != _pointer)
@@ -192,48 +187,11 @@ void repertory::changedPos(const int pos){
             else
                 it->show();
         }
-
-        redrawing();
     }
     else{
-        auto iter = std::find_if(labelsVec.cbegin(), labelsVec.cend(), pred);
-
-        if(iter != labelsVec.cend()){
-            _pointer = newIndex;
-            redrawPointer(*iter, labelsVec);
-        }
-        else{
-            _engine->setCurrentKey(newIndex);
-            _pointer.clear();
-            repaintView();
-        }
-    }
-}
-void repertory::redrawPointer(QGraphicsItem * item, const QVector<QGraphicsItem*> & labelsVec){
-    auto redraw = [&](const auto & it, const auto height){
-        if(it->y() < height){
-            _viewLeft->viewport()->update
-                    (it->x(), it->y(),
-                     it->boundingRect().width(), it->boundingRect().height());
-        }
-        else{
-            _viewRight->viewport()->update
-                    (it->x(), it->y() - height,
-                     it ->boundingRect().width(), it->boundingRect().height());
-        }
-    };
-
-    const auto key = item->data(1).toByteArray();
-
-    for(auto & it : labelsVec){
-        if(it->data(1).toByteArray() != key){
-            it->hide();
-            redraw(it, _viewLeft->height());
-        }
-        else{
-            it->show();
-            redraw(it, _viewLeft->height());
-        }
+        _engine.setCurrentKey(newIndex);
+        _pointer.clear();
+        repaintView();
     }
 }
 void repertory::clickedAction(QGraphicsSimpleTextItem * item){
@@ -244,10 +202,10 @@ void repertory::clickedAction(QGraphicsSimpleTextItem * item){
         return;
 
     _pointer = item->data(1).toByteArray();
-    const auto oldKey = _engine->currentKey();
-    _engine->setCurrentKey(_pointer);
-    const auto posit = _engine->currentPosition();
-    _engine->setCurrentKey(oldKey);
+    const auto oldKey = _engine.currentKey();
+    _engine.setCurrentKey(_pointer);
+    const auto posit = _engine.currentPosition();
+    _engine.setCurrentKey(oldKey);
     _bar->setValue(posit);
 }
 void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
@@ -260,7 +218,7 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             auto label = new Label(_cache, _filename,
-                item->data(1).toByteArray(), _engine->chaptersFilter(), _codec, this);
+                item->data(1).toByteArray(), _engine.chaptersFilter(), _codec, this);
 
             if(label->isHiddenLabels()){
                 notShowLabel();
@@ -300,14 +258,25 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
                     epList += str;
                 }
 
-                auto symFile = _engine->symptomFile();
+                auto symFile = _engine.symptomFile();
                 symFile.at(item->data(2).toByteArray().toStdString());
 
                 QByteArrayList originalPos;
 
                 if(digit > 1){
                     originalPos = functions::getRootPath(symFile);
+#if QT_VERSION >= 0x060000
                     originalPos.remove(0, originalPos.size() - digit + 1);
+#else
+                    const auto size = originalPos.size() - digit + 1;
+
+                    if(size > 0){
+                        for(auto i = 0; i != size; ++i)
+                            originalPos.removeFirst();
+                    }
+                    else
+                        originalPos.clear();
+#endif
                 }
 
                 auto iterEpList = epList.begin();
@@ -371,7 +340,7 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
         }
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
-                                          , _engine->chaptersFilter(), item->data(1).toUInt(), this);
+                                          , _engine.chaptersFilter(), item->data(1).toUInt(), this);
             break;
         }
         case 4 : {
@@ -386,8 +355,8 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
     widget->show();
 }
 void repertory::setPosition(const QByteArray pos){
-    _engine->setCurrentKey(pos);
-    _bar->setValue(_engine->currentPosition());
+    _engine.setCurrentKey(pos);
+    _bar->setValue(_engine.currentPosition());
 }
 void repertory::keyPressEvent(QKeyEvent *event){
     if(event->key() == Qt::Key_Up){
@@ -403,7 +372,7 @@ void repertory::keyPressEvent(QKeyEvent *event){
             return;
 
         auto lab = new Label(_cache, _filename,
-                    _pointer, _engine->chaptersFilter(), _codec, this);
+                    _pointer, _engine.chaptersFilter(), _codec, this);
 
         if(lab->isHiddenLabels()){
             notShowLabel();

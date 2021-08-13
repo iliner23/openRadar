@@ -33,7 +33,7 @@ private:
         std::shared_ptr<char[]> altSeq;
     };
 
-    std::ifstream _dat;
+    mutable std::ifstream _dat;
     std::ifstream _idx;
     std::vector<index_header> _header;
     std::shared_ptr<
@@ -54,7 +54,7 @@ private:
         uint64_t basePtr = 0;
     } _navigate;
 
-    inline std::string gtData(const uint64_t);
+    inline std::string gtData(const uint64_t) const;
     inline std::string readOrNot(const bool, const uint64_t);
     inline std::string uncompressString(const std::string &);
     inline std::variant<bool, std::string> commonAtKey(std::string, const bool, const bool, const bool);
@@ -96,7 +96,7 @@ public:
     std::string encodeKey(const std::string&) const;
     std::string decodeKey(const std::string&) const;
 
-    std::string currentValue();
+    std::string currentValue() const;
 
     bool haveKey(std::string);
     uint16_t keyLenght() const;
