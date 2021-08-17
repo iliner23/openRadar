@@ -18,18 +18,20 @@ MainWindow::MainWindow(QWidget *parent)
 
         if(str.at(4) == 1){
             for(auto & ir : dataDirs){
-                QString dir;
                 auto st = str.substr(str.rfind('\0', str.size() - 2) + 1);
                 st.erase(st.end() - 2, st.end());
-                dir = QDir::toNativeSeparators(QString::fromStdString(st));
+                QFileInfo dir(QString::fromStdString(st));
 
-                if(dir.compare(QDir::toNativeSeparators(ir.filePath()), Qt::CaseInsensitive) == 0){
+                if(dir == ir){
                     const auto reclen = _catalog.serviceDataLenght();
                     const auto tp = str.find('\0', reclen);
                     bool exit = false;
 
                     for(auto & iqcmp : tpCmp){
-                        if(!QDir(dir).exists(iqcmp + ".dat")){
+                        auto file = dir;
+                        file.setFile(file.filePath() % "/" % iqcmp % ".dat");
+
+                        if(!file.exists()){
                             exit = true;
                             break;
                         }
@@ -38,9 +40,46 @@ MainWindow::MainWindow(QWidget *parent)
                     if(exit)
                         continue;
 
-                    _reperts.append(QString::fromStdString(str.substr(tp + 1, str.find('\0', tp + 1) - tp - 1)));
-                    _reperts.append(QString::fromStdString(str.substr(reclen, tp - reclen)));
-                    _reperts.append(dir);
+                    const auto nextTp = str.find('\0', tp + 1);
+
+                    auto nextLangPos = nextTp;
+                    nextLangPos = str.find('\0', nextLangPos + 1);
+                    nextLangPos = str.find('\0', nextLangPos + 1);
+
+                    const auto orig = str.at(nextLangPos + 1);
+                    const auto local = str.at(nextLangPos + 2);
+
+                    auto lang = std::make_pair(QLocale::AnyLanguage, QLocale::AnyLanguage);
+
+                    if(orig != 0 && orig > 0 && orig <= (char) languages::radarLang.size())
+                        lang.first = languages::radarLang.at(orig - 1);
+                    else
+                        continue;
+
+                    if(local != 0 && local > 0 && local <= (char) languages::radarLang.size())
+                        lang.second = languages::radarLang.at(local - 1);
+                    else
+                        lang.second = lang.first;
+
+                    if(lang.first == QLocale::AnyLanguage)
+                        continue;
+
+                    const auto nativeCodec = languages::languageToName(lang.first);
+                    const auto localizeCodec = languages::languageToName(lang.second);
+
+                    if(lang.second != QLocale::AnyLanguage &&
+                            nativeCodec != "windows-1252" &&
+                             localizeCodec != "windows-1252" &&
+                            nativeCodec != localizeCodec)
+                        continue;
+
+                    _repertsLang.push_back(lang);
+
+                    QTextCodec * cd = QTextCodec::codecForName(languages::chooseCodec(lang));
+
+                    _reperts.append(cd->toUnicode(str.substr(tp + 1, nextTp - tp - 1).c_str()));
+                    _reperts.append(cd->toUnicode(str.substr(reclen, tp - reclen).c_str()));
+                    _reperts.append(dir.filePath());
                 }
             }
         }
@@ -64,8 +103,7 @@ MainWindow::MainWindow(QWidget *parent)
             break;
     }
 
-    _choose = new RepChose(_reperts, this);
-    //_vocabulary = new vocabulary(QDir::toNativeSeparators("../system"), this);
+    _choose = new RepChose(_reperts, _repertsLang, this);
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
@@ -111,10 +149,10 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, QTextCodec * codec){
+void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, std::pair<QLocale::Language, QLocale::Language> lang){
     auto index = item.row();
     auto rep = new repertory(QDir(_reperts.at(index * 3 + 2)), QDir("../system"),
-                             _cache, codec, repLevel, ui->mdiArea);
+                             _cache, lang, repLevel, ui->mdiArea);
     rep->setAttribute(Qt::WA_DeleteOnClose);
     rep->setWindowTitle(item.data().toString());
     auto repPtr = ui->mdiArea->addSubWindow(rep, Qt::SubWindow);

@@ -8,6 +8,7 @@
 #include "repertory.h"
 #include "cache.h"
 #include "windowchapters.h"
+#include "languages.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,7 +24,8 @@ public:
 
 private slots:
     void on_action1_triggered();
-    void openRepertory(QModelIndex &, const quint16, QTextCodec *);
+    void openRepertory(QModelIndex &, const quint16,
+                       std::pair<QLocale::Language, QLocale::Language>);
 
     void openChapters();
     void openChaptersInCurrentPos();
@@ -40,6 +42,7 @@ private:
 
     openCtree _catalog;
     QStringList _reperts;
+    QVector<std::pair<QLocale::Language, QLocale::Language>> _repertsLang;
     QStringList _keys;
     std::shared_ptr<cache> _cache;
 };

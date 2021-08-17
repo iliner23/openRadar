@@ -23,13 +23,16 @@ private:
     quint16 _remFilter = -1;
     std::shared_ptr<cache> _cache;
     QStringList _authorsText;
+    QTextCodec * _codec;
 
     void rendering();
 private slots:
     void showTextInformation(QListWidgetItem*);
 public:
     explicit remed_author(const QDir, std::shared_ptr<cache>,
-                          const QByteArray, const quint16, const quint32, QWidget *parent = nullptr);
+                          const QByteArray, const quint16, const quint32,
+                          QTextCodec * codec = QTextCodec::codecForName("system"),
+                          QWidget *parent = nullptr);
     ~remed_author();
 
 private:

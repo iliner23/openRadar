@@ -14,7 +14,7 @@ class author : public QDialog
 {
     Q_OBJECT
 public:
-    explicit author(const quint32, std::shared_ptr<cache>, QWidget *parent = nullptr);
+    explicit author(const quint32, std::shared_ptr<cache>, QTextCodec * codec, QWidget *parent = nullptr);
     ~author();
 
 private:

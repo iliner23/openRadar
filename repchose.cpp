@@ -1,7 +1,7 @@
 #include "repchose.h"
 #include "ui_repchose.h"
 
-RepChose::RepChose(const QStringList repertories, QWidget *parent) :
+RepChose::RepChose(const QStringList repertories, QVector<std::pair<QLocale::Language, QLocale::Language>> lang, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RepChose)
 {
@@ -12,6 +12,7 @@ RepChose::RepChose(const QStringList repertories, QWidget *parent) :
     QString temp;
     QStringList items;
 
+    _lang = lang;
     _codec = QTextCodec::codecForName("system");
 
     for(auto & it: repertories){
@@ -51,27 +52,12 @@ RepChose::RepChose(const QStringList repertories, QWidget *parent) :
     connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &RepChose::activateLevel);
     connect(ui->listView, &QListView::activated, this, &RepChose::accept);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &RepChose::showLevels);
-    connect(ui->pushButton_4, &QPushButton::clicked, this, &RepChose::setCodec);
 }
 void RepChose::accept(){
     QDialog::accept();
     auto list = _proxyModel->mapToSource(ui->listView->currentIndex());
-    emit chooseRep(list, _repLevel, _codec);
+    emit chooseRep(list, _repLevel, _lang.at(list.row()));
     _repLevel = -1;
-}
-void RepChose::setCodec(){
-    const auto codecsArray = QTextCodec::availableCodecs();
-    QStringList codecList;
-    const auto localCodec = codecsArray.indexOf(_codec->name());
-
-    for(const auto & it : codecsArray)
-        codecList.push_back(QString::fromLocal8Bit(it));
-
-    const auto codec =
-            QInputDialog::getItem(this, "Выберите кодировку",
-                    "Выберите кодировку для открытия репертория", codecList, localCodec, false);
-
-    _codec = QTextCodec::codecForName(codec.toLocal8Bit());
 }
 RepChose::~RepChose()
 {
@@ -100,6 +86,9 @@ void RepChose::showLevels(){
     const auto index = _proxyModel->mapToSource(ui->listView->currentIndex());
     QStringList levels;
     openCtree view(_rLevels.at(index.row()).toStdString());
+
+    _codec = QTextCodec::codecForName(
+                languages::chooseCodec(_lang.at(index.row())));
 
     for(auto i = 0; i != view.size(); ++i){
         auto str = view.next();

@@ -10,6 +10,7 @@
 #include "remed_author.h"
 #include "author.h"
 #include "labelrender.h"
+#include "languages.h"
 
 namespace Ui {
 class Label;
@@ -21,7 +22,6 @@ class Label : public QDialog
 private:
     Ui::Label *ui;
     quint32 _remedSize[4] = {0, 0, 0, 0};
-    bool _localize = false;
     customScene * _scene;
     std::shared_ptr<cache> _cache;
     QDir _filename;
@@ -39,7 +39,8 @@ private slots:
     void clickedAction(const QGraphicsSimpleTextItem * item);
 public:
     explicit Label(std::shared_ptr<cache>, const QDir, const QByteArray,
-                   const quint16 , QTextCodec *, QWidget *parent = nullptr);
+                   const quint16 , std::pair<QLocale::Language, QLocale::Language>,
+                   QWidget *parent = nullptr);
 
     bool isHiddenLabels() const noexcept { return _engine->isHidden(); }
     ~Label();

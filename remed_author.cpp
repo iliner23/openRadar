@@ -3,7 +3,7 @@
 
 remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
                            const QByteArray pos,
-                           const quint16 remFilter, const quint32 localPos, QWidget *parent) :
+                           const quint16 remFilter, const quint32 localPos, QTextCodec *codec, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::remed_author)
 {
@@ -13,6 +13,7 @@ remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
     _remFilter = remFilter;
     _localPos = localPos;
     _cache = ch;
+    _codec = codec;
 
     _sym.open(path.filePath("symptom").toStdString());
 
@@ -40,7 +41,6 @@ void remed_author::showTextInformation(QListWidgetItem * item){
     }
 }
 void remed_author::rendering(){
-    auto * codec = QTextCodec::codecForName("system");
     //remed
 
     auto authorTxt = [&](const auto & text){
@@ -51,13 +51,13 @@ void remed_author::rendering(){
         if(itA != text.cend()){
             ++itA;
             auto itB = std::find(itA, text.cend(), '\0');
-            tmp += " " + codec->toUnicode(std::string(itA, itB).c_str());
+            tmp += " " + _codec->toUnicode(std::string(itA, itB).c_str());
             itA = itB;
         }
         if(itA != text.cend()){
             ++itA;
             auto itB = std::find(itA, text.cend(), '\0');
-            tmp += "\n" + codec->toUnicode(std::string(itA, itB).c_str());
+            tmp += "\n" + _codec->toUnicode(std::string(itA, itB).c_str());
             itA = itB;
         }
 
@@ -119,7 +119,7 @@ void remed_author::rendering(){
         }
     }
 
-    ui->label->setText(functions::renderingLabel(_sym, false));
+    ui->label->setText(functions::renderingLabel(_sym, false, _codec));
 }
 remed_author::~remed_author()
 {

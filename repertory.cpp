@@ -24,13 +24,13 @@ void repertory::changeFilter(QAction * action){
     }
 }
 repertory::repertory(const QDir filename, const QDir system,
-    std::shared_ptr<cache> & ch, QTextCodec * codec, const quint16 remFilter, QWidget *parent) : QWidget(parent)
+    std::shared_ptr<cache> & ch, const std::pair<QLocale::Language, QLocale::Language> lang, const quint16 remFilter, QWidget *parent) : QWidget(parent)
 {
     setFocusPolicy(Qt::StrongFocus);
 
-    _lang = QLocale::Russian;//TODO : for working vocabulary
+    _lang = lang;//TODO : for working vocabulary
 
-    _codec = codec;
+    _codec = QTextCodec::codecForName(languages::chooseCodec(_lang));
     _filename = filename;
     _system = system;
     _cache = ch;
@@ -39,7 +39,7 @@ repertory::repertory(const QDir filename, const QDir system,
     auto hlayout = new QHBoxLayout(this);
     _scene = new customScene(this);
 
-    _engine.reset(filename, _cache, codec);
+    _engine.reset(filename, _cache, _codec);
     _engine.setChaptersFilter(remFilter);
     _engine.setCurrentPosition(0);
 
@@ -218,7 +218,7 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 0 :{
             auto label = new Label(_cache, _filename,
-                item->data(1).toByteArray(), _engine.chaptersFilter(), _codec, this);
+                item->data(1).toByteArray(), _engine.chaptersFilter(), _lang, this);
 
             if(label->isHiddenLabels()){
                 notShowLabel();
@@ -340,11 +340,11 @@ void repertory::doubleClickedAction(QGraphicsSimpleTextItem * item){
         }
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
-                                          , _engine.chaptersFilter(), item->data(1).toUInt(), this);
+                                          , _engine.chaptersFilter(), item->data(1).toUInt(), _codec, this);
             break;
         }
         case 4 : {
-            widget = new author(item->data(1).toUInt(), _cache, this);
+            widget = new author(item->data(1).toUInt(), _cache, _codec, this);
             break;
         }
         default:
@@ -372,7 +372,7 @@ void repertory::keyPressEvent(QKeyEvent *event){
             return;
 
         auto lab = new Label(_cache, _filename,
-                    _pointer, _engine.chaptersFilter(), _codec, this);
+                    _pointer, _engine.chaptersFilter(), _lang, this);
 
         if(lab->isHiddenLabels()){
             notShowLabel();

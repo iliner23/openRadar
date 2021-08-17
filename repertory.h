@@ -16,7 +16,8 @@ class repertory : public QWidget
     Q_OBJECT
 public:
     explicit repertory(const QDir, const QDir,
-                       std::shared_ptr<cache> &, QTextCodec *,
+                       std::shared_ptr<cache> &,
+                       const std::pair<QLocale::Language, QLocale::Language> lang,
                        const quint16 = -1, QWidget * = nullptr);
     QDir catalog() const noexcept { return _filename; }
     QTextCodec * textCodec() const noexcept { return _codec; }
@@ -33,7 +34,7 @@ private:
     vocabulary * _vocabulary = nullptr;
 
     QTextCodec * _codec = nullptr;
-    QLocale::Language _lang;
+    std::pair<QLocale::Language, QLocale::Language> _lang;
     std::shared_ptr<cache> _cache;
     QDir _filename, _system;
 

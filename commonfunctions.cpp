@@ -151,21 +151,23 @@ std::pair<QStringList, QByteArrayList> functions::linksParser::logicalParser(QVe
         return lst;
     };
 
-    QVector<QFuture<QStringList>> threads;
+    if(!keysList.isEmpty()){
+        QVector<QFuture<QStringList>> threads;
 
-    const auto maxThreads = (keysList.size() > QThread::idealThreadCount()) ?
-                QThread::idealThreadCount() : keysList.size();
-    const auto del = keysList.size() / maxThreads;
+        const auto maxThreads = (keysList.size() > QThread::idealThreadCount()) ?
+                    QThread::idealThreadCount() : keysList.size();
+        const auto del = keysList.size() / maxThreads;
 
-    for(auto i = 0; i != maxThreads; ++i){
-        threads.append(QtConcurrent::run(thread, _symptom,
-            keysList.constBegin() + del * i ,
-            (i == maxThreads - 1) ? keysList.constEnd()
-                                  : keysList.constBegin() + del * (i + 1)));
+        for(auto i = 0; i != maxThreads; ++i){
+            threads.append(QtConcurrent::run(thread, _symptom,
+                keysList.constBegin() + del * i ,
+                (i == maxThreads - 1) ? keysList.constEnd()
+                                      : keysList.constBegin() + del * (i + 1)));
+        }
+
+        for(auto & it : threads)
+            list.append(it.result());
     }
-
-    for(auto & it : threads)
-        list.append(it.result());
 
     return std::make_pair(list, keysList);
 }
@@ -235,39 +237,43 @@ void functions::linksParser::logicalANDparser(const QByteArrayList firstList, co
         return tpList;
     };
 
-    QVector<QFuture<QByteArrayList>> threads;
+    if(list1->size() != 0){
+        QVector<QFuture<QByteArrayList>> threads;
 
-    const auto maxThreads = (list1->size() > QThread::idealThreadCount()) ?
-                QThread::idealThreadCount() : list1->size();
-    const auto del = list1->size() / maxThreads;
+        const auto maxThreads = (list1->size() > QThread::idealThreadCount()) ?
+                    QThread::idealThreadCount() : list1->size();
+        const auto del = list1->size() / maxThreads;
 
-    for(auto i = 0; i != maxThreads; ++i){
-        threads.append(QtConcurrent::run(threadFor,
-            list1->constBegin() + del * i ,
-            (i == maxThreads - 1) ? list1->constEnd() :
-                                    list1->constBegin() + del * (i + 1)));
+        for(auto i = 0; i != maxThreads; ++i){
+            threads.append(QtConcurrent::run(threadFor,
+                list1->constBegin() + del * i ,
+                (i == maxThreads - 1) ? list1->constEnd() :
+                                        list1->constBegin() + del * (i + 1)));
+        }
+
+        for(auto & it : threads)
+            tempList.append(it.result());
     }
-
-    for(auto & it : threads)
-        tempList.append(it.result());
 }
 QVector<QByteArrayList> functions::linksParser::threadsParent(const QByteArrayList & sourceList,
                                  std::function<QVector<QByteArrayList>(openCtree symptom, const QByteArrayList & , quint32 , quint32 )> threadFunc){
     QVector<QByteArrayList> fillerList;
 
-    QVector<QFuture<QVector<QByteArrayList>>> threads;
+    if(!sourceList.isEmpty()){
+        QVector<QFuture<QVector<QByteArrayList>>> threads;
 
-    const auto maxThreads = (sourceList.size() > QThread::idealThreadCount()) ?
-                QThread::idealThreadCount() : sourceList.size();
-    const auto del = sourceList.size() / maxThreads;
+        const auto maxThreads = (sourceList.size() > QThread::idealThreadCount()) ?
+                    QThread::idealThreadCount() : sourceList.size();
+        const auto del = sourceList.size() / maxThreads;
 
-    for(auto i = 0; i != maxThreads; ++i){
-        threads.append(QtConcurrent::run(threadFunc, _symptom, sourceList, del * i ,
-            (i == maxThreads - 1) ? sourceList.size() : del * (i + 1)));
+        for(auto i = 0; i != maxThreads; ++i){
+            threads.append(QtConcurrent::run(threadFunc, _symptom, sourceList, del * i ,
+                (i == maxThreads - 1) ? sourceList.size() : del * (i + 1)));
+        }
+
+        for(auto & it : threads)
+            fillerList.append(it.result());
     }
-
-    for(auto & it : threads)
-        fillerList.append(it.result());
 
     return fillerList;
 }

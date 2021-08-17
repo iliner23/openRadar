@@ -2,7 +2,7 @@
 #include "ui_label.h"
 
 Label::Label(std::shared_ptr<cache> ch, const QDir path,
-             const QByteArray pos, const quint16 remFilter, QTextCodec * codec, QWidget *parent) :
+             const QByteArray pos, const quint16 remFilter, std::pair<QLocale::Language, QLocale::Language> lang, QWidget *parent) :
     QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
@@ -13,17 +13,15 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
     _cache = ch;
     _filename = path;
 
-    if(codec == nullptr)
-        _codec = QTextCodec::codecForName("system");
-    else
-        _codec = codec;
+    ui->label_3->setText(QLocale(lang.first).nativeLanguageName());
+    ui->label_4->setText(QLocale(lang.second).nativeLanguageName());
 
+    _codec = QTextCodec::codecForName(languages::chooseCodec(lang));
     _engine = new labelRender(_filename, _cache, _codec);
 
     _engine->setCurrentKey(pos);
     _engine->setChaptersFilter(remFilter);
     _scene->addItem(_engine->render(QSize(height(), width() - 40)).front());
-    _localize = _engine->isLocalize();
 
     _synonyms = _engine->synonymList();
     _links = _engine->masterReferensesList();
@@ -36,7 +34,7 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
     _remedSize[2] = rem.at(2);
     _remedSize[3] = rem.at(3);
 
-    if(!_localize){
+    if(QLocale::AnyLanguage == lang.second){
         ui->label_4->setHidden(true);
         ui->listWidget_2->setHidden(true);
     }
@@ -105,11 +103,11 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
-                                          , _engine->chaptersFilter(), item->data(1).toUInt(), this);
+                                          , _engine->chaptersFilter(), item->data(1).toUInt(), _codec, this);
             break;
         }
         case 4 : {
-            widget = new author(item->data(1).toUInt(), _cache, this);
+            widget = new author(item->data(1).toUInt(), _cache, _codec, this);
             break;
         }
         default:
