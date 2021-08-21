@@ -38,6 +38,8 @@
      <string>Файл</string>
     </property>
     <addaction name="action1"/>
+    <addaction name="action39"/>
+    <addaction name="separator"/>
     <addaction name="action_2"/>
    </widget>
    <widget class="QMenu" name="menu">
@@ -175,13 +177,13 @@
      <normaloff>:/icons/res/Bitmap7.bmp</normaloff>:/icons/res/Bitmap7.bmp</iconset>
    </property>
    <property name="text">
-    <string>Выбрать репозиторий</string>
+    <string>Открыть реперторий</string>
    </property>
    <property name="iconText">
-    <string>Выбрать репозиторий</string>
+    <string>Открыть реперторий</string>
    </property>
    <property name="toolTip">
-    <string>Выбрать репозиторий</string>
+    <string>Открыть реперторий</string>
    </property>
    <property name="visible">
     <bool>true</bool>
@@ -525,7 +527,13 @@
      <normaloff>:/icons/res/Bitmap25.bmp</normaloff>:/icons/res/Bitmap25.bmp</iconset>
    </property>
    <property name="text">
-    <string>39</string>
+    <string>Открыть ключи</string>
+   </property>
+   <property name="toolTip">
+    <string>Открыть ключи</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action40">

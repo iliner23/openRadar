@@ -39,37 +39,16 @@ namespace languages {
        case QLocale::Russian:
            return "windows-1251";
        case QLocale::Japanese:
-           return "windows-932";
+           return "Shift-JIS";
        case QLocale::Chinese:
-           return "windows-950";
+           return "GB18030";
        default:
            return "";
        }
     }
 
-    inline QByteArray numberToName(quint8 number){
-        switch (number) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-            return "windows-1252";
-        case 8:
-        case 10:
-            return "windows-1250";
-        case 9:
-            return "windows-1251";
-        case 11:
-            return "windows-1251";
-        case 12:
-            return "windows-950";
-        default:
-            return "";
-        }
+    inline QByteArray systemCodec(){
+        return "windows-1252";
     }
 
     inline QByteArray chooseCodec(std::pair<QLocale::Language, QLocale::Language> pair){

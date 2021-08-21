@@ -21,6 +21,9 @@ SOURCES += \
     commonfunctions.cpp \
     customscene.cpp \
     delegate.cpp \
+    keychoose.cpp \
+    keyreader.cpp \
+    keysremedlist.cpp \
     label.cpp \
     labelrender.cpp \
     main.cpp \
@@ -43,6 +46,9 @@ HEADERS += \
     commonfunctions.h \
     customscene.h \
     delegate.h \
+    keychoose.h \
+    keyreader.h \
+    keysremedlist.h \
     label.h \
     labelrender.h \
     languages.h \
@@ -61,6 +67,9 @@ HEADERS += \
 
 FORMS += \
     author.ui \
+    keychoose.ui \
+    keyreader.ui \
+    keysremedlist.ui \
     label.ui \
     mainwindow.ui \
     remed_author.ui \

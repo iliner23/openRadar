@@ -9,6 +9,7 @@
 #include "cache.h"
 #include "windowchapters.h"
 #include "languages.h"
+#include "keychoose.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,6 +25,7 @@ public:
 
 private slots:
     void on_action1_triggered();
+    void openKeysChooseWindow();
     void openRepertory(QModelIndex &, const quint16,
                        std::pair<QLocale::Language, QLocale::Language>);
 
@@ -38,6 +40,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     RepChose * _choose = nullptr;
+    KeyChoose * _keych = nullptr;
     windowChapters * _chapters = nullptr;
 
     openCtree _catalog;

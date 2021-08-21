@@ -17,13 +17,16 @@ keysRemedList::keysRemedList(const QVector<QDir> keysFile, QStringList keysText,
 
     _proxy->setSourceModel(_model);
     ui->tableView->setModel(_proxy);
-
     ui->comboBox->insertItems(0, keysText);
+
     connect(ui->comboBox, &QComboBox::currentIndexChanged, this, &keysRemedList::renderingTable);
+
+    ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(false);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &keysRemedList::shortFilter);
     connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &keysRemedList::fullFilter);
-    connect(ui->tableView, &QTableView::activated, this, &keysRemedList::openReader);
+    connect(ui->tableView, &QTableView::activated, this, &keysRemedList::tableActivated);
+    connect(ui->tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &keysRemedList::activateOkBut);
 }
 void keysRemedList::changeTable(int pos){
     ui->comboBox->setCurrentIndex(pos);
@@ -90,6 +93,8 @@ void keysRemedList::renderingTable(int pos){
             }
         }
     }
+
+    ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(false);
 }
 void keysRemedList::shortFilter(QString filter){
     disconnect(ui->lineEdit_2, &QLineEdit::textChanged, this, &keysRemedList::fullFilter);
@@ -109,6 +114,13 @@ void keysRemedList::fullFilter(QString filter){
     _proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
     _proxy->setFilterFixedString(filter);
 }
+void keysRemedList::tableActivated(const QModelIndex & index){
+    openReader(index);
+}
+void keysRemedList::accept(){
+    const auto index = ui->tableView->currentIndex();
+    openReader(index);
+}
 void keysRemedList::openReader(const QModelIndex & index){
     if(!index.isValid())
         return;
@@ -119,12 +131,20 @@ void keysRemedList::openReader(const QModelIndex & index){
 
     const auto nativeRow = _proxy->mapToSource(index).row();
     auto str = QByteArray::fromStdString(data.at(nativeRow));
+    str.chop(1);
     const auto pos = str.lastIndexOf('\0', str.size() - 2);
 
-    auto reader = new keyReader(str.mid(pos + 1), parentWidget());
+    const QString label = ui->comboBox->currentText() % ": " %
+            _model->item(nativeRow, 1)->text();
+
+    auto reader = new keyReader(str.mid(pos + 1), label,
+                                this, parentWidget());
     reader->setAttribute(Qt::WA_DeleteOnClose);
     reader->show();
     close();
+}
+void keysRemedList::activateOkBut(const QModelIndex & index){
+    ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(index.isValid());
 }
 keysRemedList::~keysRemedList(){
     delete ui;

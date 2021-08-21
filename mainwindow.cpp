@@ -104,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     _choose = new RepChose(_reperts, _repertsLang, this);
+    _keych = new KeyChoose(_keys, this);
 
     openCtree remed(QDir::toNativeSeparators("../system/remed").toStdString());
     openCtree author(QDir::toNativeSeparators("../system/author").toStdString());
@@ -143,6 +144,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_4, &QAction::triggered, this, &MainWindow::openChapters);
     connect(ui->action_7, &QAction::triggered, this, &MainWindow::openChaptersInCurrentPos);
     connect(ui->action_8, &QAction::triggered, this, &MainWindow::openVocabulary);
+    connect(ui->action39, &QAction::triggered, this, &MainWindow::openKeysChooseWindow);
 }
 
 MainWindow::~MainWindow()
@@ -159,9 +161,11 @@ void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, std::
     repPtr->setMinimumSize(500, 500);
     repPtr->show();
 }
-void MainWindow::on_action1_triggered()
-{
+void MainWindow::on_action1_triggered(){
     _choose->show();
+}
+void MainWindow::openKeysChooseWindow(){
+    _keych->show();
 }
 void MainWindow::windowChanged(){
     auto act = ui->menu_6->actions();

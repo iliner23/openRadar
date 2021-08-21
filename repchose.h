@@ -34,7 +34,6 @@ private slots:
     void finding(const QString);
     void activateLevel(const QModelIndex &);
     void showLevels();
-    void sendLevel(const quint16);
 signals:
     void chooseRep(QModelIndex &, quint16,
                    std::pair<QLocale::Language, QLocale::Language>);

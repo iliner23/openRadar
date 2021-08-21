@@ -14,14 +14,17 @@ class keyReader : public QDialog
     Q_OBJECT
 
 public:
-    explicit keyReader(QByteArray text, QWidget *parent = nullptr);
+    explicit keyReader(QByteArray text, QString title,
+            QWidget * keyRemedList, QWidget *parent = nullptr);
     ~keyReader();
 private slots:
     void setCodec();
+    void showKeyChoose();
 private:
     Ui::keyReader *ui;
     QByteArray _text;
     QTextCodec * _codec;
+    QWidget * _keyRemedList;
 };
 
 #endif // KEYREADER_H

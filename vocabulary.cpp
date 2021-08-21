@@ -41,6 +41,7 @@ vocabulary::vocabulary(const QDir system, const std::pair<QLocale::Language, QLo
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &vocabulary::filter);
     connect(ui->listView, &QListView::clicked, this, &vocabulary::selectedModelItem);
+    connect(ui->listView, &QListView::activated, this, &vocabulary::selectedModelItem);
     connect(ui->plainTextEdit_2, &QPlainTextEdit::textChanged, this, &vocabulary::changedPlainText);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &vocabulary::openResults);
     connect(_results, &searchResult::accepted, this, &vocabulary::sendOn);
@@ -74,7 +75,7 @@ void vocabulary::rendering(const int type){
         }
     };
 
-    auto synomRoots = [&](const QString & name){
+    auto synomRoots = [&](const QString name){
         using namespace languages;
         const auto origIter = std::find(radarLang.cbegin(),
                                          radarLang.cend(), _lang.first) - radarLang.cbegin() + 1;
@@ -89,7 +90,7 @@ void vocabulary::rendering(const int type){
             openCtree root2;
             const auto localFile = (_system.filePath(name % QString::number(langIter)));
 
-            if(!_globalHide && QFileInfo::exists(localFile % ".dat") && QFileInfo::exists(localFile % ".idx")){
+            if(QFileInfo::exists(localFile % ".dat") && QFileInfo::exists(localFile % ".idx")){
                 root2 = openCtree(localFile.toStdString());
                 return (root2.size() == 0) ? true : false;
             }
@@ -100,7 +101,7 @@ void vocabulary::rendering(const int type){
         if(check(origIter))
             throw std::exception();
 
-        const auto ch = check(localIter);
+        const auto ch = _globalHide || check(localIter);
 
         ui->label_3->setHidden(ch);
         ui->comboBox_3->setHidden(ch);

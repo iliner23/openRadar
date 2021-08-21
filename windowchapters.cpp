@@ -18,7 +18,6 @@ windowChapters::windowChapters(QWidget *parent) :
     _filterModel->setSourceModel(_model);
 
     ui->listView->setModel(_filterModel);
-    ui->listView->setUniformItemSizes(true);
 
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);
@@ -32,14 +31,7 @@ windowChapters::windowChapters(QWidget *parent) :
 
     connect(ui->comboBox, QOverload<int>::of(&QComboBox::activated), this, &windowChapters::setActiveRepertory);
 
-    ui->tableWidget->verticalHeader()->setVisible(false);
-    ui->tableWidget->horizontalHeader()->setVisible(false);
-    ui->tableWidget->verticalHeader()->setDefaultSectionSize(130);
-    ui->tableWidget->horizontalHeader()->setDefaultSectionSize(80);
-    ui->tableWidget->setShowGrid(false);
     ui->tableWidget->setItemDelegate(new delegate);
-    ui->tableWidget->setEditTriggers(QTableWidget::NoEditTriggers);
-    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->verticalLayout->addLayout(_layout);
 
     setFixedSize(680, 700);

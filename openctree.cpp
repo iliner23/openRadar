@@ -177,7 +177,9 @@ void openCtree::open(const std::string & filename){
         if(i == 0)
             members = ih.members_count + 1;
 
-        if(ih.ptrSize != 4)
+        if(ih.ptrSize == 0)
+            ih.ptrSize = 4;
+        else if(ih.ptrSize != 4)
             throw std::logic_error("Programm doesn't support databases with pointer size more than 4 bytes");
 
         if(!_idx.good())

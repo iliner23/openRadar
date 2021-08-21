@@ -23,11 +23,13 @@ public:
 
 public slots:
     void changeTable(int);
+    void accept() override;
 private slots:
     void renderingTable(int);
     void fullFilter(QString);
     void shortFilter(QString);
-    void openReader(const QModelIndex &);
+    void tableActivated(const QModelIndex &);
+    void activateOkBut(const QModelIndex &);
 private:
     Ui::keysRemedList *ui;
     QVector<QDir> _keysFile;
@@ -36,6 +38,8 @@ private:
 
     QStandardItemModel * _model;
     QSortFilterProxyModel * _proxy;
+
+    inline void openReader(const QModelIndex &);
 };
 
 #endif // KEYSREMEDLIST_H

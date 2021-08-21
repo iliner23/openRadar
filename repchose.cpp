@@ -13,7 +13,7 @@ RepChose::RepChose(const QStringList repertories, QVector<std::pair<QLocale::Lan
     QStringList items;
 
     _lang = lang;
-    _codec = QTextCodec::codecForName("system");
+    _codec = QTextCodec::codecForName(languages::systemCodec());
 
     for(auto & it: repertories){
         switch (count) {
@@ -110,9 +110,5 @@ void RepChose::showLevels(){
     for(auto i = 0; i != maxRow; ++i)
         _repLevel <<= 1;
 
-    accept();
-}
-void RepChose::sendLevel(const quint16 repLevel){
-    _repLevel = repLevel;
     accept();
 }
