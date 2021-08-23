@@ -4,6 +4,7 @@
 #include <QtWidgets>
 #include <QTextCodec>
 #include "openctree.h"
+#include "languages.h"
 
 namespace Ui {
 class RepChose;
@@ -14,7 +15,9 @@ class RepChose : public QDialog
     Q_OBJECT
 
 public:
-    explicit RepChose(const QStringList, QWidget *parent = nullptr);
+    explicit RepChose(const QStringList, const QVector<QDir> reppos,
+                      QVector<std::pair<QLocale, QLocale>>,
+                      QWidget *parent = nullptr);
     ~RepChose();
 
 private:
@@ -24,16 +27,16 @@ private:
     QSortFilterProxyModel * _proxyModel;
     QStringListModel * _model;
     QTextCodec * _codec = nullptr;
+    QVector<std::pair<QLocale, QLocale>> _lang;
 public slots:
     void accept();
 private slots:
     void finding(const QString);
     void activateLevel(const QModelIndex &);
     void showLevels();
-    void sendLevel(const quint16);
-    void setCodec();
 signals:
-    void chooseRep(QModelIndex &, quint16, QTextCodec *);
+    void chooseRep(QModelIndex &, quint16,
+                   std::pair<QLocale, QLocale>);
 };
 
 #endif // REPCHOSE_H

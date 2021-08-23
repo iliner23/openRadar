@@ -36,7 +36,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Выберите репозиторий</string>
+          <string>Доступные репертории</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>
@@ -97,13 +97,6 @@
           <widget class="QPushButton" name="pushButton">
            <property name="text">
             <string>Отмена</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_4">
-           <property name="text">
-            <string>Кодировка</string>
            </property>
           </widget>
          </item>

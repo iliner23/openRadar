@@ -1,11 +1,11 @@
 #include "author.h"
 #include "ui_author.h"
 
-author::author(const quint32 authorPos, std::shared_ptr<cache> ch, QWidget *parent) :
+author::author(const quint32 authorPos, std::shared_ptr<func::cache> ch, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::author)
 {
-    auto * locale = QTextCodec::codecForName("system");
+    QTextCodec * codec = QTextCodec::codecForName(lang::defaultCodec());
     ui->setupUi(this);
     _cache = ch;
     _authorPos = authorPos;
@@ -21,7 +21,7 @@ author::author(const quint32 authorPos, std::shared_ptr<cache> ch, QWidget *pare
     for(auto i = 0; i != 4; ++i){
         auto oldIter = iter;
         iter = std::find(oldIter, text.cend(), '\0');
-        const auto tmpStr = locale->toUnicode(std::string(oldIter, iter).c_str());
+        const auto tmpStr = codec->toUnicode(std::string(oldIter, iter).c_str());
 
         switch (i) {
         case 0 :

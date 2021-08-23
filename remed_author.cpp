@@ -1,9 +1,9 @@
 #include "remed_author.h"
 #include "ui_remed_author.h"
 
-remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
+remed_author::remed_author(const QDir path, std::shared_ptr<func::cache> ch,
                            const QByteArray pos,
-                           const quint16 remFilter, const quint32 localPos, QWidget *parent) :
+                           const quint16 remFilter, const quint32 localPos, keysRemedList * remedList, QTextCodec *codec, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::remed_author)
 {
@@ -13,6 +13,8 @@ remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
     _remFilter = remFilter;
     _localPos = localPos;
     _cache = ch;
+    _codec = codec;
+    _remedList = remedList;
 
     _sym.open(path.filePath("symptom").toStdString());
 
@@ -21,15 +23,16 @@ remed_author::remed_author(const QDir path, std::shared_ptr<cache> ch,
     ui->label->setFont(QFont("defalut", 10));
     ui->label_2->setFont(QFont("defalut", 10));
     rendering();
-    connect(ui->listWidget_2, &QListWidget::itemClicked, this, &remed_author::showTextInformation);
+
+    connect(ui->listWidget_2, &QListWidget::itemSelectionChanged, this, &remed_author::showTextInformation);
+    connect(ui->pushButton, &QPushButton::clicked, this, &remed_author::showRemedList);
 
     ui->listWidget_2->setCurrentRow(0);
-    emit ui->listWidget_2->itemClicked(ui->listWidget_2->item(0));
 }
 
-void remed_author::showTextInformation(QListWidgetItem * item){
+void remed_author::showTextInformation(){
     ui->listWidget->clear();
-    switch (ui->listWidget_2->row(item)){
+    switch (ui->listWidget_2->currentRow()){
     case 0:{
         for(const auto & it : qAsConst(_authorsText))
             ui->listWidget->addItem(it);
@@ -40,10 +43,9 @@ void remed_author::showTextInformation(QListWidgetItem * item){
     }
 }
 void remed_author::rendering(){
-    auto * codec = QTextCodec::codecForName("system");
     //remed
-
     auto authorTxt = [&](const auto & text){
+        QTextCodec * cd = QTextCodec::codecForName(lang::defaultCodec());
         QString tmp;
         auto itA = std::find(text.cbegin() + _cache->_lenAuthor, text.cend(), '\0');
         tmp += "(" + QString::fromStdString(std::string(text.cbegin() + _cache->_lenAuthor, itA)) + ")";
@@ -51,13 +53,13 @@ void remed_author::rendering(){
         if(itA != text.cend()){
             ++itA;
             auto itB = std::find(itA, text.cend(), '\0');
-            tmp += " " + codec->toUnicode(std::string(itA, itB).c_str());
+            tmp += " " + cd->toUnicode(std::string(itA, itB).c_str());
             itA = itB;
         }
         if(itA != text.cend()){
             ++itA;
             auto itB = std::find(itA, text.cend(), '\0');
-            tmp += "\n" + codec->toUnicode(std::string(itA, itB).c_str());
+            tmp += "\n" + cd->toUnicode(std::string(itA, itB).c_str());
             itA = itB;
         }
 
@@ -69,6 +71,9 @@ void remed_author::rendering(){
         auto itA = std::find(text.cbegin() + _cache->_lenRem, text.cend(), '\0');
         tmp += QString::fromStdString(std::string(text.cbegin() + _cache->_lenRem, itA));
 
+        _remedName = tmp;
+        _remedName.chop(1);
+
         if(itA != text.cend()){
             ++itA;
             auto itB = std::find(itA, text.cend(), '\0');
@@ -78,50 +83,40 @@ void remed_author::rendering(){
         return tmp;
     };
 
+    _sym.at(_pos.toStdString(), false);
+    functions::repertoryData symptom(_sym, _codec);
+
     quint16 prevRem = 0;
-    const auto symptom = QByteArray::fromStdString(_sym.at(_pos.toStdString()));
+    const auto remeds = symptom.remedsList();
 
-    while(_localPos < symptom.size()){
-        quint16 remed = 0, author = 0, tLevel = 0;
-        uint8_t rLevel;
+    for(auto it = _localPos; it != remeds.size(); ++it){
+        auto rm = remeds.at(it);
 
-        if(symptom.size() - _localPos <= 3)
+        if(it != _localPos && prevRem != std::get<0>(rm))
             break;
 
-        remed = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
-        _localPos += 2;
-        rLevel = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
-        ++_localPos;
-        author = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
-        _localPos += 2;
-        tLevel = qFromLittleEndian<quint16>(symptom.constData() + _localPos);
-        _localPos += 2;
-
-        if(memcmp(&remed, "\x5a\x5a", 2) == 0 && rLevel == '\x5a')
-            break;
-
-        if(prevRem != 0 && remed != prevRem)
-            break;
-
-        if(_remFilter == (quint16)-1 || (tLevel & _remFilter) != 0){
-            if((((char *)&author)[1] & (char)128) != 0){
-                ((char *)&author)[1] ^= (char)128;//remed have * in the end
+        if(_remFilter == (quint16)-1 || (std::get<3>(rm) & _remFilter) != 0){
+            if((((char *)&std::get<2>(rm))[1] & (char)128) != 0){
+                ((char *)&std::get<2>(rm))[1] ^= (char)128;//remed have * in the end
             }
 
-            const auto & rmStr = _cache->_cacheRemed.at(remed);
-            const auto & auStr = _cache->_cacheAuthor.at(author);
+            const auto & rmStr = _cache->_cacheRemed.at(std::get<0>(rm));
+            const auto & auStr = _cache->_cacheAuthor.at(std::get<2>(rm));
 
-            if(prevRem != remed)
+            if(prevRem != std::get<0>(rm))
                 ui->label_2->setText(remedTxt(rmStr));
 
             authorTxt(auStr);
-            prevRem = remed;
+            prevRem = std::get<0>(rm);
         }
     }
 
-    ui->label->setText(functions::renderingLabel(_sym, false));
+    ui->label->setText(func::renderingLabel(_sym, false, _codec));
 }
-remed_author::~remed_author()
-{
+void remed_author::showRemedList(){
+    _remedList->setFilterRemed(_remedName);
+    _remedList->exec();
+}
+remed_author::~remed_author(){
     delete ui;
 }

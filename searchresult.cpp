@@ -22,7 +22,7 @@ void searchResult::setData(const QFileInfo word, const QFileInfo symptom, const 
     _word.open(word.filePath().toStdString());
     _symptom.open(symptom.filePath().toStdString());
 
-    const auto list = functions::linksParser::mainParser(_symptom, _word, expression, codec);
+    const auto list = func::linksParser()(_symptom, _word, expression, codec);
     ui->label->setText(expression);
 
     ui->listWidget->setUpdatesEnabled(false);

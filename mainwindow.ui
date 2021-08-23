@@ -38,7 +38,9 @@
      <string>Файл</string>
     </property>
     <addaction name="action1"/>
-    <addaction name="action_2"/>
+    <addaction name="action39"/>
+    <addaction name="separator"/>
+    <addaction name="action2"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -99,9 +101,9 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action1"/>
-   <addaction name="action2"/>
-   <addaction name="action3"/>
-   <addaction name="action4"/>
+   <addaction name="action_4"/>
+   <addaction name="action_7"/>
+   <addaction name="action_8"/>
    <addaction name="action5"/>
    <addaction name="action6"/>
    <addaction name="action7"/>
@@ -127,9 +129,6 @@
    <addaction name="separator"/>
    <addaction name="action23"/>
    <addaction name="action24"/>
-   <addaction name="separator"/>
-   <addaction name="action25"/>
-   <addaction name="action26"/>
    <addaction name="separator"/>
    <addaction name="action27"/>
   </widget>
@@ -161,7 +160,7 @@
    <addaction name="action43"/>
    <addaction name="action44"/>
   </widget>
-  <action name="action_2">
+  <action name="action2">
    <property name="text">
     <string>Выход</string>
    </property>
@@ -175,46 +174,19 @@
      <normaloff>:/icons/res/Bitmap7.bmp</normaloff>:/icons/res/Bitmap7.bmp</iconset>
    </property>
    <property name="text">
-    <string>Выбрать репозиторий</string>
+    <string>Открыть реперторий</string>
    </property>
    <property name="iconText">
-    <string>Выбрать репозиторий</string>
+    <string>Открыть реперторий</string>
    </property>
    <property name="toolTip">
-    <string>Выбрать репозиторий</string>
+    <string>Открыть реперторий</string>
    </property>
    <property name="visible">
     <bool>true</bool>
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
-   </property>
-  </action>
-  <action name="action2">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap2.bmp</normaloff>:/icons/res/Bitmap2.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>2</string>
-   </property>
-  </action>
-  <action name="action3">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap3.bmp</normaloff>:/icons/res/Bitmap3.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>3</string>
-   </property>
-  </action>
-  <action name="action4">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap4.bmp</normaloff>:/icons/res/Bitmap4.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>4</string>
    </property>
   </action>
   <action name="action5">
@@ -525,7 +497,13 @@
      <normaloff>:/icons/res/Bitmap25.bmp</normaloff>:/icons/res/Bitmap25.bmp</iconset>
    </property>
    <property name="text">
-    <string>39</string>
+    <string>Открыть ключи</string>
+   </property>
+   <property name="toolTip">
+    <string>Открыть ключи</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action40">
@@ -597,13 +575,24 @@
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/res/Bitmap2.bmp</normaloff>:/icons/res/Bitmap2.bmp</iconset>
+   </property>
    <property name="text">
     <string>Найти симптом</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_7">
    <property name="enabled">
     <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/res/Bitmap3.bmp</normaloff>:/icons/res/Bitmap3.bmp</iconset>
    </property>
    <property name="text">
     <string>Найти из текущего симптома</string>
@@ -612,6 +601,10 @@
   <action name="action_8">
    <property name="enabled">
     <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/res/Bitmap4.bmp</normaloff>:/icons/res/Bitmap4.bmp</iconset>
    </property>
    <property name="text">
     <string>Расширенный поиск...</string>
@@ -623,7 +616,7 @@
  </resources>
  <connections>
   <connection>
-   <sender>action_2</sender>
+   <sender>action2</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>

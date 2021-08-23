@@ -5,6 +5,7 @@
 #include <QTextCodec>
 #include <QtConcurrent/QtConcurrent>
 #include "openctree.h"
+#include "languages.h"
 
 class searchModel : public QAbstractItemModel
 {

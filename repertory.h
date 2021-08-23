@@ -2,24 +2,22 @@
 #define REPERTORY_H
 
 #include <QtWidgets>
-#include <QtConcurrent/QtConcurrent>
 #include <unordered_map>
 #include <memory>
-#include "openctree.h"
 #include "customscene.h"
 #include "label.h"
 #include "remed_author.h"
-#include "cache.h"
 #include "author.h"
-#include "repertoryengine.h"
+#include "repertoryrender.h"
 #include "vocabulary.h"
 
-class repertory : public QWidget//, public abstractEngine
+class repertory : public QWidget
 {
     Q_OBJECT
 public:
     explicit repertory(const QDir, const QDir,
-                       std::shared_ptr<cache> &, QTextCodec *,
+                       std::shared_ptr<func::cache> &,
+                       const std::pair<QLocale, QLocale> lang, keysRemedList * remedList,
                        const quint16 = -1, QWidget * = nullptr);
     QDir catalog() const noexcept { return _filename; }
     QTextCodec * textCodec() const noexcept { return _codec; }
@@ -32,22 +30,21 @@ private:
     QMenu * _menu;
     QLabel * _label;
     QByteArray _pointer;
-    repertoryEngine * _engine;
+    repertoryRender _engine;
     vocabulary * _vocabulary = nullptr;
+    keysRemedList * _remedList = nullptr;
 
     QTextCodec * _codec = nullptr;
-    QLocale::Language _lang;
-    std::shared_ptr<cache> _cache;
+    std::pair<QLocale, QLocale> _lang;
+    std::shared_ptr<func::cache> _cache;
     QDir _filename, _system;
 
     inline void repaintView();
     inline void notShowLabel() const;
 
     void resizeEvent(QResizeEvent*) override;
-    void redrawPointer(QGraphicsItem *, const QVector<QGraphicsItem*> &);
     void keyPressEvent(QKeyEvent *event) override;
     void rendering();
-    void redrawing();
 private slots:
     void changeFilter(QAction *);
     void changedPos(const int);

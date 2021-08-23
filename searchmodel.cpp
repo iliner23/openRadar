@@ -147,20 +147,21 @@ void searchModel::createHeap(_node * parent, QByteArray pos){
         return children;
     };
 
-    if(size > 50){
-        const auto mult = size / 4;
-        auto thread1 = QtConcurrent::run(threadPred, _db, 0, mult);
-        auto thread2 = QtConcurrent::run(threadPred, _db, mult, mult * 2);
-        auto thread3 = QtConcurrent::run(threadPred, _db, mult * 2, mult * 3);
-        auto thread4 = QtConcurrent::run(threadPred, _db, mult * 3, size);
+    if(size != 0){
+        QVector<QFuture<QVector<_node*>>> threads;
 
-        parent->_children.append(thread1.result());
-        parent->_children.append(thread2.result());
-        parent->_children.append(thread3.result());
-        parent->_children.append(thread4.result());
+        const auto maxThreads = (size > QThread::idealThreadCount()) ?
+                    QThread::idealThreadCount() : size;
+        const auto del = size / maxThreads;
+
+        for(auto i = 0; i != maxThreads; ++i){
+            threads.append(QtConcurrent::run(threadPred, _db, del * i ,
+                (i == maxThreads - 1) ? size : del * (i + 1)));
+        }
+
+        for(auto & it : threads)
+            parent->_children.append(it.result());
     }
-    else
-        parent->_children.append(threadPred(_db, 0, size));
 
     for(auto i = 0; i != parent->_children.size(); ++i)
         parent->_children[i]->_row = i;
@@ -175,7 +176,7 @@ void searchModel::setCatalogFile(const QDir file, const QByteArray pos, QTextCod
     _root = new _node("root", pos);
 
     if(codec == nullptr)
-        _codec = QTextCodec::codecForName("system");
+        _codec = QTextCodec::codecForName(lang::defaultCodec());
     else
         _codec = codec;
 

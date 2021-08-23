@@ -33,30 +33,31 @@ private:
         std::shared_ptr<char[]> altSeq;
     };
 
-    std::ifstream _dat;
+    mutable std::ifstream _dat;
     std::ifstream _idx;
     std::vector<index_header> _header;
-    std::map<uint64_t, uint64_t, std::greater<>> _leaf;//first - index pos, second - basePtr
+    std::shared_ptr<
+        std::map<uint64_t, uint64_t, std::greater<>>> _leaf;//first - index pos, second - basePtr
 
-    uint16_t _index = 0;
     uint16_t _reclen = 0;
-    std::string _lastKey;
-    uint64_t _lastValuePos = 0;
-    uint64_t _lastPosition = std::numeric_limits<uint64_t>::max();
 
     std::string _fileName;
 
     struct{
-        uint32_t _nextHope = 0;
-        uint16_t _byteSize = 0;
-        uint64_t _leafPtr = 0;
-        uint64_t _basePtr = 0;
+        uint16_t index = 0;
+        std::string lastKey;
+        uint64_t lastValuePos = 0;
+        uint64_t lastPosition = std::numeric_limits<uint64_t>::max();
+        uint32_t nextHope = 0;
+        uint16_t byteSize = 0;
+        uint64_t leafPtr = 0;
+        uint64_t basePtr = 0;
     } _navigate;
 
-    inline std::string gtData(const uint64_t);
+    inline std::string gtData(const uint64_t) const;
     inline std::string readOrNot(const bool, const uint64_t);
     inline std::string uncompressString(const std::string &);
-    inline std::variant<bool, std::string> commonAtKey(std::string, const bool, const bool);
+    inline std::variant<bool, std::string> commonAtKey(std::string, const bool, const bool, const bool);
     inline void writeLeafs();
 public:
     openCtree(const std::string & filename) { open(filename); }
@@ -77,6 +78,7 @@ public:
 
     uint16_t indexCount() const;
     void setIndex(const uint16_t);
+    uint16_t index() const;
 
     int32_t size() const;
 
@@ -84,6 +86,7 @@ public:
 
     std::string at(const uint32_t, const bool readDbText = true);
     std::string at(std::string, const bool readDbText = true);
+    std::string firstFind(std::string, const bool readDbText = true);
 
     std::string next(const bool readDbText = true);
     std::string front(const bool readDbText = true);
@@ -93,7 +96,7 @@ public:
     std::string encodeKey(const std::string&) const;
     std::string decodeKey(const std::string&) const;
 
-    std::string currentValue();
+    std::string currentValue() const;
 
     bool haveKey(std::string);
     uint16_t keyLenght() const;

@@ -17,13 +17,14 @@ class vocabulary : public QWidget
     Q_OBJECT
 
 public:
-    explicit vocabulary(const QDir system, const QLocale::Language language,
+    explicit vocabulary(const QDir system,
+                        const std::pair<QLocale, QLocale> language,
                         const QDir catalog, QTextCodec *codec, QWidget *parent = nullptr);
     ~vocabulary();
 private:
     Ui::vocabulary *ui;
     QTextCodec * _codec = nullptr;
-    QLocale::Language _lang;
+    std::pair<QLocale, QLocale> _lang;
     QDir _catalog, _system;
 
     QStringListModel * _model;

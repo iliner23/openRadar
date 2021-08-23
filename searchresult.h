@@ -35,7 +35,7 @@ private slots:
 private:
     Ui::searchResult *ui;
     openCtree _word, _symptom;
-    QVector<QByteArray> _keys;
+    QByteArrayList _keys;
     QByteArray _key;
     QTextCodec * _codec;
 

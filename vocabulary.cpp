@@ -1,7 +1,7 @@
 #include "vocabulary.h"
 #include "ui_vocabulary.h"
 
-vocabulary::vocabulary(const QDir system, const QLocale::Language language, const QDir catalog, QTextCodec * codec, QWidget *parent) :
+vocabulary::vocabulary(const QDir system, const std::pair<QLocale, QLocale> language, const QDir catalog, QTextCodec * codec, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::vocabulary)
 {
@@ -25,8 +25,8 @@ vocabulary::vocabulary(const QDir system, const QLocale::Language language, cons
     ui->comboBox->insertItem(1, "Корни и формы");
     ui->comboBox->insertItem(2, "Синонимы");
 
-    ui->comboBox_3->insertItem(0, "Оригинальный");
-    ui->comboBox_3->insertItem(1, "Локализация");
+    ui->comboBox_3->insertItem(0, _lang.first.nativeLanguageName());
+    ui->comboBox_3->insertItem(1, _lang.second.nativeLanguageName());
 
     ui->comboBox_2->insertItems(0, {"и", "или"});
 
@@ -41,6 +41,7 @@ vocabulary::vocabulary(const QDir system, const QLocale::Language language, cons
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &vocabulary::filter);
     connect(ui->listView, &QListView::clicked, this, &vocabulary::selectedModelItem);
+    connect(ui->listView, &QListView::activated, this, &vocabulary::selectedModelItem);
     connect(ui->plainTextEdit_2, &QPlainTextEdit::textChanged, this, &vocabulary::changedPlainText);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &vocabulary::openResults);
     connect(_results, &searchResult::accepted, this, &vocabulary::sendOn);
@@ -74,30 +75,44 @@ void vocabulary::rendering(const int type){
         }
     };
 
-    auto synomRoots = [&](const QString & name){
-        using namespace languages;
-        const auto langIter = std::find(radarLang.cbegin(),
-                                radarLang.cend(), _lang) - radarLang.cbegin() + 1;
+    auto synomRoots = [&](const QString name){
+        using namespace lang;
+        const auto origIter = std::find(radarLang.cbegin(),
+                                         radarLang.cend(), _lang.first) - radarLang.cbegin() + 1;
 
-        openCtree root2;
-        bool hide;
-        const auto localFile = (_system.filePath(name % QString::number(langIter)));
+        int localIter = -1;
 
-        if(!_globalHide && QFileInfo::exists(localFile % ".dat") && QFileInfo::exists(localFile % ".idx")){
-            root2 = openCtree(localFile.toStdString());
-            hide = (root2.size() == 0) ? true : false;
-        }
-        else
-            hide = true;
+        if(_lang.second != QLocale::AnyLanguage)
+            localIter = std::find(radarLang.cbegin(),
+                                  radarLang.cend(), _lang.second) - radarLang.cbegin() + 1;
 
-        ui->label_3->setHidden(hide);
-        ui->comboBox_3->setHidden(hide);
+        auto check = [&](const auto langIter){
+            openCtree root2;
+            const auto localFile = (_system.filePath(name % QString::number(langIter)));
+
+            if(QFileInfo::exists(localFile % ".dat") && QFileInfo::exists(localFile % ".idx")){
+                root2 = openCtree(localFile.toStdString());
+                return (root2.size() == 0) ? true : false;
+            }
+
+            return true;
+        };
+
+        if(check(origIter))
+            throw std::exception();
+
+        const auto ch = _globalHide || check(localIter);
+
+        ui->label_3->setHidden(ch);
+        ui->comboBox_3->setHidden(ch);
         hidChange();
 
         if(ui->comboBox_3->currentIndex() == 0)
-            renderingRoots(openCtree(_system.filePath(name % '1').toStdString()));
+            renderingRoots(openCtree(_system.filePath
+                                     (name % QString::number(origIter)).toStdString()));
         else
-            renderingRoots(std::move(root2));
+            renderingRoots(openCtree(_system.filePath
+                                     (name % QString::number(localIter)).toStdString()));
     };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if(type == 0){
@@ -199,20 +214,21 @@ void vocabulary::renderingWords(openCtree base){
 void vocabulary::threadsLaunch(openCtree & base, std::function<QStringList(openCtree, const int, const int)> threadFunc){
     QStringList wordList;
 
-    if(base.size() > 500){
-        const auto del = base.size() / 4;
-        auto thread1 = QtConcurrent::run(threadFunc, base, 0 , del);
-        auto thread2 = QtConcurrent::run(threadFunc, base, del , del * 2);
-        auto thread3 = QtConcurrent::run(threadFunc, base, del * 2, del * 3);
-        auto thread4 = QtConcurrent::run(threadFunc, base, del * 3, base.size());
+    if(base.size() != 0){
+        QVector<QFuture<QStringList>> threads;
 
-        wordList.append(thread1.result());
-        wordList.append(thread2.result());
-        wordList.append(thread3.result());
-        wordList.append(thread4.result());
+        const auto maxThreads = (base.size() > QThread::idealThreadCount()) ?
+                    QThread::idealThreadCount() : base.size();
+        const auto del = base.size() / maxThreads;
+
+        for(auto i = 0; i != maxThreads; ++i){
+            threads.append(QtConcurrent::run(threadFunc, base, del * i ,
+                (i == maxThreads - 1) ? base.size() : del * (i + 1)));
+        }
+
+        for(auto & it : threads)
+            wordList.append(it.result());
     }
-    else
-        wordList = threadFunc(base, 0 , base.size());
 
     _model->setStringList(std::move(wordList));
 }

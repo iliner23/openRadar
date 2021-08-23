@@ -18,7 +18,6 @@ windowChapters::windowChapters(QWidget *parent) :
     _filterModel->setSourceModel(_model);
 
     ui->listView->setModel(_filterModel);
-    ui->listView->setUniformItemSizes(true);
 
     page1->setLayout(ui->verticalLayout_2);
     page2->setLayout(ui->verticalLayout_3);
@@ -32,14 +31,7 @@ windowChapters::windowChapters(QWidget *parent) :
 
     connect(ui->comboBox, QOverload<int>::of(&QComboBox::activated), this, &windowChapters::setActiveRepertory);
 
-    ui->tableWidget->verticalHeader()->setVisible(false);
-    ui->tableWidget->horizontalHeader()->setVisible(false);
-    ui->tableWidget->verticalHeader()->setDefaultSectionSize(130);
-    ui->tableWidget->horizontalHeader()->setDefaultSectionSize(80);
-    ui->tableWidget->setShowGrid(false);
     ui->tableWidget->setItemDelegate(new delegate);
-    ui->tableWidget->setEditTriggers(QTableWidget::NoEditTriggers);
-    ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->verticalLayout->addLayout(_layout);
 
     setFixedSize(680, 700);
@@ -98,26 +90,29 @@ void windowChapters::tableRender(int comboIndex){
     db.open(_dirPaths.at(comboIndex).filePath("symptom").toStdString());
     db.setIndex(4);
 
-    const std::string compr(6, '\0');
     quint16 x = 0, y = 0;
 
     while(true){
-        auto temp = db.next();
+        auto temp = QByteArray::fromStdString(db.next());
 
         if(x >= mx){
             ++y;
             x = 0;
         }
 
-        if(temp.substr(12, 6) == compr){
-            auto iter = std::find(temp.cbegin() + db.serviceDataLenght(), temp.cend(), '\0');
-            std::string textOriginal(temp.cbegin() + db.serviceDataLenght(), iter);
+        if(temp.mid(12, 6) == QByteArray(6, '\0')){
+            auto return_size = [](const auto & value, const auto & _size){
+                return (value == -1) ? _size : value;
+            };
+
+            auto iter = return_size(temp.indexOf('\0', db.serviceDataLenght()), temp.size());
+            const auto textOriginal = temp.mid(db.serviceDataLenght(), iter - db.serviceDataLenght());
             ++iter;
-            std::string textLocalize(iter, std::find(iter, temp.cend(), '\0'));
+            const auto textLocalize = temp.mid(iter, return_size(temp.indexOf('\0', iter) - iter, temp.size()));
 
             auto item_t = new QTableWidgetItem(QIcon(QPixmap(48, 48)),
-                    QString::fromStdString(textOriginal + "\n") +
-                        _codec->toUnicode(textLocalize.c_str()) );
+                        _codec->toUnicode(textOriginal % "\n") +
+                        _codec->toUnicode(textLocalize));
 
             item_t->setTextAlignment(Qt::AlignHCenter);
             item_t->setData(Qt::UserRole, QByteArray::fromStdString(db.key()));
@@ -208,7 +203,7 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     db.open(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     db.at(key.toStdString(), false);
 
-    auto path = functions::getRootPath(db);
+    auto path = func::getRootPath(db);
     showListChapter(QByteArray(6, '\0') + path.back());
     auto iterPath = (path.size() > 1) ? path.cbegin() + 1 : path.cbegin();
     changeChapterText(*iterPath);
@@ -311,7 +306,7 @@ void windowChapters::returnBranch(){
 void windowChapters::changeChapterText(const QByteArray key){
     openCtree sym(_dirPaths.at(ui->comboBox->currentIndex()).filePath("symptom").toStdString());
     sym.at(key.toStdString(), false);
-    ui->label_2->setText(functions::renderingLabel(sym, false, _codec));
+    ui->label_2->setText(func::renderingLabel(sym, false, _codec));
 }
 void windowChapters::sendActivatedBranch(){
     QModelIndex index;
