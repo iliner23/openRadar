@@ -1,47 +1,33 @@
 #include "repchose.h"
 #include "ui_repchose.h"
 
-RepChose::RepChose(const QStringList repertories, QVector<std::pair<QLocale::Language, QLocale::Language>> lang, QWidget *parent) :
+RepChose::RepChose(const QStringList repertories, const QVector<QDir> reppos, QVector<std::pair<QLocale, QLocale>> lang, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RepChose)
 {
     ui->setupUi(this);
 
     openCtree view;
-    uint8_t count = 0;
-    QString temp;
-    QStringList items;
 
     _lang = lang;
-    _codec = QTextCodec::codecForName(languages::systemCodec());
+    _codec = QTextCodec::codecForName(lang::defaultCodec());
 
-    for(auto & it: repertories){
-        switch (count) {
-        case 1:
-            temp += " (" + it + ") ";
-            ++count;
-            items.push_back(temp);
-            break;
-        case 0:
-            temp = it;
-            ++count;
-            break;
-        case 2:
-            view.open(QDir::toNativeSeparators(it + "/view").toStdString());
+    for(auto & it : reppos){
+        QDir vw = it;
+        vw.setPath(vw.path() % vw.separator() % "view");
+        view.open(vw.path().toStdString());
 
-            if(view.size() != 0)
-                _rLevels.push_back(QDir::toNativeSeparators(it + "/view"));
-            else
-                _rLevels.push_back("");
+        if(view.size() != 0)
+            _rLevels.push_back(it.path());
+        else
+            _rLevels.push_back("");
 
-            view.close();
-            count = 0;
-        }
+        view.close();
     }
 
     _model = new QStringListModel(this);
     _proxyModel = new QSortFilterProxyModel(this);
-    _model->setStringList(items);
+    _model->setStringList(repertories);
     _proxyModel->setSourceModel(_model);
     _proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
@@ -88,7 +74,7 @@ void RepChose::showLevels(){
     openCtree view(_rLevels.at(index.row()).toStdString());
 
     _codec = QTextCodec::codecForName(
-                languages::chooseCodec(_lang.at(index.row())));
+                lang::chooseCodec(_lang.at(index.row())));
 
     for(auto i = 0; i != view.size(); ++i){
         auto str = view.next();

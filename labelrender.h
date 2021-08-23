@@ -6,9 +6,9 @@ class labelRender : public repertoryRender
 {
 public:
     labelRender() = default;
-    labelRender(const QDir filename, const std::shared_ptr<cache> & cache,
+    labelRender(const QDir filename, const std::shared_ptr<func::cache> & cache,
                 QTextCodec * codec = QTextCodec::codecForName("system"));
-    void reset(const QDir filename, const std::shared_ptr<cache> & cache,
+    void reset(const QDir filename, const std::shared_ptr<func::cache> & cache,
                        QTextCodec * codec = QTextCodec::codecForName("system")) override;
     QVector<QGraphicsItemGroup*> render(const QSize resolution) override;
     bool isLocalize() { return _localize; };

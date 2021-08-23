@@ -31,7 +31,7 @@ namespace functions{
         std::pair<QStringList, QStringList> linksList() const;
         std::pair<QStringList, QStringList> crossLinksList() const;
 
-        QVector<std::tuple<quint16, quint8, quint16, quint16, quint16>> remedsList() const;
+        QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> remedsList() const;
 
         class repertoryDataException : public std::exception {};
     private:
@@ -45,7 +45,7 @@ namespace functions{
         std::pair<QStringList, QStringList> _links;
         std::pair<QStringList, QStringList> _crossLinks;
 
-        QVector<std::tuple<quint16, quint8, quint16, quint16, quint16>> _remeds;
+        QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> _remeds;
         //remed, type, author, filter, remedPos
 
         std::string _key;

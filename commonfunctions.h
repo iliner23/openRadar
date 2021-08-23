@@ -5,7 +5,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include "openctree.h"
 
-namespace functions {
+namespace func {
     QString renderingLabel(openCtree symptom, bool passLastChapter,
                            QTextCodec * codec = QTextCodec::codecForName("system"));
 
@@ -39,6 +39,12 @@ namespace functions {
         QVector<QByteArrayList> threadsParent(const QByteArrayList & ,
                         std::function<QVector<QByteArrayList>(openCtree symptom,
                         const QByteArrayList & , quint32 , quint32)>);
+    };
+
+    struct cache{
+        std::unordered_map<uint16_t, std::string> _cacheRemed;
+        std::unordered_map<uint16_t, std::string> _cacheAuthor;
+        uint16_t _lenRem, _lenAuthor;
     };
 }
 #endif // COMMONFUNCTIONS_H

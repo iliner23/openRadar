@@ -6,11 +6,10 @@ keysRemedList::keysRemedList(const QVector<QDir> keysFile, QStringList keysText,
     ui(new Ui::keysRemedList)
 {
     ui->setupUi(this);
-    ui->frame->setLayout(ui->formLayout);
 
     _keysFile = keysFile;
     _keysText = keysText;
-    _codec = QTextCodec::codecForName(languages::systemCodec());
+    _codec = QTextCodec::codecForName(lang::defaultCodec());
 
     _model = new QStandardItemModel(this);
     _proxy = new QSortFilterProxyModel(this);
@@ -18,10 +17,9 @@ keysRemedList::keysRemedList(const QVector<QDir> keysFile, QStringList keysText,
     _proxy->setSourceModel(_model);
     ui->tableView->setModel(_proxy);
     ui->comboBox->insertItems(0, keysText);
-
-    connect(ui->comboBox, &QComboBox::currentIndexChanged, this, &keysRemedList::renderingTable);
-
     ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(false);
+
+    connect(ui->comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &keysRemedList::renderingTable);
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &keysRemedList::shortFilter);
     connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &keysRemedList::fullFilter);
@@ -33,6 +31,9 @@ void keysRemedList::changeTable(int pos){
 }
 void keysRemedList::renderingTable(int pos){
     _model->clear();
+
+    if(pos <= -1)
+        return;
 
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
@@ -121,6 +122,12 @@ void keysRemedList::accept(){
     const auto index = ui->tableView->currentIndex();
     openReader(index);
 }
+void keysRemedList::reject(){
+    _model->clear();
+    ui->lineEdit->clear();
+    ui->lineEdit->clear();
+    QDialog::reject();
+}
 void keysRemedList::openReader(const QModelIndex & index){
     if(!index.isValid())
         return;
@@ -141,10 +148,24 @@ void keysRemedList::openReader(const QModelIndex & index){
                                 this, parentWidget());
     reader->setAttribute(Qt::WA_DeleteOnClose);
     reader->show();
-    close();
+
+    _model->clear();
+    ui->lineEdit->clear();
+    ui->lineEdit->clear();
+
+    QDialog::accept();
+}
+void keysRemedList::setFilterRemed(const QString name){
+    ui->lineEdit->setText(name);
 }
 void keysRemedList::activateOkBut(const QModelIndex & index){
     ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(index.isValid());
+}
+void keysRemedList::showEvent(QShowEvent *event){
+    if(_model->rowCount() == 0)
+        renderingTable(ui->comboBox->currentIndex());
+
+    event->ignore();
 }
 keysRemedList::~keysRemedList(){
     delete ui;

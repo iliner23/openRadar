@@ -16,8 +16,8 @@ class repertory : public QWidget
     Q_OBJECT
 public:
     explicit repertory(const QDir, const QDir,
-                       std::shared_ptr<cache> &,
-                       const std::pair<QLocale::Language, QLocale::Language> lang,
+                       std::shared_ptr<func::cache> &,
+                       const std::pair<QLocale, QLocale> lang, keysRemedList * remedList,
                        const quint16 = -1, QWidget * = nullptr);
     QDir catalog() const noexcept { return _filename; }
     QTextCodec * textCodec() const noexcept { return _codec; }
@@ -32,10 +32,11 @@ private:
     QByteArray _pointer;
     repertoryRender _engine;
     vocabulary * _vocabulary = nullptr;
+    keysRemedList * _remedList = nullptr;
 
     QTextCodec * _codec = nullptr;
-    std::pair<QLocale::Language, QLocale::Language> _lang;
-    std::shared_ptr<cache> _cache;
+    std::pair<QLocale, QLocale> _lang;
+    std::shared_ptr<func::cache> _cache;
     QDir _filename, _system;
 
     inline void repaintView();

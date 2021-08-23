@@ -124,7 +124,7 @@ void functions::repertoryData::genRemeds(quint16 _Tpos){
         if(_Tpos + 7 >= _data.size())
             break;
 
-        const auto remedPos = _Tpos;
+        //const auto remedPos = _Tpos;
 
         remed = qFromLittleEndian<quint16>(_data.constData() + _Tpos);
         _Tpos += 2;
@@ -140,7 +140,7 @@ void functions::repertoryData::genRemeds(quint16 _Tpos){
         if(rLevel == 0 || rLevel > 4)
             continue;
 
-        _remeds.push_back(std::make_tuple(remed, rLevel, author, tLevel, remedPos));
+        _remeds.push_back(std::make_tuple(remed, rLevel, author, tLevel/*remedPos*/));
     }
 }
 
@@ -189,7 +189,7 @@ std::pair<QStringList, QStringList> functions::repertoryData::crossLinksList() c
 
     return _crossLinks;
 }
-QVector<std::tuple<quint16, quint8, quint16, quint16, quint16>> functions::repertoryData::remedsList() const{
+QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> functions::repertoryData::remedsList() const{
     if(isClear())
         throw repertoryDataException();
 

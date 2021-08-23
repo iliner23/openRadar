@@ -1,7 +1,7 @@
 #include "vocabulary.h"
 #include "ui_vocabulary.h"
 
-vocabulary::vocabulary(const QDir system, const std::pair<QLocale::Language, QLocale::Language> language, const QDir catalog, QTextCodec * codec, QWidget *parent) :
+vocabulary::vocabulary(const QDir system, const std::pair<QLocale, QLocale> language, const QDir catalog, QTextCodec * codec, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::vocabulary)
 {
@@ -25,8 +25,8 @@ vocabulary::vocabulary(const QDir system, const std::pair<QLocale::Language, QLo
     ui->comboBox->insertItem(1, "Корни и формы");
     ui->comboBox->insertItem(2, "Синонимы");
 
-    ui->comboBox_3->insertItem(0, QLocale(_lang.first).nativeLanguageName());
-    ui->comboBox_3->insertItem(1, QLocale(_lang.second).nativeLanguageName());
+    ui->comboBox_3->insertItem(0, _lang.first.nativeLanguageName());
+    ui->comboBox_3->insertItem(1, _lang.second.nativeLanguageName());
 
     ui->comboBox_2->insertItems(0, {"и", "или"});
 
@@ -76,7 +76,7 @@ void vocabulary::rendering(const int type){
     };
 
     auto synomRoots = [&](const QString name){
-        using namespace languages;
+        using namespace lang;
         const auto origIter = std::find(radarLang.cbegin(),
                                          radarLang.cend(), _lang.first) - radarLang.cbegin() + 1;
 

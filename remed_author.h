@@ -5,8 +5,9 @@
 #include <QTextCodec>
 #include "openctree.h"
 #include <memory>
-#include "cache.h"
 #include "commonfunctions.h"
+#include "keysremedlist.h"
+#include "repertorydata.h"
 
 namespace Ui {
 class remed_author;
@@ -19,19 +20,25 @@ private:
     QDir _path;
     openCtree _sym;
     QByteArray _pos;
+    QStringList _authorsText;
+    QString _remedName;
+
     int _localPos;
     quint16 _remFilter = -1;
-    std::shared_ptr<cache> _cache;
-    QStringList _authorsText;
+
+    std::shared_ptr<func::cache> _cache;
     QTextCodec * _codec;
+
+    keysRemedList * _remedList;
 
     void rendering();
 private slots:
-    void showTextInformation(QListWidgetItem*);
+    void showTextInformation();
+    void showRemedList();
 public:
-    explicit remed_author(const QDir, std::shared_ptr<cache>,
-                          const QByteArray, const quint16, const quint32,
-                          QTextCodec * codec = QTextCodec::codecForName("system"),
+    explicit remed_author(const QDir, std::shared_ptr<func::cache>,
+                          const QByteArray, const quint16, const quint32, keysRemedList * remedList,
+                          QTextCodec * codec,
                           QWidget *parent = nullptr);
     ~remed_author();
 

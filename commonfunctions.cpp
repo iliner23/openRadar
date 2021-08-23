@@ -1,6 +1,6 @@
 #include "commonfunctions.h"
 
-std::pair<QStringList, QByteArrayList> functions::linksParser::operator() (openCtree symptom, openCtree word, const QString expression, QTextCodec * codec){
+std::pair<QStringList, QByteArrayList> func::linksParser::operator() (openCtree symptom, openCtree word, const QString expression, QTextCodec * codec){
     QVector<std::pair<QString, operation>> expr;
 
     _codec = codec;
@@ -9,7 +9,7 @@ std::pair<QStringList, QByteArrayList> functions::linksParser::operator() (openC
     expressionParser(expression, expr);
     return logicalParser(expr);
 }
-void functions::linksParser::expressionParser(const QString expr, QVector<std::pair<QString, operation>> & exAr){
+void func::linksParser::expressionParser(const QString expr, QVector<std::pair<QString, operation>> & exAr){
     QRegularExpression re(R"(\[word:(\S+)\]\s*(AND|OR|\s*))",
                           QRegularExpression::CaseInsensitiveOption);
     auto globMatch = re.globalMatch(expr);
@@ -34,7 +34,7 @@ void functions::linksParser::expressionParser(const QString expr, QVector<std::p
         exAr.push_back(pair);
     }
 }
-QByteArrayList functions::linksParser::keysParser(const std::string & key, QSet<QByteArray> & set){
+QByteArrayList func::linksParser::keysParser(const std::string & key, QSet<QByteArray> & set){
     auto data = QByteArray::fromStdString(_word.at(key));
     const auto lastPos = data.indexOf('\0', _word.serviceDataLenght()) + 1;
     data = data.mid(lastPos);
@@ -77,7 +77,7 @@ QByteArrayList functions::linksParser::keysParser(const std::string & key, QSet<
 
     return keys;
 }
-std::pair<QStringList, QByteArrayList> functions::linksParser::logicalParser(QVector<std::pair<QString, operation>> & expr){
+std::pair<QStringList, QByteArrayList> func::linksParser::logicalParser(QVector<std::pair<QString, operation>> & expr){
     QVector<std::pair<QByteArrayList, operation>> multiKeys;
 
     for(auto exprIt = 0; exprIt != expr.size(); ++exprIt){
@@ -171,7 +171,7 @@ std::pair<QStringList, QByteArrayList> functions::linksParser::logicalParser(QVe
 
     return std::make_pair(list, keysList);
 }
-void functions::linksParser::logicalANDparser(const QByteArrayList firstList, const QByteArrayList secondList, QByteArrayList & tempList){
+void func::linksParser::logicalANDparser(const QByteArrayList firstList, const QByteArrayList secondList, QByteArrayList & tempList){
     const QByteArrayList * list1, * list2;
 
     if(firstList.size() < secondList.size()){
@@ -255,7 +255,7 @@ void functions::linksParser::logicalANDparser(const QByteArrayList firstList, co
             tempList.append(it.result());
     }
 }
-QVector<QByteArrayList> functions::linksParser::threadsParent(const QByteArrayList & sourceList,
+QVector<QByteArrayList> func::linksParser::threadsParent(const QByteArrayList & sourceList,
                                  std::function<QVector<QByteArrayList>(openCtree symptom, const QByteArrayList & , quint32 , quint32 )> threadFunc){
     QVector<QByteArrayList> fillerList;
 
@@ -279,7 +279,7 @@ QVector<QByteArrayList> functions::linksParser::threadsParent(const QByteArrayLi
 }
 
 
-QString functions::renderingLabel(openCtree symptom, bool pass, QTextCodec * codec){
+QString func::renderingLabel(openCtree symptom, bool pass, QTextCodec * codec){
     QStringList original, localization;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');
@@ -354,7 +354,7 @@ QString functions::renderingLabel(openCtree symptom, bool pass, QTextCodec * cod
 
     return org + ((localization.isEmpty()) ? "" : '\n' + lz);
 }
-std::pair<QStringList, QStringList> functions::renderingLabel(openCtree symptom, QTextCodec * codec){
+std::pair<QStringList, QStringList> func::renderingLabel(openCtree symptom, QTextCodec * codec){
     QStringList original, localization;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');
@@ -406,7 +406,7 @@ std::pair<QStringList, QStringList> functions::renderingLabel(openCtree symptom,
 
     return std::make_pair(original, localization);
 }
-QByteArrayList functions::getRootPath(openCtree symptom, quint16 deep){
+QByteArrayList func::getRootPath(openCtree symptom, quint16 deep){
     QByteArrayList array;
     auto text = QByteArray::fromStdString(symptom.currentValue());
     QByteArray ind(6, '\0');

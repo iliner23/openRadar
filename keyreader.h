@@ -15,7 +15,7 @@ class keyReader : public QDialog
 
 public:
     explicit keyReader(QByteArray text, QString title,
-            QWidget * keyRemedList, QWidget *parent = nullptr);
+            QDialog * keyRemedList, QWidget *parent = nullptr);
     ~keyReader();
 private slots:
     void setCodec();
@@ -24,7 +24,7 @@ private:
     Ui::keyReader *ui;
     QByteArray _text;
     QTextCodec * _codec;
-    QWidget * _keyRemedList;
+    QDialog * _keyRemedList;
 };
 
 #endif // KEYREADER_H

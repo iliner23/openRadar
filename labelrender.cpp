@@ -1,9 +1,9 @@
 #include "labelrender.h"
 
-labelRender::labelRender(const QDir filename, const std::shared_ptr<cache> & cache, QTextCodec * codec){
+labelRender::labelRender(const QDir filename, const std::shared_ptr<func::cache> & cache, QTextCodec * codec){
     labelRender::reset(filename, cache, codec);
 }
-void labelRender::reset(const QDir filename, const std::shared_ptr<cache> & cache, QTextCodec * codec){
+void labelRender::reset(const QDir filename, const std::shared_ptr<func::cache> & cache, QTextCodec * codec){
     for(auto & it : _remedsCount)
         it = 0;
 

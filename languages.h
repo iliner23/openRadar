@@ -4,9 +4,8 @@
 #include <QTextCodec>
 #include <array>
 
-namespace languages {
-    const std::array<QLocale::Language, 13> radarLang =
-    {
+namespace lang {
+    const std::array<QLocale, 13> radarLang = {
         QLocale::English,
         QLocale::French,
         QLocale::Italian,
@@ -22,8 +21,8 @@ namespace languages {
         QLocale::Chinese
     };
 
-    inline QByteArray languageToName(QLocale::Language lang){
-       switch (lang) {
+    inline QByteArray langToName(QLocale lang){
+       switch (lang.language()) {
        case QLocale::English:
        case QLocale::French:
        case QLocale::Italian:
@@ -46,14 +45,17 @@ namespace languages {
            return "";
        }
     }
+    inline QByteArray langToName(quint8 pos){
+        return langToName(radarLang.at(pos));
+    }
 
-    inline QByteArray systemCodec(){
+    inline QByteArray defaultCodec(){
         return "windows-1252";
     }
 
-    inline QByteArray chooseCodec(std::pair<QLocale::Language, QLocale::Language> pair){
-        const auto orig = languageToName(pair.first);
-        const auto local = languageToName(pair.second);
+    inline QByteArray chooseCodec(std::pair<QLocale, QLocale> pair){
+        const auto orig = langToName(pair.first);
+        const auto local = langToName(pair.second);
 
         if(orig == local)
             return orig;

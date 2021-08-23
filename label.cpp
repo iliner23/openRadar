@@ -1,8 +1,8 @@
 #include "label.h"
 #include "ui_label.h"
 
-Label::Label(std::shared_ptr<cache> ch, const QDir path,
-             const QByteArray pos, const quint16 remFilter, std::pair<QLocale::Language, QLocale::Language> lang, QWidget *parent) :
+Label::Label(std::shared_ptr<func::cache> ch, const QDir path,
+             const QByteArray pos, const quint16 remFilter, std::pair<QLocale, QLocale> lang, keysRemedList *remedList, QWidget *parent) :
     QDialog(parent), ui(new Ui::Label)
 {
     ui->setupUi(this);
@@ -12,11 +12,12 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
 
     _cache = ch;
     _filename = path;
+    _remedList = remedList;
 
-    ui->label_3->setText(QLocale(lang.first).nativeLanguageName());
-    ui->label_4->setText(QLocale(lang.second).nativeLanguageName());
+    ui->label_3->setText(lang.first.nativeLanguageName());
+    ui->label_4->setText(lang.second.nativeLanguageName());
 
-    _codec = QTextCodec::codecForName(languages::chooseCodec(lang));
+    _codec = QTextCodec::codecForName(lang::chooseCodec(lang));
     _engine = new labelRender(_filename, _cache, _codec);
 
     _engine->setCurrentKey(pos);
@@ -61,26 +62,25 @@ Label::Label(std::shared_ptr<cache> ch, const QDir path,
     if(_crossLinks.first.isEmpty() && _crossLinks.second.isEmpty())
         ui->listWidget_3->item(2)->setHidden(true);
 
-    connect(ui->listWidget_3, &QListWidget::itemClicked, this, &Label::showTextInformation);
+    connect(ui->listWidget_3, &QListWidget::itemSelectionChanged, this, &Label::showTextInformation);
     connect(_scene, &customScene::doubleClick, this, &Label::clickedAction);
 
     for(auto i = 0; i != 3; ++i){
         if(!ui->listWidget_3->item(i)->isHidden()){
             ui->listWidget_3->setCurrentRow(i);
-            emit ui->listWidget_3->itemClicked(ui->listWidget_3->item(i));
             break;
         }
     }
 }
-void Label::showTextInformation(QListWidgetItem * item){
+void Label::showTextInformation(){
     ui->listWidget->clear();
     ui->listWidget_2->clear();
 
-    if(ui->listWidget_3->row(item) == 0){
+    if(ui->listWidget_3->currentRow() == 0){
         ui->listWidget->addItems(QStringList(_synonyms.first));
         ui->listWidget_2->addItems(QStringList(_synonyms.second));
     }
-    else if(ui->listWidget_3->row(item) == 1){
+    else if(ui->listWidget_3->currentRow() == 1){
         ui->listWidget->addItems(_links.first);
         ui->listWidget_2->addItems(_links.second);
     }
@@ -88,10 +88,6 @@ void Label::showTextInformation(QListWidgetItem * item){
         ui->listWidget->addItems(_crossLinks.first);
         ui->listWidget_2->addItems(_crossLinks.second);
     }
-}
-Label::~Label()
-{
-    delete ui;
 }
 void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     //0 - label num, 1 - (see, 2 - links, 3 - remed, 4 - author
@@ -103,11 +99,12 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
-                                          , _engine->chaptersFilter(), item->data(1).toUInt(), _codec, this);
+                                          , _engine->chaptersFilter(), item->data(1).toUInt(),
+                                      _remedList, _codec, this);
             break;
         }
         case 4 : {
-            widget = new author(item->data(1).toUInt(), _cache, _codec, this);
+            widget = new author(item->data(1).toUInt(), _cache, this);
             break;
         }
         default:
@@ -116,4 +113,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
 
     widget->setAttribute(Qt::WA_DeleteOnClose);
     widget->show();
+}
+Label::~Label(){
+    delete ui;
 }

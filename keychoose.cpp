@@ -1,42 +1,18 @@
 #include "keychoose.h"
 #include "ui_keychoose.h"
 
-KeyChoose::KeyChoose(const QStringList keys, QWidget *parent) :
+KeyChoose::KeyChoose(const QStringList keys, keysRemedList * list, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::KeyChoose)
 {
     ui->setupUi(this);
 
-    _codec = QTextCodec::codecForName(
-                languages::languageToName(languages::radarLang.at(0)));
+    _codec = QTextCodec::codecForName(lang::defaultCodec());
 
-    openCtree view;
-    uint8_t count = 0;
-    QString temp;
-    QStringList items;
-    QVector<QDir> keysPos;
-
-    for(auto & it: keys){
-        switch (count) {
-        case 1:
-            temp += " (" + it + ") ";
-            ++count;
-            items.push_back(temp);
-            break;
-        case 0:
-            temp = it;
-            ++count;
-            break;
-        case 2:
-            keysPos.append(it);
-            count = 0;
-        }
-    }
-
-    _remedList = new keysRemedList(keysPos, items, parentWidget());
+    _remedList = list;
     _model = new QStringListModel(this);
     _proxyModel = new QSortFilterProxyModel(this);
-    _model->setStringList(items);
+    _model->setStringList(keys);
     _proxyModel->setSourceModel(_model);
     _proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
@@ -50,10 +26,10 @@ KeyChoose::KeyChoose(const QStringList keys, QWidget *parent) :
     ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(false);
 }
 void KeyChoose::accept(){
+    QDialog::accept();
     auto list = _proxyModel->mapToSource(ui->listView->currentIndex());
     _remedList->changeTable(list.row());
-    _remedList->show();
-    QDialog::accept();
+    _remedList->exec();
 }
 void KeyChoose::finding(const QString str){
     _proxyModel->setFilterFixedString(str);
@@ -66,7 +42,6 @@ void KeyChoose::activateLevel(const QModelIndex & selected){
 
     ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(true);
 }
-KeyChoose::~KeyChoose()
-{
+KeyChoose::~KeyChoose(){
     delete ui;
 }

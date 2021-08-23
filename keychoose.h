@@ -15,8 +15,7 @@ class KeyChoose : public QDialog
     Q_OBJECT
 
 public:
-    explicit KeyChoose(const QStringList, QWidget *parent = nullptr);
-    keysRemedList * remedList() const { return _remedList; }
+    explicit KeyChoose(const QStringList, keysRemedList *list, QWidget *parent = nullptr);
     ~KeyChoose();
 
 private:

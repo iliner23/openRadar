@@ -176,7 +176,7 @@ void searchModel::setCatalogFile(const QDir file, const QByteArray pos, QTextCod
     _root = new _node("root", pos);
 
     if(codec == nullptr)
-        _codec = QTextCodec::codecForName(languages::systemCodec());
+        _codec = QTextCodec::codecForName(lang::defaultCodec());
     else
         _codec = codec;
 

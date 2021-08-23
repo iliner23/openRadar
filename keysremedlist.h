@@ -24,13 +24,15 @@ public:
 public slots:
     void changeTable(int);
     void accept() override;
+    void reject() override;
+    void setFilterRemed(const QString name);
 private slots:
     void renderingTable(int);
     void fullFilter(QString);
     void shortFilter(QString);
     void tableActivated(const QModelIndex &);
     void activateOkBut(const QModelIndex &);
-private:
+protected:
     Ui::keysRemedList *ui;
     QVector<QDir> _keysFile;
     QTextCodec * _codec;
@@ -40,6 +42,7 @@ private:
     QSortFilterProxyModel * _proxy;
 
     inline void openReader(const QModelIndex &);
+    void showEvent(QShowEvent *event) override;
 };
 
 #endif // KEYSREMEDLIST_H

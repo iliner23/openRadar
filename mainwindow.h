@@ -6,7 +6,6 @@
 #include "openctree.h"
 #include "repchose.h"
 #include "repertory.h"
-#include "cache.h"
 #include "windowchapters.h"
 #include "languages.h"
 #include "keychoose.h"
@@ -27,7 +26,7 @@ private slots:
     void on_action1_triggered();
     void openKeysChooseWindow();
     void openRepertory(QModelIndex &, const quint16,
-                       std::pair<QLocale::Language, QLocale::Language>);
+                       std::pair<QLocale, QLocale>);
 
     void openChapters();
     void openChaptersInCurrentPos();
@@ -41,12 +40,12 @@ private:
     Ui::MainWindow *ui;
     RepChose * _choose = nullptr;
     KeyChoose * _keych = nullptr;
+    keysRemedList * _remedList = nullptr;
     windowChapters * _chapters = nullptr;
 
     openCtree _catalog;
-    QStringList _reperts;
-    QVector<std::pair<QLocale::Language, QLocale::Language>> _repertsLang;
-    QStringList _keys;
-    std::shared_ptr<cache> _cache;
+    QVector<QDir> _repertsPos;
+    QVector<std::pair<QLocale, QLocale>> _repertsLang;
+    std::shared_ptr<func::cache> _cache;
 };
 #endif // MAINWINDOW_H

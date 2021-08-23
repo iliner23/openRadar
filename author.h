@@ -3,8 +3,9 @@
 
 #include <QDialog>
 #include <memory>
-#include "cache.h"
 #include <QTextCodec>
+#include "commonfunctions.h"
+#include "languages.h"
 
 namespace Ui {
 class author;
@@ -14,12 +15,12 @@ class author : public QDialog
 {
     Q_OBJECT
 public:
-    explicit author(const quint32, std::shared_ptr<cache>, QTextCodec * codec, QWidget *parent = nullptr);
+    explicit author(const quint32, std::shared_ptr<func::cache>, QWidget *parent = nullptr);
     ~author();
 
 private:
     Ui::author *ui;
-    std::shared_ptr<cache> _cache;
+    std::shared_ptr<func::cache> _cache;
     quint32 _authorPos;
 };
 

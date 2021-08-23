@@ -1,13 +1,13 @@
 #include "keyreader.h"
 #include "ui_keyreader.h"
 
-keyReader::keyReader(QByteArray text, QString title, QWidget * keyRemedList, QWidget *parent) :
+keyReader::keyReader(QByteArray text, QString title, QDialog * keyRemedList, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::keyReader)
 {
     ui->setupUi(this);
     _text = text;
-    _codec = QTextCodec::codecForName(languages::systemCodec());
+    _codec = QTextCodec::codecForName(lang::defaultCodec());
     _keyRemedList = keyRemedList;
     setWindowTitle(title);
 
@@ -17,11 +17,11 @@ keyReader::keyReader(QByteArray text, QString title, QWidget * keyRemedList, QWi
     connect(ui->pushButton, &QPushButton::clicked, this, &keyReader::showKeyChoose);
 }
 void keyReader::setCodec(){
-    using namespace languages;
+    using namespace lang;
     QStringList languages;
 
-    for(auto & it : languages::radarLang){
-        if(QTextCodec::codecForName(languageToName(it)) != nullptr)
+    for(auto & it : lang::radarLang){
+        if(QTextCodec::codecForName(langToName(it)) != nullptr)
             languages += QLocale(it).nativeLanguageName();
     }
 
@@ -34,13 +34,13 @@ void keyReader::setCodec(){
 
     if(ok){
         _codec = QTextCodec::codecForName(
-                    languageToName(radarLang.at(pos)));
+                    langToName(pos));
         ui->plainTextEdit->setPlainText(_codec->toUnicode(_text));
     }
 }
 void keyReader::showKeyChoose(){
-    _keyRemedList->show();
-    close();
+    QDialog::accept();
+    _keyRemedList->exec();
 }
 keyReader::~keyReader(){
     delete ui;

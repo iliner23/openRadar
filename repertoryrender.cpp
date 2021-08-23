@@ -9,11 +9,11 @@ void repertoryRender::initFonts(){
     _fonts.smallFont = QFont(_fonts.fontName, 8);
     _fonts.boldFont = QFont(_fonts.fontName, 10, QFont::Bold);
 }
-repertoryRender::repertoryRender(const QDir filename, const std::shared_ptr<cache> & cache, QTextCodec * codec){
+repertoryRender::repertoryRender(const QDir filename, const std::shared_ptr<func::cache> & cache, QTextCodec * codec){
     initFonts();
     repertoryRender::reset(filename, cache, codec);
 }
-void repertoryRender::reset(const QDir filename, const std::shared_ptr<cache> &cache, QTextCodec *codec){
+void repertoryRender::reset(const QDir filename, const std::shared_ptr<func::cache> &cache, QTextCodec *codec){
     _symptom.open(filename.filePath("symptom").toStdString());
     _symptom.back(false);
     _endIndex = QByteArray::fromStdString(_symptom.key());
@@ -39,7 +39,7 @@ void repertoryRender::setCurrentPosition(int pos){
 }
 QString repertoryRender::renderingLabel(const bool pass){
     _symptom.at(_index.toStdString(), false);
-    return functions::renderingLabel(_symptom, pass, _codec);
+    return func::renderingLabel(_symptom, pass, _codec);
 }
 void repertoryRender::addRemeds(QGraphicsItemGroup * group, QPointF pos, QVector<QVector<QGraphicsItemGroup*>> & array, int labelWidth) const{
     QRectF size;
@@ -285,10 +285,13 @@ QGraphicsItemGroup * repertoryRender::subRender(openCtree data){
 
         const auto remeds = dataParser.remedsList();
         quint16 prevRemed = 0;
+        auto counter = -1;
         QVector<QGraphicsItemGroup*> * arrayPtr = nullptr;
         //remed, type, author, filter, remedPos
 
         for(const auto & remIt : remeds){
+            ++counter;
+
             if(_remFilter != (quint16)-1 && (std::get<3>(remIt) & _remFilter) == 0)
                 continue;
 
@@ -321,7 +324,7 @@ QGraphicsItemGroup * repertoryRender::subRender(openCtree data){
                     remedItem->setText((std::get<1>(remIt) > 2) ? remedName.toUpper() : remedName);
 
                     remedItem->setData(0, 3);
-                    remedItem->setData(1, std::get<4>(remIt));
+                    remedItem->setData(1, /*std::get<4>(remIt)*/counter);
                     remedItem->setData(2, QByteArray::fromStdString(dataParser.key()));
 
                     auto gr = new QGraphicsItemGroup;

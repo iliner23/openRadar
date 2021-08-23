@@ -3,7 +3,6 @@
 
 #include <QtWidgets>
 #include "repertorydata.h"
-#include "cache.h"
 
 class repertoryRender
 {
@@ -28,9 +27,9 @@ public:
     };
 
     repertoryRender() { initFonts(); }
-    repertoryRender(const QDir filename, const std::shared_ptr<cache> & cache,
+    repertoryRender(const QDir filename, const std::shared_ptr<func::cache> & cache,
                     QTextCodec * codec = QTextCodec::codecForName("system"));
-    virtual void reset(const QDir filename, const std::shared_ptr<cache> & cache,
+    virtual void reset(const QDir filename, const std::shared_ptr<func::cache> & cache,
                        QTextCodec * codec = QTextCodec::codecForName("system"));
 
     virtual QVector<QGraphicsItemGroup*> render(const QSize resolution);
@@ -69,7 +68,7 @@ public:
     qint32 chapterSize() const { return _symptom.size(); }
 protected:
     QTextCodec * _codec;
-    std::shared_ptr<cache> _cache;
+    std::shared_ptr<func::cache> _cache;
     QVector<QGraphicsItem*> _navigation;
     QByteArray _index, _endIndex;
 

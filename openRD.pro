@@ -42,7 +42,6 @@ SOURCES += \
 
 HEADERS += \
     author.h \
-    cache.h \
     commonfunctions.h \
     customscene.h \
     delegate.h \
