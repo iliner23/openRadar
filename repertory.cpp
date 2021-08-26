@@ -39,7 +39,7 @@ repertory::repertory(const QDir filename, const QDir system,
     auto hlayout = new QHBoxLayout(this);
     _scene = new customScene(this);
 
-    _engine.reset(filename, _cache, _codec);
+    _engine.reset(filename.filePath("symptom"), _cache, _codec);
     _engine.setChaptersFilter(remFilter);
     _engine.setCurrentPosition(0);
 

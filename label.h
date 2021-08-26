@@ -30,7 +30,7 @@ private:
     std::pair<QStringList, QStringList> _crossLinks;
 
     keysRemedList * _remedList;
-    labelRender * _engine;
+    labelRender _engine;
     QTextCodec * _codec;
 
     void renderingChapter();
@@ -42,7 +42,7 @@ public:
                    const quint16, std::pair<QLocale, QLocale>, keysRemedList * remedList,
                    QWidget *parent = nullptr);
 
-    bool isHiddenLabels() const noexcept { return _engine->isHidden(); }
+    bool isHiddenLabels() const noexcept { return _engine.isHidden(); }
     ~Label();
 };
 

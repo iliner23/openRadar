@@ -46,5 +46,18 @@ namespace func {
         std::unordered_map<uint16_t, std::string> _cacheAuthor;
         uint16_t _lenRem, _lenAuthor;
     };
+
+    struct remedClipboardInfo{
+        QDir path;
+        QByteArray key;
+        QTextCodec * codec;
+        quint8 intensity = 1;
+        bool elim = false;
+        bool cas = false;
+        QString group;
+        bool measure[4] = { true, true, true, true};
+        bool remGroup = false;
+        bool subGroup = false;
+    };
 }
 #endif // COMMONFUNCTIONS_H

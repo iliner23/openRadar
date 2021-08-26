@@ -14,7 +14,7 @@ repertoryRender::repertoryRender(const QDir filename, const std::shared_ptr<func
     repertoryRender::reset(filename, cache, codec);
 }
 void repertoryRender::reset(const QDir filename, const std::shared_ptr<func::cache> &cache, QTextCodec *codec){
-    _symptom.open(filename.filePath("symptom").toStdString());
+    _symptom.open(filename.path().toStdString());
     _symptom.back(false);
     _endIndex = QByteArray::fromStdString(_symptom.key());
     _cache = cache;

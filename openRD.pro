@@ -35,8 +35,10 @@ SOURCES += \
     repertory.cpp \
     repertorydata.cpp \
     repertoryrender.cpp \
+    researchremed.cpp \
     searchmodel.cpp \
     searchresult.cpp \
+    takeremed.cpp \
     vocabulary.cpp \
     windowchapters.cpp
 
@@ -59,8 +61,10 @@ HEADERS += \
     repertory.h \
     repertorydata.h \
     repertoryrender.h \
+    researchremed.h \
     searchmodel.h \
     searchresult.h \
+    takeremed.h \
     vocabulary.h \
     windowchapters.h
 
@@ -73,7 +77,9 @@ FORMS += \
     mainwindow.ui \
     remed_author.ui \
     repchose.ui \
+    researchremed.ui \
     searchresult.ui \
+    takeremed.ui \
     vocabulary.ui \
     windowchapters.ui
 
