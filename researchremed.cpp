@@ -8,37 +8,44 @@ researchRemed::researchRemed(QStringList clipNames, QWidget *parent) :
     _clipNames = clipNames;
 
     for(auto it = 0; it != (int) _labels.size(); ++it){
-        _labels.at(it).widget = new QWidget(ui->listWidget);
-        //_labels.at(it).widget->hide();
+        _labels.at(it).widget = new QWidget(ui->scrollAreaWidgetContents);
+        _labels.at(it).widget->hide();
 
         auto layout = new QVBoxLayout(_labels.at(it).widget);
 
         _labels.at(it).label = new QLabel(_labels.at(it).widget);
-        _labels.at(it).label->setText(_clipNames.at(it));
-        QPalette pal = _labels.at(it).label->palette();
-        pal.setColor(_labels.at(it).label->backgroundRole(), Qt::yellow);
-        _labels.at(it).label->setPalette(pal);
-
         _labels.at(it).list = new QListWidget(_labels.at(it).widget);
 
         layout->addWidget(_labels.at(it).label);
         layout->addWidget(_labels.at(it).list);
     }
 }
-void researchRemed::setClipboard(quint8 pos){  
-    if(pos <= 9){
-        /*for(auto & it : _labels)
-            it.widget->hide();*/
+void researchRemed::setClipboards(std::array<bool, 10> act){
+    for(auto & it : _labels){
+        it.widget->hide();
+        it.widget->move(0, 0);
+        it.list->clear();
+    }
 
-        _pos = pos;
-        _labels.at(pos).list->clear();
+    QWidget * prev = nullptr;
 
-        for(auto & it : _clipboadrs.at(_pos)){
+    for(auto iter = 0; iter != act.size(); ++iter){
+        if(!act.at(iter))
+            continue;
+
+        for(auto & it : _clipboadrs.at(iter)){
             openCtree data(it.path.filePath("symptom").toStdString());
             data.at(it.key.toStdString(), false);
-            _labels.at(pos).list->addItem(func::renderingLabel(data, false, it.codec));
-            //_labels.at(pos).widget->show();
+            _labels.at(iter).list->addItem(func::renderingLabel(data, false, it.codec));
         }
+
+        _labels.at(iter).label->setText(_clipNames.at(iter));
+
+        if(prev != nullptr)
+            _labels.at(iter).widget->move(0, prev->y() + prev->height() + 5);
+
+        _labels.at(iter).widget->show();
+        prev = _labels.at(iter).widget;
     }
 }
 void researchRemed::setClipboardName(QStringList name){

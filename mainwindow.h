@@ -46,7 +46,7 @@ private slots:
     void setClipboardsName(QStringList name);
     void addClipboardsRemed(func::remedClipboardInfo, quint8);
 #ifdef _TEST_
-    void openResearchTest(int a, bool add = false);
+    void openResearchTest(QAction *act);
 #endif
 signals:
     void changeClipboardsName(QStringList);
@@ -61,6 +61,11 @@ private:
 
 #ifdef _TEST_
     researchRemed * _research = nullptr;
+    void keyPressEvent(QKeyEvent *) override;
+    void keyReleaseEvent(QKeyEvent *) override;
+
+    QVector<QAction*> _pressedClipboard;
+    bool _pressed = false;
 #endif
     openCtree _catalog;
     QVector<QDir> _repertsPos;

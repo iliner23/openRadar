@@ -16,7 +16,7 @@ public:
     explicit researchRemed(QStringList clipNames, QWidget *parent = nullptr);
     ~researchRemed();
 public slots:
-    void setClipboard(quint8 pos);
+    void setClipboards(std::array<bool, 10>);
     void setClipboardName(QStringList);
     void setClipboardRemed(std::array<QVector<rci>, 10>);
 private:
@@ -32,7 +32,6 @@ private:
 
     std::array<QVector<rci>, 10> _clipboadrs;
     QStringList _clipNames;
-    quint8 _pos = 0;
 };
 
 #endif // RESEARCHREMED_H

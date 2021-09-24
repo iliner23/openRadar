@@ -169,16 +169,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::changeClipboardsRemed, _research, &researchRemed::setClipboardRemed);
     connect(this, &MainWindow::changeClipboardsName, _research, &researchRemed::setClipboardName);
 
-    connect(ui->action29, &QAction::triggered, this, [&](){ openResearchTest(0); });
-    connect(ui->action30, &QAction::triggered, this, [&](){ openResearchTest(1); });
-    connect(ui->action31, &QAction::triggered, this, [&](){ openResearchTest(2); });
-    connect(ui->action32, &QAction::triggered, this, [&](){ openResearchTest(3); });
-    connect(ui->action33, &QAction::triggered, this, [&](){ openResearchTest(4); });
-    connect(ui->action34, &QAction::triggered, this, [&](){ openResearchTest(5); });
-    connect(ui->action35, &QAction::triggered, this, [&](){ openResearchTest(6); });
-    connect(ui->action36, &QAction::triggered, this, [&](){ openResearchTest(7); });
-    connect(ui->action37, &QAction::triggered, this, [&](){ openResearchTest(8); });
-    connect(ui->action38, &QAction::triggered, this, [&](){ openResearchTest(9); });
+    connect(ui->action29, &QAction::triggered, this, [&](){ openResearchTest(ui->action29); });
+    connect(ui->action30, &QAction::triggered, this, [&](){ openResearchTest(ui->action30); });
+    connect(ui->action31, &QAction::triggered, this, [&](){ openResearchTest(ui->action31); });
+    connect(ui->action32, &QAction::triggered, this, [&](){ openResearchTest(ui->action32); });
+    connect(ui->action33, &QAction::triggered, this, [&](){ openResearchTest(ui->action33); });
+    connect(ui->action34, &QAction::triggered, this, [&](){ openResearchTest(ui->action34); });
+    connect(ui->action35, &QAction::triggered, this, [&](){ openResearchTest(ui->action35); });
+    connect(ui->action36, &QAction::triggered, this, [&](){ openResearchTest(ui->action36); });
+    connect(ui->action37, &QAction::triggered, this, [&](){ openResearchTest(ui->action37); });
+    connect(ui->action38, &QAction::triggered, this, [&](){ openResearchTest(ui->action38); });
 #endif
 }
 void MainWindow::openTakeRemed(){
@@ -192,9 +192,65 @@ void MainWindow::openTakeRemed(){
     }
 }
 #ifdef _TEST_
-void MainWindow::openResearchTest(int a, bool add){
-    _research->setClipboard(a);
-    _research->show();
+void MainWindow::openResearchTest(QAction * act){
+    auto compare = [&](QAction * com){
+        if(ui->action29 == com)
+            return 0;
+        if(ui->action30 == com)
+            return 1;
+        if(ui->action31 == com)
+            return 2;
+        if(ui->action32 == com)
+            return 3;
+        if(ui->action33 == com)
+            return 4;
+        if(ui->action34 == com)
+            return 5;
+        if(ui->action35 == com)
+            return 6;
+        if(ui->action36 == com)
+            return 7;
+        if(ui->action37 == com)
+            return 8;
+        if(ui->action38 == com)
+            return 9;
+
+        return -1;
+    };
+
+    std::array<bool, 10> val;
+
+    for(auto & it : val)
+        it = false;
+
+    if(_pressed){
+        if(act != nullptr && _pressedClipboard.indexOf(act) == -1)
+            _pressedClipboard.push_back(act);
+    }
+    else if(!_pressedClipboard.isEmpty()){
+        for(const auto & it : _pressedClipboard)
+            val.at(compare(it)) = true;
+
+        _research->setClipboards(val);
+        _research->show();
+
+        _pressedClipboard.clear();
+    }
+    else if(act != nullptr){
+        val.at(compare(act)) = true;
+        _research->setClipboards(val);
+        _research->show();
+    }
+}
+void MainWindow::keyPressEvent(QKeyEvent * event){
+    if(event->key() == Qt::Key_Control)
+        _pressed = true;
+}
+void MainWindow::keyReleaseEvent(QKeyEvent * event){
+    if(event->key() == Qt::Key_Control){
+        _pressed = false;
+        openResearchTest(nullptr);
+    }
 }
 #endif
 MainWindow::~MainWindow(){
