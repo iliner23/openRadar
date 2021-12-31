@@ -57,7 +57,6 @@ namespace func {
         QString group;
         bool measure[4] = { true, true, true, true};
         bool remGroup = false;
-        bool subGroup = false;
     };
 }
 #endif // COMMONFUNCTIONS_H

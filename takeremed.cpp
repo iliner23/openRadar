@@ -15,8 +15,10 @@ takeRemed::takeRemed(QStringList name, QWidget *parent) :
 
     _name = name;
 
-    for(auto i = 1; i != 11; ++i)
+    for(auto i = 0; i != 10; ++i)
         ui->comboBox->addItem(QString::number(i));
+
+    ui->comboBox->setCurrentIndex(1);
 
     connect(ui->pushButton, &QPushButton::clicked, this, &takeRemed::setDefault);
     connect(ui->checkBox, &QCheckBox::stateChanged, this, [&](int state){clickedBox(state, 0);});
@@ -48,7 +50,7 @@ void takeRemed::setDefault(){
 
     setClipboardsName(_name);
 
-    ui->comboBox->setCurrentIndex(0);
+    ui->comboBox->setCurrentIndex(1);
 }
 void takeRemed::showEvent(QShowEvent *event){
     setDefault();
@@ -104,8 +106,6 @@ void takeRemed::accept(){
     info.measure[3] = ui->checkBox_6->isChecked();
 
     info.remGroup = ui->checkBox->isChecked();
-    info.subGroup = ui->checkBox_2->isChecked();
-
     info.codec = _codec;
     info.path = _repertory;
     info.key = _key;

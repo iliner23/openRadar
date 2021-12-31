@@ -112,14 +112,6 @@ MainWindow::MainWindow(QWidget *parent)
             break;
     }
 
-    _choose = new RepChose(reperts , _repertsPos, _repertsLang, this);
-    _remedList = new keysRemedList(keysPos, keys, this);
-    _keych = new KeyChoose(keys, _remedList, this);
-    _takeRemed = new takeRemed(_clipNames, this);
-#ifdef _TEST_
-    _research = new researchRemed(_clipNames , this);
-#endif
-
     openCtree remed(QDir("../system/remed").path().toStdString());
     openCtree author(QDir("../system/author").path().toStdString());
 
@@ -147,6 +139,15 @@ MainWindow::MainWindow(QWidget *parent)
         ((char *)&kt)[1] = key[0];
         _cache->_cacheAuthor[kt] = std::move(tp);
     }
+
+    _choose = new RepChose(reperts , _repertsPos, _repertsLang, this);
+    _remedList = new keysRemedList(keysPos, keys, this);
+    _keych = new KeyChoose(keys, _remedList, this);
+    _takeRemed = new takeRemed(_clipNames, this);
+
+#ifdef _TEST_
+    _research = new researchRemed(_clipNames , _cache, this);
+#endif
 
     connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
     connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);

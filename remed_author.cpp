@@ -84,7 +84,7 @@ void remed_author::rendering(){
     };
 
     _sym.at(_pos.toStdString(), false);
-    functions::repertoryData symptom(_sym, _codec);
+    func::repertoryData symptom(_sym, _codec);
 
     quint16 prevRem = 0;
     const auto remeds = symptom.remedsList();

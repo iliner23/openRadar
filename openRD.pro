@@ -36,6 +36,7 @@ SOURCES += \
     repertorydata.cpp \
     repertoryrender.cpp \
     researchremed.cpp \
+    researchremedrender.cpp \
     searchmodel.cpp \
     searchresult.cpp \
     takeremed.cpp \
@@ -62,6 +63,7 @@ HEADERS += \
     repertorydata.h \
     repertoryrender.h \
     researchremed.h \
+    researchremedrender.h \
     searchmodel.h \
     searchresult.h \
     takeremed.h \

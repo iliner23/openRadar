@@ -30,7 +30,7 @@ QVector<QGraphicsItemGroup*> labelRender::render(const QSize resolution){
 
     endData.push_back(subRender(_symptom));
 
-    functions::repertoryData dataParser(_symptom, _codec);
+    func::repertoryData dataParser(_symptom, _codec);
     auto rem = dataParser.remedsList();
 
     quint16 prevRemed = 0;
