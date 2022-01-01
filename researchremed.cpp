@@ -8,6 +8,7 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
     _clipNames = clipNames;
     _scene = new QGraphicsScene(this);
     _render.reset(cache);
+    ui->graphicsView->setScene(_scene);
 }
 void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
@@ -15,6 +16,7 @@ void researchRemed::renameLabels(){
 }
 void researchRemed::setClipboards(std::array<bool, 10> act){
     ui->listWidget->clear();
+    _scene->clear();
     _render.setShowedClipboards(act);
     const auto clipboards = _render.clipboards();
 

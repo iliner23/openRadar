@@ -3,6 +3,7 @@
 
 #include <QtWidgets>
 #include <algorithm>
+#include <cmath>
 #include "repertorydata.h"
 
 class researchRemedRender
@@ -12,9 +13,9 @@ public:
     enum class showType{ waffle, grid, clipboard, strategy, result };
     enum class strategy{ sumRemeds, sumDegree };
 
-    researchRemedRender() = default;
+    researchRemedRender() { initFont(); }
     researchRemedRender(const std::shared_ptr<func::cache> & cache)
-                                                { _cache = cache; }
+                                                { _cache = cache; initFont(); }
     virtual void reset(const std::shared_ptr<func::cache> & cache)
                                                 { _cache = cache; }
     virtual QGraphicsItemGroup * render(const QSize);
@@ -56,9 +57,12 @@ protected:
     std::array<bool, 10> _showClipboadrs;
     std::array<QVector<rci>, 10> _clipboards;
     std::shared_ptr<func::cache> _cache;
-    QSize windowSize;
+    QSize _windowSize;
+
+    QFont _defFont, _numberFont;
 
     QGraphicsItemGroup * waffleRender();
+    void initFont();
 };
 
 #endif // RESEARCHREMEDRENDER_H

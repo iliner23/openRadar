@@ -35,7 +35,7 @@ Label::Label(std::shared_ptr<func::cache> ch, const QDir path,
     _remedSize[2] = rem.at(2);
     _remedSize[3] = rem.at(3);
 
-    if(QLocale::AnyLanguage == lang.second){
+    if(lang.second == QLocale::AnyLanguage){
         ui->label_4->setHidden(true);
         ui->listWidget_2->setHidden(true);
     }
