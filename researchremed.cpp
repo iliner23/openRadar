@@ -64,6 +64,7 @@ void researchRemed::setClipboards(std::array<bool, 10> act){
     _render.setStrategyType(researchRemedRender::strategy::sumRemeds);
 
     _scene->addItem(_render.render(ui->graphicsView->size()));
+    ui->widget->setMinimumHeight(_render.labelHeight());
 }
 void researchRemed::setClipboardName(QStringList name){
     _clipNames = name;

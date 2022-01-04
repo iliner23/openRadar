@@ -47,6 +47,8 @@ public:
                                         { _showClipboadrs = clip; }
     std::array<bool, 10> showedClipboards() const
                                         { return _showClipboadrs; }
+
+    int labelHeight() const { return _labelHeight; }
 protected:
     showType _showType = showType::waffle;
     strategy _strategy = strategy::sumRemeds;
@@ -60,6 +62,7 @@ protected:
     QSize _windowSize;
 
     QFont _defFont, _numberFont;
+    int _labelHeight = 0;
 
     QGraphicsItemGroup * waffleRender();
     void initFont();
