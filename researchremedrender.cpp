@@ -22,40 +22,123 @@ QGraphicsItemGroup * researchRemedRender::render(const QSize windowSize){
     }
 }
 QGraphicsItemGroup * researchRemedRender::waffleRender(){
-    //pasring remeds
-    //**************************************************************************************************************************************
-    auto * blueprint = new QGraphicsItemGroup;
-    QMap<QString, std::pair<QVector<quint8>, int>> remeds;
-    //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
-    func::repertoryData repdata;
-    constexpr quint16 _remFilter = -1;//temp
+    return sumRemeds();//TODO : switch strategy
+}
+QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengthText, int countLines){
+    auto * lines = new QGraphicsItemGroup;
+    lines->setHandlesChildEvents(false);
+    lines->setFlag(QGraphicsItem::ItemHasNoContents);
 
+    QPointF lastPos(-lineWidth, 0);
+    const auto rad = std::acos(-1.0) / 180.0;
+
+    for(auto i = 0; i != countLines; ++i){
+        lastPos += QPointF(lineWidth, 0);
+
+        if(i % 2 != 0)
+            continue;
+
+        auto line = new QGraphicsPolygonItem;
+        QPolygonF polygon;
+
+        polygon << QPointF(lastPos.x(), 0)
+                << QPointF(lastPos.x(), lengthText)
+                << QPointF(lastPos.x() + lineWidth, lengthText)
+                << QPointF(lastPos.x() + lineWidth, 0)
+                << QPointF(lineWidth + lastPos.x() + std::cos(45.0 * rad) * lineWidth * 3.5,
+                                                std::sin(-45.0 * rad) * lineWidth * 3.5)
+                << QPointF(lastPos.x() + std::cosf(45.0 * rad) * lineWidth * 3.5,
+                                                std::sinf(-45.0 * rad) * lineWidth * 3.5);
+
+        line->setPolygon(polygon);
+        line->setPen(QPen(Qt::yellow));
+        line->setBrush(QBrush(Qt::yellow));
+        lines->addToGroup(line);
+    }
+
+    return lines;
+}
+std::tuple<QGraphicsItemGroup*, qreal, qreal> researchRemedRender::drawOneDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>> remeds){
+    auto blueprint = new QGraphicsItemGroup;
     blueprint->setHandlesChildEvents(false);
     blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
 
-    auto numrep = 0, repSize = 0;
-    std::array<int, 10> clipList;
+    qreal boundHeight = 0;
+    qreal upperLineYPos = 0, lowerLineYPos = 0;
+    qreal startXPos = 0, offsetXPos = 0;
+    QPointF lastPos;
 
-    for(auto it = 0; it != _clipboards.size(); ++it){
-        repSize += _clipboards.at(it).size();
-        clipList[it] = repSize;
+    for(auto i = 0; i != remeds.size(); ++i){
+        auto text = new QGraphicsSimpleTextItem(std::get<0>(remeds.at(i)));
+        auto sum = new QGraphicsSimpleTextItem(QString::number(std::get<2>(remeds.at(i))));
+        auto number = new QGraphicsSimpleTextItem(QString::number(i + 1));
+
+        text->setFont(_defFont);
+        text->setPos(lastPos);
+        text->setRotation(-45.0);
+        auto boundRect = text->boundingRect();
+
+        if(i == 0){
+            boundHeight = boundRect.height() * (1 + 0.5);
+            offsetXPos = 0.2 * boundHeight;
+            startXPos = 0.6 * boundHeight;
+
+            upperLineYPos = startXPos + number->boundingRect().height();
+            lowerLineYPos = upperLineYPos + number->boundingRect().height() * (1 + 0.1);
+        }
+
+        number->setFont(_numberFont);
+        number->setPos(lastPos.x() + offsetXPos, startXPos);
+
+        sum->setFont(_numberFont);
+        sum->setPos(lastPos.x() + offsetXPos, upperLineYPos + number->boundingRect().height() * 0.2);
+
+        lastPos += QPointF(boundHeight, 0);
+
+        blueprint->addToGroup(number);
+        blueprint->addToGroup(sum);
+        blueprint->addToGroup(text);
     }
 
-    for(const auto & it : _clipboards){
-        for(const auto & iter : it){
+    auto upperLine = new QGraphicsLineItem;
+    auto lowerLine = new QGraphicsLineItem;
+
+    upperLine->setLine(0, upperLineYPos, lastPos.x(), upperLineYPos);
+    blueprint->addToGroup(upperLine);
+
+    lowerLine->setLine(0, lowerLineYPos, lastPos.x(), lowerLineYPos);
+    blueprint->addToGroup(lowerLine);
+
+    return std::make_tuple(blueprint, boundHeight, lowerLineYPos);
+}
+QGraphicsItemGroup * researchRemedRender::sumRemeds(){
+    QMap<QString, std::pair<QVector<quint8>, int>> remeds;
+    //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
+    auto numrep = 0, repSize = 0;
+
+    for(auto it = 0; it != _clipboards.size(); ++it){
+        if(!_showClipboadrs.at(it))
+            continue;
+
+        repSize += _clipboards.at(it).size();
+    }
+
+    for(auto it = 0; it != _clipboards.size(); ++it){
+        if(!_showClipboadrs.at(it))
+            continue;
+
+        for(const auto & iter : _clipboards.at(it)){
             if(iter.intensity == 0)
                 continue;
 
             quint16 prevRemed = 0;
             openCtree data(iter.path.filePath("symptom").toStdString());
-
             data.at(iter.key.toStdString(), false);
-            repdata.reset(data);
+
+            func::repertoryData repdata(data);
             const auto rem = repdata.remedsList();
 
             for(const auto & itrem : rem){
-                if(_remFilter != (quint16)-1 && (std::get<3>(itrem) & _remFilter) == 0)
-                    continue;
                 if(prevRemed == std::get<0>(itrem))
                     continue;
 
@@ -70,7 +153,9 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
                     }
 
                     remeds[remedName].first[numrep] = std::get<1>(itrem);
-                    remeds[remedName].second += iter.intensity;
+
+                    if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
+                        remeds[remedName].second += iter.intensity;
 
                 } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }
 
@@ -81,13 +166,14 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
         }
     }
 
-    QVector<std::tuple<QString, QVector<quint8>, int>> remed;
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;
 
     for(auto & it : remeds.keys()){
         const auto val = remeds.value(it);
-        remed.append(std::tuple(it, val.first, val.second));
-        remeds.remove(it);
+        remed.append(std::make_tuple(it, val.first, val.second, 0));
     }
+
+    remeds.clear();
 
     auto sort = [](const auto & front, const auto & end){
         return std::get<2>(front) > std::get<2>(end);
@@ -95,129 +181,70 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
 
     std::sort(remed.begin(), remed.end(), sort);
 
-    //drawing colour lines, symptom names and some digits
-    //**************************************************************************************************************************************
+    auto blueprint = new QGraphicsItemGroup;
+    blueprint->setHandlesChildEvents(false);
+    blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
 
-    auto labels = new QGraphicsItemGroup;
-    auto groupRemeds = new QGraphicsItemGroup;
+    auto digits = drawOneDigitsRemeds(remed);
+    auto rmd = drawRemeds(remed, std::get<1>(digits));
 
-    auto upperLine = new QGraphicsLineItem;
-    auto lowerLine = new QGraphicsLineItem;
+    const auto heightLine = std::get<2>(digits) + rmd->boundingRect().height() + _clipboardHeight;
 
+    auto lines = drawLines(std::get<1>(digits),
+                           (heightLine > _windowSize.height())
+                                ? heightLine : _windowSize.height(),
+                           remed.size());
+
+    std::get<0>(digits)->setPos(0, 0);
+
+    lines->setPos(0, 0);
+    lines->setZValue(-1);
+
+    rmd->setPos(0, std::get<2>(digits) + _clipboardHeight);
+
+    blueprint->addToGroup(std::get<0>(digits));
+    blueprint->addToGroup(lines);
+    blueprint->addToGroup(rmd);
+
+    return blueprint;
+}
+QGraphicsItemGroup * researchRemedRender::drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>> remeds, qreal lineWidth){
+    auto blueprint = new QGraphicsItemGroup;
+    int pos = 0;
     QPointF lastPos;
-    QVector<QPolygonF> lines;
-    qreal minusHeight = 0, boundHeight = 0;
-    qreal upperLineYPos = 0, lowerLineYPos = 0;
-    qreal startXPos = 0, offsetXPos = 0;
+    const QRectF rectDownPtr(0, 0, lineWidth * (1 - 0.2), _symptomHeight * (1 - 0.2));
 
-    const auto rad = std::acos(-1.0) / 180.0;
+    blueprint->setHandlesChildEvents(false);
+    blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
 
-    labels->setHandlesChildEvents(false);
-    labels->setFlag(QGraphicsItem::ItemHasNoContents);
+    for(auto i = 0; i != _clipboards.size(); ++i){
+        if(!_showClipboadrs.at(i))
+            continue;
 
-    groupRemeds->setHandlesChildEvents(false);
-    groupRemeds->setFlag(QGraphicsItem::ItemHasNoContents);
+        for(auto it = 0; it != _clipboards.at(i).size(); ++it){
+            for(const auto & rem : remeds){
+                const QColor remedColors[] = {Qt::white, Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
+                auto rRect = new QGraphicsPolygonItem;
+                QPainterPath pol;
 
-    for(auto it = 0; it != remed.size(); ++it){
-        auto text = new QGraphicsSimpleTextItem(std::get<0>(remed.at(it)));
-        auto sum = new QGraphicsSimpleTextItem(QString::number(std::get<2>(remed.at(it))));//TODO : fix this counter
-        auto number = new QGraphicsSimpleTextItem(QString::number(it + 1));
+                pol.addRoundedRect(rectDownPtr, 5, 5);
+                pol.translate(lastPos.x() + 0.1 * lineWidth, lastPos.y());
+                rRect->setPolygon(pol.toFillPolygon());
+                rRect->setBrush(QBrush(remedColors[std::get<1>(rem).at(pos)]));
+                blueprint->addToGroup(rRect);
 
-        text->setFont(_defFont);
-        text->setPos(lastPos);
-        text->setRotation(-45.0);
-        auto boundRect = text->boundingRect();
+                lastPos += QPointF(lineWidth, 0);
+            }
 
-        if(it == 0){
-            boundHeight = boundRect.height() + boundRect.height() * 0.5;
-            offsetXPos = 0.2 * boundHeight;
-            startXPos = -0.3 * boundHeight;
+            ++pos;
+            lastPos.setX(0);
 
-            upperLineYPos = -startXPos * 2 + number->boundingRect().height();
-            lowerLineYPos = upperLineYPos + number->boundingRect().height();
+            if(i != _clipboards.size() - 1)
+                lastPos += QPointF(0, _symptomHeight);
         }
 
-        QPointF newPos(boundHeight, 0);
-
-        number->setFont(_numberFont);
-        number->setPos(lastPos.x() - offsetXPos, -startXPos * 2);
-
-        sum->setFont(_numberFont);
-        sum->setPos(lastPos.x() - offsetXPos, upperLineYPos);
-
-        minusHeight = (minusHeight < boundRect.width() + boundRect.width() * 0.35) ?
-                    boundRect.width() + boundRect.width() * 0.35 : minusHeight;
-
-        if(it % 2 == 0){
-            QPolygonF polygon;
-
-            polygon << QPointF(startXPos + lastPos.x(), -startXPos)
-                    << QPointF(startXPos + lastPos.x(), 1000)
-                    << QPointF(startXPos + lastPos.x() + boundHeight, 1000)
-                    << QPointF(startXPos + lastPos.x() + boundHeight, -startXPos);
-
-            lines.append(polygon);
-        }
-
-        qreal roundPos = 0;
-
-        for(auto deg = 0; deg != std::get<1>(remed.at(it)).size(); ++deg){//INFO : test
-            const QColor remedColors[] = {Qt::white, Qt::darkGreen, Qt::blue, Qt::red, Qt::darkRed};
-            auto rRect = new QGraphicsPolygonItem;
-            QPainterPath pol;
-
-            pol.addRoundedRect(0, 0, boundHeight - boundHeight * 0.2, _symptomHeight - _symptomHeight * 0.2, 5, 5);
-            pol.translate(lastPos.x() -0.2 * boundHeight, roundPos);
-            rRect->setPolygon(pol.toFillPolygon());
-            rRect->setBrush(QBrush(remedColors[std::get<1>(remed.at(it)).at(deg)]));
-            groupRemeds->addToGroup(rRect);
-
-            if(std::find(clipList.cbegin(), clipList.cend(), deg + 1) != clipList.cend())
-                roundPos += _clipboardHeight + rRect->boundingRect().height();
-            else
-                roundPos += _symptomHeight;
-        }
-
-        lastPos = lastPos + newPos;
-
-        labels->addToGroup(number);
-        labels->addToGroup(sum);
-        labels->addToGroup(text);
+        lastPos += QPointF(0, _clipboardHeight);
     }
-
-    for(auto & it : lines){
-        auto line = new QGraphicsPolygonItem;
-
-        it << QPointF(boundHeight + it.at(0).x() + std::cos(45.0 * rad) * minusHeight,
-                                        -startXPos + std::sin(-45.0 * rad) * minusHeight)
-                << QPointF(it.at(0).x() + std::cosf(45.0 * rad) * minusHeight,
-                                        -startXPos + std::sinf(-45.0 * rad) * minusHeight);
-        line->setZValue(-1);
-        line->setPolygon(it);
-        line->setPen(QPen(Qt::yellow));
-        line->setBrush(QBrush(Qt::yellow));
-        labels->addToGroup(line);
-    }
-
-    lines.clear();
-
-    groupRemeds->setY(lowerLineYPos + _clipboardHeight);
-    groupRemeds->setZValue(1);
-
-    upperLine->setLine(startXPos, upperLineYPos, lastPos.x(), upperLineYPos);
-    labels->addToGroup(upperLine);
-
-    lowerLine->setLine(startXPos, lowerLineYPos, lastPos.x(), lowerLineYPos);
-    labels->addToGroup(lowerLine);
-
-    const auto tp = lowerLineYPos + std::sinf(45.0 * rad) * minusHeight;
-
-    _labelHeight = tp - tp * 0.065;
-
-    blueprint->addToGroup(groupRemeds);
-    blueprint->addToGroup(labels);
-
-    //**************************************************************************************************************************************
 
     return blueprint;
 }

@@ -58,12 +58,17 @@ void researchRemed::setClipboards(std::array<bool, 10> act){
         }
     }
 
-    //INFO : only for test
+    //NOTE : only for test
     _render.setOrientation(Qt::Vertical);
     _render.setAnalysisType(researchRemedRender::showType::waffle);
     _render.setStrategyType(researchRemedRender::strategy::sumRemeds);
 
-    _scene->addItem(_render.render(ui->graphicsView->size()));
+    qDebug() << ui->graphicsView->size();//TODO : fix wrong size
+    auto var = _render.render(ui->graphicsView->size());
+
+    _scene->setSceneRect(0, 0, 0, 0);
+    _scene->addItem(var);
+
     ui->widget->setMinimumHeight(_render.labelHeight());
 }
 void researchRemed::setClipboardName(QStringList name){

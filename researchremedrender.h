@@ -64,8 +64,15 @@ protected:
     QFont _defFont, _numberFont;
     int _labelHeight = 0;
 
-    QGraphicsItemGroup * waffleRender();
     void initFont();
+    QGraphicsItemGroup * waffleRender();
+    QGraphicsItemGroup * drawLines(qreal, qreal, int);
+    QGraphicsItemGroup * drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, qreal);
+
+    QGraphicsItemGroup * sumRemeds();
+
+    std::tuple<QGraphicsItemGroup*, qreal, qreal> drawOneDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>);
+    //1 - width line and remed, 2 - height until 2nd horizon line
 };
 
 #endif // RESEARCHREMEDRENDER_H
