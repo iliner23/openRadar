@@ -4,12 +4,12 @@
 #include <QtWidgets>
 #include <unordered_map>
 #include <memory>
-#include "customscene.h"
-#include "label.h"
-#include "remed_author.h"
-#include "author.h"
-#include "repertoryrender.h"
-#include "vocabulary.h"
+#include "commonfunction/customscene.h"
+#include "symptom_info/label.h"
+#include "remed_info/remed_author.h"
+#include "author_info/author.h"
+#include "commonfunction/repertoryrender.h"
+#include "symptom_search/vocabulary.h"
 
 class repertory : public QWidget
 {

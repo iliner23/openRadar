@@ -4,8 +4,8 @@
 #include <QtCore>
 #include <QTextCodec>
 #include <QtConcurrent/QtConcurrent>
-#include "openctree.h"
-#include "languages.h"
+#include "openctree/openctree.h"
+#include "commonfunction/languages.h"
 
 class searchModel : public QAbstractItemModel
 {

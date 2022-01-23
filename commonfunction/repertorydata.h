@@ -1,6 +1,6 @@
 #ifndef REPERTORYDATA_H
 #define REPERTORYDATA_H
-#include "commonfunctions.h"
+#include "commonfunction/commonfunctions.h"
 
 namespace func{
     class repertoryData

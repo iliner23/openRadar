@@ -3,8 +3,8 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
-#include "openctree.h"
-#include "languages.h"
+#include "openctree/openctree.h"
+#include "commonfunction/languages.h"
 
 namespace Ui {
 class RepChose;

@@ -17,73 +17,71 @@ DEFINES += QT_DEPRECATED_WARNINGS
 greaterThan(QT_MAJOR_VERSION, 5): DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    author.cpp \
-    commonfunctions.cpp \
-    customscene.cpp \
-    delegate.cpp \
-    keychoose.cpp \
-    keyreader.cpp \
-    keysremedlist.cpp \
-    label.cpp \
-    labelrender.cpp \
+    author_info/author.cpp \
+    chapters/delegate.cpp \
+    chapters/proxysearchmodel.cpp \
+    chapters/searchmodel.cpp \
+    chapters/windowchapters.cpp \
+    clipboards/researchremed.cpp \
+    clipboards/researchremedrender.cpp \
+    clipboards/takeremed.cpp \
+    commonfunction/commonfunctions.cpp \
+    commonfunction/customscene.cpp \
+    commonfunction/repertorydata.cpp \
+    commonfunction/repertoryrender.cpp \
+    keys/keychoose.cpp \
+    keys/keyreader.cpp \
+    keys/keysremedlist.cpp \
     main.cpp \
     mainwindow.cpp \
-    openctree.cpp \
-    proxysearchmodel.cpp \
-    remed_author.cpp \
-    repchose.cpp \
-    repertory.cpp \
-    repertorydata.cpp \
-    repertoryrender.cpp \
-    researchremed.cpp \
-    researchremedrender.cpp \
-    searchmodel.cpp \
-    searchresult.cpp \
-    takeremed.cpp \
-    vocabulary.cpp \
-    windowchapters.cpp
-
+    openctree/openctree.cpp \
+    remed_info/remed_author.cpp \
+    repertory/repchose.cpp \
+    repertory/repertory.cpp \
+    symptom_info/label.cpp \
+    symptom_info/labelrender.cpp \
+    symptom_search/searchresult.cpp \
+    symptom_search/vocabulary.cpp
 HEADERS += \
-    author.h \
-    commonfunctions.h \
-    customscene.h \
-    delegate.h \
-    keychoose.h \
-    keyreader.h \
-    keysremedlist.h \
-    label.h \
-    labelrender.h \
-    languages.h \
+    author_info/author.h \
+    chapters/delegate.h \
+    chapters/proxysearchmodel.h \
+    chapters/searchmodel.h \
+    chapters/windowchapters.h \
+    clipboards/researchremed.h \
+    clipboards/researchremedrender.h \
+    clipboards/takeremed.h \
+    commonfunction/commonfunctions.h \
+    commonfunction/customscene.h \
+    commonfunction/languages.h \
+    commonfunction/repertorydata.h \
+    commonfunction/repertoryrender.h \
+    keys/keychoose.h \
+    keys/keyreader.h \
+    keys/keysremedlist.h \
     mainwindow.h \
-    openctree.h \
-    proxysearchmodel.h \
-    remed_author.h \
-    repchose.h \
-    repertory.h \
-    repertorydata.h \
-    repertoryrender.h \
-    researchremed.h \
-    researchremedrender.h \
-    searchmodel.h \
-    searchresult.h \
-    takeremed.h \
-    vocabulary.h \
-    windowchapters.h
-
+    openctree/openctree.h \
+    remed_info/remed_author.h \
+    repertory/repchose.h \
+    repertory/repertory.h \
+    symptom_info/label.h \
+    symptom_info/labelrender.h \
+    symptom_search/searchresult.h \
+    symptom_search/vocabulary.h
 FORMS += \
-    author.ui \
-    keychoose.ui \
-    keyreader.ui \
-    keysremedlist.ui \
-    label.ui \
+    author_info/author.ui \
+    chapters/windowchapters.ui \
+    clipboards/researchremed.ui \
+    clipboards/takeremed.ui \
+    keys/keychoose.ui \
+    keys/keyreader.ui \
+    keys/keysremedlist.ui \
     mainwindow.ui \
-    remed_author.ui \
-    repchose.ui \
-    researchremed.ui \
-    searchresult.ui \
-    takeremed.ui \
-    vocabulary.ui \
-    windowchapters.ui
+    remed_info/remed_author.ui \
+    repertory/repchose.ui \
+    symptom_info/label.ui \
+    symptom_search/searchresult.ui \
+    symptom_search/vocabulary.ui
 
 TRANSLATIONS += \
     openRD_ru_RU.ts

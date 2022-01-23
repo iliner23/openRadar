@@ -3,14 +3,14 @@
 
 #include <QtWidgets>
 #include <memory>
-#include "openctree.h"
-#include "repchose.h"
-#include "repertory.h"
-#include "windowchapters.h"
-#include "languages.h"
-#include "keychoose.h"
-#include "researchremed.h"
-#include "takeremed.h"
+#include "openctree/openctree.h"
+#include "repertory/repchose.h"
+#include "repertory/repertory.h"
+#include "chapters/windowchapters.h"
+#include "commonfunction/languages.h"
+#include "keys/keychoose.h"
+#include "clipboards/researchremed.h"
+#include "clipboards/takeremed.h"
 
 #define _TEST_
 

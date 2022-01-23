@@ -4,7 +4,7 @@
 #include <QtWidgets>
 #include <algorithm>
 #include <cmath>
-#include "repertorydata.h"
+#include "commonfunction/repertorydata.h"
 
 class researchRemedRender
 {

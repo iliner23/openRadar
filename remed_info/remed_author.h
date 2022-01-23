@@ -3,11 +3,10 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
-#include "openctree.h"
 #include <memory>
-#include "commonfunctions.h"
-#include "keysremedlist.h"
-#include "repertorydata.h"
+#include "commonfunction/commonfunctions.h"
+#include "keys/keysremedlist.h"
+#include "commonfunction/repertorydata.h"
 
 namespace Ui {
 class remed_author;

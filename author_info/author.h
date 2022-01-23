@@ -4,8 +4,8 @@
 #include <QDialog>
 #include <memory>
 #include <QTextCodec>
-#include "commonfunctions.h"
-#include "languages.h"
+#include "commonfunction/commonfunctions.h"
+#include "commonfunction/languages.h"
 
 namespace Ui {
 class author;

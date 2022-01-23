@@ -3,7 +3,7 @@
 #include <QtCore>
 #include <QTextCodec>
 #include <QtConcurrent/QtConcurrent>
-#include "openctree.h"
+#include "openctree/openctree.h"
 
 namespace func {
     QString renderingLabel(openCtree symptom, bool passLastChapter,

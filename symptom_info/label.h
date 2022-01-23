@@ -4,12 +4,12 @@
 #include <QtWidgets>
 #include <memory>
 #include <unordered_map>
-#include "customscene.h"
-#include "openctree.h"
-#include "remed_author.h"
-#include "author.h"
+#include "commonfunction/customscene.h"
+#include "openctree/openctree.h"
+#include "remed_info/remed_author.h"
+#include "author_info/author.h"
 #include "labelrender.h"
-#include "languages.h"
+#include "commonfunction/languages.h"
 
 namespace Ui {
 class Label;

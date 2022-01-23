@@ -2,7 +2,7 @@
 #define TAKEREMED_H
 
 #include <QtWidgets>
-#include "commonfunctions.h"
+#include "commonfunction/commonfunctions.h"
 
 namespace Ui {
 class takeRemed;
