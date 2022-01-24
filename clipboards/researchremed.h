@@ -15,6 +15,9 @@ class researchRemed : public QMainWindow
 public:
     explicit researchRemed(QStringList clipNames, const std::shared_ptr<func::cache> &, QWidget *parent = nullptr);
     ~researchRemed();
+private slots:
+    void setOrientation(Qt::Orientation);
+    void testOrien();
 public slots:
     void setClipboards(std::array<bool, 10>);
     void setClipboardName(QStringList);
@@ -31,6 +34,7 @@ private:
     researchRemedRender _render;
     QStringList _clipNames;
     QGraphicsScene * _scene;
+    Qt::Orientation _orien = Qt::Vertical;
 
     void renameLabels();
 };

@@ -22,7 +22,10 @@ QGraphicsItemGroup * researchRemedRender::render(const QSize windowSize){
     }
 }
 QGraphicsItemGroup * researchRemedRender::waffleRender(){
-    return sumRemeds();//TODO : switch strategy
+    auto blueprint = sumRemeds();
+    blueprint->setPos(0, -blueprint->boundingRect().y());
+
+    return blueprint;//TODO : switch strategy
 }
 QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengthText, int countLines){
     auto * lines = new QGraphicsItemGroup;
@@ -197,14 +200,14 @@ QGraphicsItemGroup * researchRemedRender::sumRemeds(){
 
     std::get<0>(digits)->setPos(0, 0);
 
-    lines->setPos(0, 0);
     lines->setZValue(-1);
-
     rmd->setPos(0, std::get<2>(digits) + _clipboardHeight);
 
     blueprint->addToGroup(std::get<0>(digits));
     blueprint->addToGroup(lines);
     blueprint->addToGroup(rmd);
+
+    _labelHeight = -blueprint->boundingRect().y() + std::get<2>(digits);
 
     return blueprint;
 }
