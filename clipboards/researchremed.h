@@ -34,9 +34,10 @@ private:
     researchRemedRender _render;
     QStringList _clipNames;
     QGraphicsScene * _scene;
-    Qt::Orientation _orien = Qt::Vertical;
 
     void renameLabels();
+    void drawLabels(std::array<bool, 10> act);
+    void drawScene();
 };
 
 #endif // RESEARCHREMED_H

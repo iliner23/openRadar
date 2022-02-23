@@ -14,9 +14,20 @@ void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
         _labels[i].label->setText(_clipNames.at(i));
 }
-void researchRemed::setClipboards(std::array<bool, 10> act){
-    ui->listWidget->clear();
+void researchRemed::drawScene(){
     _scene->clear();
+    auto var = _render.render(ui->graphicsView->size());
+    _scene->setSceneRect(0, 0, 0, 0);
+    _scene->addItem(var);
+    ui->widget->setMinimumHeight(_render.labelHeight());
+}
+void researchRemed::setClipboards(std::array<bool, 10> act){
+    drawLabels(act);
+    setOrientation(_render.orientation());
+    drawScene();
+}
+void researchRemed::drawLabels(std::array<bool, 10> act){
+    ui->listWidget->clear();
     _render.setShowedClipboards(act);
     const auto clipboards = _render.clipboards();
 
@@ -52,34 +63,31 @@ void researchRemed::setClipboards(std::array<bool, 10> act){
     }
 
     //NOTE : only for test
-    //_render.setOrientation(Qt::Vertical);
     _render.setAnalysisType(researchRemedRender::showType::waffle);
     _render.setStrategyType(researchRemedRender::strategy::sumRemeds);
 
+    setOrientation(_render.orientation());
     //qDebug() << ui->graphicsView->size();//TODO : fix wrong size
-    auto var = _render.render(ui->graphicsView->size());
-    _scene->setSceneRect(0, 0, 0, 0);
-    _scene->addItem(var);
 }
 void researchRemed::setClipboardName(QStringList name){
     _clipNames = name;
 
     if(!isHidden())
-        setClipboards(_render.showedClipboards());
+        drawLabels(_render.showedClipboards());
 }
 void researchRemed::setClipboardRemed(std::array<QVector<rci>, 10> array){
     _render.setClipboards(array);
 
-    if(!isHidden())
-        setClipboards(_render.showedClipboards());
+    if(!isHidden()){
+        drawLabels(_render.showedClipboards());
+        drawScene();
+    }
 }
 void researchRemed::setOrientation(Qt::Orientation orien){
-    _orien = orien;
     auto layout = qobject_cast<QGridLayout*>(ui->horizontalLayoutWidget->layout());
-    _render.setOrientation(_orien);
-    _scene->clear();
+    _render.setOrientation(orien);
 
-    if(_orien == Qt::Horizontal){
+    if(orien == Qt::Horizontal){
         layout->removeItem(ui->verticalLayout_4);
         layout->removeWidget(ui->graphicsView);
         ui->widget->hide();
@@ -88,26 +96,26 @@ void researchRemed::setOrientation(Qt::Orientation orien){
         layout->addWidget(ui->graphicsView, 2, 0);
         layout->setColumnStretch(0,0);
         layout->setColumnStretch(2,0);
+        layout->setRowStretch(1,1);
+        layout->setRowStretch(2,1);
     }
     else{
         layout->removeItem(ui->verticalLayout_4);
         layout->removeWidget(ui->graphicsView);
 
         ui->widget->show();
-        ui->widget->setMinimumHeight(_render.labelHeight());
 
         layout->addItem(ui->verticalLayout_4, 1, 0);
         layout->addWidget(ui->graphicsView, 1, 2);
+        layout->setRowStretch(1,0);
+        layout->setRowStretch(2,0);
         layout->setColumnStretch(0,3);
         layout->setColumnStretch(2,8);
     }
-
-    auto var = _render.render(ui->graphicsView->size());//TODO: fix bug with expanding widget behavior
-    _scene->addItem(var);
-    _scene->setSceneRect(0, 0, 0, 0);
 }
 void researchRemed::testOrien(){
-    setOrientation((_orien == Qt::Horizontal) ? Qt::Vertical : Qt::Horizontal);//NOTE: it's test. Need delete after
+    setOrientation((_render.orientation() == Qt::Horizontal) ? Qt::Vertical : Qt::Horizontal);//NOTE: it's test. Need delete after
+    drawScene();
 }
 researchRemed::~researchRemed(){
     delete ui;
