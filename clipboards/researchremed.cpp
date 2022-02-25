@@ -9,6 +9,26 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
     _scene = new QGraphicsScene(this);
     _render.reset(cache);
     ui->graphicsView->setScene(_scene);
+
+    _strategyMenu = new QMenu(ui->strategy);
+    QList<QAction*> actions;
+    const QStringList labels = { "Сумма симптомов", "Сумма степеней" };
+
+    for(const auto & item : labels){
+        auto action = new QAction(item, _strategyMenu);
+        action->setCheckable(true);
+        actions.push_back(action);
+    }
+
+    actions.at(0)->setChecked(true);
+    _strategyMenu->addActions(actions);
+    _strategyMenu->addSeparator();
+    auto inten = new QAction("Учитывать интенсивность", _strategyMenu);
+    inten->setCheckable(true);
+    inten->setChecked(true);
+    _strategyMenu->addAction(inten);
+
+    connect(_strategyMenu, &QMenu::triggered, this, &researchRemed::triggeredStrategy);
 }
 void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
@@ -64,10 +84,6 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
 
     //NOTE : only for test
     _render.setAnalysisType(researchRemedRender::showType::waffle);
-    _render.setStrategyType(researchRemedRender::strategy::sumRemeds);
-
-    setOrientation(_render.orientation());
-    //qDebug() << ui->graphicsView->size();//TODO : fix wrong size
 }
 void researchRemed::setClipboardName(QStringList name){
     _clipNames = name;
@@ -102,7 +118,6 @@ void researchRemed::setOrientation(Qt::Orientation orien){
     else{
         layout->removeItem(ui->verticalLayout_4);
         layout->removeWidget(ui->graphicsView);
-
         ui->widget->show();
 
         layout->addItem(ui->verticalLayout_4, 1, 0);
@@ -112,10 +127,45 @@ void researchRemed::setOrientation(Qt::Orientation orien){
         layout->setColumnStretch(0,3);
         layout->setColumnStretch(2,8);
     }
+
+    QApplication::processEvents();
 }
 void researchRemed::testOrien(){
     setOrientation((_render.orientation() == Qt::Horizontal) ? Qt::Vertical : Qt::Horizontal);//NOTE: it's test. Need delete after
     drawScene();
+}
+void researchRemed::openStrategyMenu(){
+    auto pos = ui->strategy->pos();
+    pos.setY(pos.y() + ui->strategy->height());
+    _strategyMenu->popup(QPoint(mapToGlobal(pos)));
+}
+void researchRemed::triggeredStrategy(QAction * action){
+    const auto actions = _strategyMenu->actions();
+    auto pos = actions.indexOf(action);
+
+    if(pos != actions.size() - 1){
+        for(auto it = 0; it != actions.size() - 2; ++it)
+            actions.at(it)->setChecked(false);
+
+        actions.at(pos)->setChecked(true);
+    }
+
+    switch(pos){
+    case 0 :
+        _render.setStrategyType(researchRemedRender::strategy::sumRemeds);
+        break;
+    case 1 :
+        _render.setStrategyType(researchRemedRender::strategy::sumDegrees);
+        break;
+    case 3 :
+        _render.setConsideIntencity(actions.at(pos)->isChecked());
+        break;
+    default:
+        return;
+    }
+
+    if(!isHidden())
+        drawScene();
 }
 researchRemed::~researchRemed(){
     delete ui;

@@ -11,7 +11,7 @@ class researchRemedRender
 public:
     using rci = func::remedClipboardInfo;
     enum class showType{ waffle, grid, clipboard, strategy, result };
-    enum class strategy{ sumRemeds, sumDegree };
+    enum class strategy{ sumRemeds, sumDegrees };
 
     researchRemedRender() { initFont(); }
     researchRemedRender(const std::shared_ptr<func::cache> & cache)
@@ -48,6 +48,9 @@ public:
     std::array<bool, 10> showedClipboards() const
                                         { return _showClipboadrs; }
 
+    void setConsideIntencity(bool intencity) { _consideIntencity = intencity; }
+    bool consideIntencity() const noexcept { return _consideIntencity; }
+
     int labelHeight() const { return _labelHeight; }
 protected:
     showType _showType = showType::waffle;
@@ -69,10 +72,18 @@ protected:
     QGraphicsItemGroup * drawLines(qreal, qreal, int);
     QGraphicsItemGroup * drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, qreal);
 
-    QGraphicsItemGroup * sumRemeds();
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumRemeds();
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegrees();
+    //QString - remed name, QVector - intensity remedy for symptom
+    //int - primal sort, int - secondary sort
+    //if the 4th argument is null then the 3th - secondary sort
+    //and remedy name is primal sorting tag
 
     std::tuple<QGraphicsItemGroup*, qreal, qreal> drawOneDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>);
     //1 - width line and remed, 2 - height until 2nd horizon line
+
+    bool _consideIntencity = true;
+    //false value is ignoring remedies intencity in computing
 };
 
 #endif // RESEARCHREMEDRENDER_H

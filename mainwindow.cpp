@@ -232,15 +232,15 @@ void MainWindow::openResearchTest(QAction * act){
         for(const auto & it : _pressedClipboard)
             val.at(compare(it)) = true;
 
-        _research->setClipboards(val);
         _research->show();
+        _research->setClipboards(val);
 
         _pressedClipboard.clear();
     }
     else if(act != nullptr){
         val.at(compare(act)) = true;
-        _research->setClipboards(val);
         _research->show();
+        _research->setClipboards(val);
     }
 }
 void MainWindow::keyPressEvent(QKeyEvent * event){

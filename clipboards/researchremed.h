@@ -17,7 +17,9 @@ public:
     ~researchRemed();
 private slots:
     void setOrientation(Qt::Orientation);
+    void openStrategyMenu();
     void testOrien();
+    void triggeredStrategy(QAction*);
 public slots:
     void setClipboards(std::array<bool, 10>);
     void setClipboardName(QStringList);
@@ -34,6 +36,7 @@ private:
     researchRemedRender _render;
     QStringList _clipNames;
     QGraphicsScene * _scene;
+    QMenu * _strategyMenu;
 
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);

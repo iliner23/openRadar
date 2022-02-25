@@ -14,7 +14,7 @@
    <string>Dialog</string>
   </property>
   <widget class="QWidget" name="horizontalLayoutWidget">
-   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" columnstretch="3,0,9">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" columnstretch="3,0,7">
     <property name="spacing">
      <number>1</number>
     </property>
@@ -57,14 +57,14 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="show">
         <property name="text">
          <string>Показать</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_3">
+       <widget class="QPushButton" name="strategy">
         <property name="text">
          <string>Стратегия</string>
         </property>
@@ -74,11 +74,20 @@
     </item>
     <item row="1" column="2">
      <widget class="QGraphicsView" name="graphicsView">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -127,8 +136,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>strategy</sender>
+   <signal>clicked()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>openStrategyMenu()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>884</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>467</x>
+     <y>278</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>testOrien()</slot>
+  <slot>openStrategyMenu()</slot>
+  <slot>triggeredStrategy(QAction*)</slot>
  </slots>
 </ui>

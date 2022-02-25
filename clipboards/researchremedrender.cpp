@@ -22,10 +22,44 @@ QGraphicsItemGroup * researchRemedRender::render(const QSize windowSize){
     }
 }
 QGraphicsItemGroup * researchRemedRender::waffleRender(){
-    auto blueprint = sumRemeds();
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;// = sumRemeds();//TODO : switch strategy
+
+    switch(_strategy){
+    case strategy::sumRemeds:
+        remed = sumRemeds();
+        break;
+    case strategy::sumDegrees:
+        remed = sumDegrees();
+        break;
+    }
+
+    auto blueprint = new QGraphicsItemGroup;
+    blueprint->setHandlesChildEvents(false);
+    blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
+
+    auto digits = drawOneDigitsRemeds(remed);
+    auto rmd = drawRemeds(remed, std::get<1>(digits));
+
+    const auto heightLine = std::get<2>(digits) + rmd->boundingRect().height() + _clipboardHeight;
+
+    auto lines = drawLines(std::get<1>(digits),
+                           (heightLine > _windowSize.height())
+                                ? heightLine : _windowSize.height(),
+                           remed.size());
+
+    std::get<0>(digits)->setPos(0, 0);
+
+    lines->setZValue(-1);
+    rmd->setPos(0, std::get<2>(digits) + _clipboardHeight);
+
+    blueprint->addToGroup(std::get<0>(digits));
+    blueprint->addToGroup(lines);
+    blueprint->addToGroup(rmd);
+
+    _labelHeight = -blueprint->boundingRect().y() + std::get<2>(digits);
     blueprint->setPos(0, -blueprint->boundingRect().y());
 
-    return blueprint;//TODO : switch strategy
+    return blueprint;
 }
 QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengthText, int countLines){
     auto * lines = new QGraphicsItemGroup;
@@ -114,7 +148,7 @@ std::tuple<QGraphicsItemGroup*, qreal, qreal> researchRemedRender::drawOneDigits
 
     return std::make_tuple(blueprint, boundHeight, lowerLineYPos);
 }
-QGraphicsItemGroup * researchRemedRender::sumRemeds(){
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumDegrees(){
     QMap<QString, std::pair<QVector<quint8>, int>> remeds;
     //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
     auto numrep = 0, repSize = 0;
@@ -131,7 +165,7 @@ QGraphicsItemGroup * researchRemedRender::sumRemeds(){
             continue;
 
         for(const auto & iter : _clipboards.at(it)){
-            if(iter.intensity == 0)
+            if(iter.intensity == 0 && _consideIntencity)
                 continue;
 
             quint16 prevRemed = 0;
@@ -158,7 +192,7 @@ QGraphicsItemGroup * researchRemedRender::sumRemeds(){
                     remeds[remedName].first[numrep] = std::get<1>(itrem);
 
                     if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
-                        remeds[remedName].second += iter.intensity;
+                        remeds[remedName].second += std::get<1>(itrem) * ((_consideIntencity) ? iter.intensity : 1);
 
                 } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }
 
@@ -183,39 +217,84 @@ QGraphicsItemGroup * researchRemedRender::sumRemeds(){
     };
 
     std::sort(remed.begin(), remed.end(), sort);
+    return remed;
+}
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumRemeds(){
+    QMap<QString, std::pair<QVector<quint8>, int>> remeds;
+    //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
+    auto numrep = 0, repSize = 0;
 
-    auto blueprint = new QGraphicsItemGroup;
-    blueprint->setHandlesChildEvents(false);
-    blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
+    for(auto it = 0; it != _clipboards.size(); ++it){
+        if(!_showClipboadrs.at(it))
+            continue;
 
-    auto digits = drawOneDigitsRemeds(remed);
-    auto rmd = drawRemeds(remed, std::get<1>(digits));
+        repSize += _clipboards.at(it).size();
+    }
 
-    const auto heightLine = std::get<2>(digits) + rmd->boundingRect().height() + _clipboardHeight;
+    for(auto it = 0; it != _clipboards.size(); ++it){
+        if(!_showClipboadrs.at(it))
+            continue;
 
-    auto lines = drawLines(std::get<1>(digits),
-                           (heightLine > _windowSize.height())
-                                ? heightLine : _windowSize.height(),
-                           remed.size());
+        for(const auto & iter : _clipboards.at(it)){
+            if(iter.intensity == 0 && _consideIntencity)
+                continue;
 
-    std::get<0>(digits)->setPos(0, 0);
+            quint16 prevRemed = 0;
+            openCtree data(iter.path.filePath("symptom").toStdString());
+            data.at(iter.key.toStdString(), false);
 
-    lines->setZValue(-1);
-    rmd->setPos(0, std::get<2>(digits) + _clipboardHeight);
+            func::repertoryData repdata(data);
+            const auto rem = repdata.remedsList();
 
-    blueprint->addToGroup(std::get<0>(digits));
-    blueprint->addToGroup(lines);
-    blueprint->addToGroup(rmd);
+            for(const auto & itrem : rem){
+                if(prevRemed == std::get<0>(itrem))
+                    continue;
 
-    _labelHeight = -blueprint->boundingRect().y() + std::get<2>(digits);
+                try{
+                    const auto & rmStr = _cache->_cacheRemed.at(std::get<0>(itrem));
+                    auto itN = rmStr.find('\0', _cache->_lenRem);
+                    auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-    return blueprint;
+                    if(!remeds.contains(remedName)){
+                        remeds[remedName].first.resize(repSize);
+                        remeds[remedName].second = 0;
+                    }
+
+                    remeds[remedName].first[numrep] = std::get<1>(itrem);
+
+                    if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
+                        remeds[remedName].second += (_consideIntencity) ? iter.intensity : 1;
+
+                } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }
+
+                prevRemed = std::get<0>(itrem);
+            }
+
+            ++numrep;
+        }
+    }
+
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;
+
+    for(auto & it : remeds.keys()){
+        const auto val = remeds.value(it);
+        remed.append(std::make_tuple(it, val.first, val.second, 0));
+    }
+
+    remeds.clear();
+
+    auto sort = [](const auto & front, const auto & end){
+        return std::get<2>(front) > std::get<2>(end);
+    };
+
+    std::sort(remed.begin(), remed.end(), sort);
+    return remed;
 }
 QGraphicsItemGroup * researchRemedRender::drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>> remeds, qreal lineWidth){
     auto blueprint = new QGraphicsItemGroup;
     int pos = 0;
     QPointF lastPos;
-    const QRectF rectDownPtr(0, 0, lineWidth * (1 - 0.2), _symptomHeight * (1 - 0.2));
+    const QRectF rectDownPtr(lineWidth * 0.1, _symptomHeight * 0.1, lineWidth * (1 - 0.2), _symptomHeight * (1 - 0.2));
 
     blueprint->setHandlesChildEvents(false);
     blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
