@@ -18,8 +18,9 @@ public:
 private slots:
     void setOrientation(Qt::Orientation);
     void openStrategyMenu();
-    void testOrien();
+    void openShowMenu();
     void triggeredStrategy(QAction*);
+    void triggeredShow(QAction*);
 public slots:
     void setClipboards(std::array<bool, 10>);
     void setClipboardName(QStringList);
@@ -36,7 +37,7 @@ private:
     researchRemedRender _render;
     QStringList _clipNames;
     QGraphicsScene * _scene;
-    QMenu * _strategyMenu;
+    QMenu * _strategyMenu, * _showMenu;
 
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);

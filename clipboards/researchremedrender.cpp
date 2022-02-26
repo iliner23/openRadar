@@ -25,8 +25,11 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
     QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;// = sumRemeds();//TODO : switch strategy
 
     switch(_strategy){
-    case strategy::sumRemeds:
-        remed = sumRemeds();
+    case strategy::sumRemediesAndDegrees:
+        remed = sumDegreesAndRemedies();
+        break;
+    case strategy::sumRemedies:
+        remed = sumRemedies();
         break;
     case strategy::sumDegrees:
         remed = sumDegrees();
@@ -41,11 +44,7 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
     auto rmd = drawRemeds(remed, std::get<1>(digits));
 
     const auto heightLine = std::get<2>(digits) + rmd->boundingRect().height() + _clipboardHeight;
-
-    auto lines = drawLines(std::get<1>(digits),
-                           (heightLine > _windowSize.height())
-                                ? heightLine : _windowSize.height(),
-                           remed.size());
+    auto lines = drawLines(std::get<1>(digits), heightLine, remed.size());
 
     std::get<0>(digits)->setPos(0, 0);
 
@@ -68,6 +67,10 @@ QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengt
 
     QPointF lastPos(-lineWidth, 0);
     const auto rad = std::acos(-1.0) / 180.0;
+    const auto oblique = std::sin(-45.0 * rad) * lineWidth * 3.5;
+
+    lengthText = (lengthText > _windowSize.height() - oblique) ? lengthText :
+                                                                 _windowSize.height() + oblique;
 
     for(auto i = 0; i != countLines; ++i){
         lastPos += QPointF(lineWidth, 0);
@@ -82,10 +85,8 @@ QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengt
                 << QPointF(lastPos.x(), lengthText)
                 << QPointF(lastPos.x() + lineWidth, lengthText)
                 << QPointF(lastPos.x() + lineWidth, 0)
-                << QPointF(lineWidth + lastPos.x() + std::cos(45.0 * rad) * lineWidth * 3.5,
-                                                std::sin(-45.0 * rad) * lineWidth * 3.5)
-                << QPointF(lastPos.x() + std::cosf(45.0 * rad) * lineWidth * 3.5,
-                                                std::sinf(-45.0 * rad) * lineWidth * 3.5);
+                << QPointF(lineWidth + lastPos.x() + std::cos(45.0 * rad) * lineWidth * 3.5, oblique)
+                << QPointF(lastPos.x() + std::cosf(45.0 * rad) * lineWidth * 3.5, oblique);
 
         line->setPolygon(polygon);
         line->setPen(QPen(Qt::yellow));
@@ -148,7 +149,8 @@ std::tuple<QGraphicsItemGroup*, qreal, qreal> researchRemedRender::drawOneDigits
 
     return std::make_tuple(blueprint, boundHeight, lowerLineYPos);
 }
-QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumDegrees(){
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sortFunction(std::function<void(QMap<QString, std::pair<QVector<quint8>, int>> &, QString, const func::remedClipboardInfo &,
+                                                                                            std::tuple<quint16, quint8, quint16, quint16>)> compute){
     QMap<QString, std::pair<QVector<quint8>, int>> remeds;
     //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
     auto numrep = 0, repSize = 0;
@@ -184,15 +186,21 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sum
                     auto itN = rmStr.find('\0', _cache->_lenRem);
                     auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
 
-                    if(!remeds.contains(remedName)){
-                        remeds[remedName].first.resize(repSize);
-                        remeds[remedName].second = 0;
+                    const auto degree = std::get<1>(itrem);
+
+                    if((degree == 1 && iter.measure[0]) || (degree == 2 && iter.measure[1])
+                            || (degree == 3 && iter.measure[2]) || (degree == 4 && iter.measure[3])){
+
+                        if(!remeds.contains(remedName)){
+                            remeds[remedName].first.resize(repSize);
+                            remeds[remedName].second = 0;
+                        }
+
+                        remeds[remedName].first[numrep] = degree;
+
+                        if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
+                            compute(remeds, remedName, iter, itrem);
                     }
-
-                    remeds[remedName].first[numrep] = std::get<1>(itrem);
-
-                    if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
-                        remeds[remedName].second += std::get<1>(itrem) * ((_consideIntencity) ? iter.intensity : 1);
 
                 } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }
 
@@ -219,82 +227,38 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sum
     std::sort(remed.begin(), remed.end(), sort);
     return remed;
 }
-QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumRemeds(){
-    QMap<QString, std::pair<QVector<quint8>, int>> remeds;
-    //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
-    auto numrep = 0, repSize = 0;
-
-    for(auto it = 0; it != _clipboards.size(); ++it){
-        if(!_showClipboadrs.at(it))
-            continue;
-
-        repSize += _clipboards.at(it).size();
-    }
-
-    for(auto it = 0; it != _clipboards.size(); ++it){
-        if(!_showClipboadrs.at(it))
-            continue;
-
-        for(const auto & iter : _clipboards.at(it)){
-            if(iter.intensity == 0 && _consideIntencity)
-                continue;
-
-            quint16 prevRemed = 0;
-            openCtree data(iter.path.filePath("symptom").toStdString());
-            data.at(iter.key.toStdString(), false);
-
-            func::repertoryData repdata(data);
-            const auto rem = repdata.remedsList();
-
-            for(const auto & itrem : rem){
-                if(prevRemed == std::get<0>(itrem))
-                    continue;
-
-                try{
-                    const auto & rmStr = _cache->_cacheRemed.at(std::get<0>(itrem));
-                    auto itN = rmStr.find('\0', _cache->_lenRem);
-                    auto remedName = QString::fromStdString(rmStr.substr(_cache->_lenRem, itN - _cache->_lenRem));
-
-                    if(!remeds.contains(remedName)){
-                        remeds[remedName].first.resize(repSize);
-                        remeds[remedName].second = 0;
-                    }
-
-                    remeds[remedName].first[numrep] = std::get<1>(itrem);
-
-                    if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
-                        remeds[remedName].second += (_consideIntencity) ? iter.intensity : 1;
-
-                } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }
-
-                prevRemed = std::get<0>(itrem);
-            }
-
-            ++numrep;
-        }
-    }
-
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;
-
-    for(auto & it : remeds.keys()){
-        const auto val = remeds.value(it);
-        remed.append(std::make_tuple(it, val.first, val.second, 0));
-    }
-
-    remeds.clear();
-
-    auto sort = [](const auto & front, const auto & end){
-        return std::get<2>(front) > std::get<2>(end);
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumDegreesAndRemedies(){
+    auto func = [&](QMap<QString, std::pair<QVector<quint8>, int>> & remeds,
+                QString remedName, const func::remedClipboardInfo & iter,
+                std::tuple<quint16, quint8, quint16, quint16> itrem){
+        remeds[remedName].second += (std::get<1>(itrem) + 1) * ((_consideIntencity) ? iter.intensity : 1);
     };
 
-    std::sort(remed.begin(), remed.end(), sort);
-    return remed;
+    return sortFunction(func);
+}
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumDegrees(){
+    auto func = [&](QMap<QString, std::pair<QVector<quint8>, int>> & remeds,
+                QString remedName, const func::remedClipboardInfo & iter,
+                std::tuple<quint16, quint8, quint16, quint16> itrem){
+        remeds[remedName].second += std::get<1>(itrem) * ((_consideIntencity) ? iter.intensity : 1);
+    };
+
+    return sortFunction(func);
+}
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumRemedies(){
+    auto func = [&](QMap<QString, std::pair<QVector<quint8>, int>> & remeds,
+                    QString remedName, const func::remedClipboardInfo & iter,
+                    std::tuple<quint16, quint8, quint16, quint16>){
+        remeds[remedName].second += (_consideIntencity) ? iter.intensity : 1;
+    };
+
+    return sortFunction(func);
 }
 QGraphicsItemGroup * researchRemedRender::drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>> remeds, qreal lineWidth){
     auto blueprint = new QGraphicsItemGroup;
     int pos = 0;
     QPointF lastPos;
-    const QRectF rectDownPtr(lineWidth * 0.1, _symptomHeight * 0.1, lineWidth * (1 - 0.2), _symptomHeight * (1 - 0.2));
+    const QRectF rectDownPtr(0, _symptomHeight * 0.1, lineWidth * (1 - 0.2), _symptomHeight * (1 - 0.2));
 
     blueprint->setHandlesChildEvents(false);
     blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
