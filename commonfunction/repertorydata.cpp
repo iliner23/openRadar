@@ -1,9 +1,10 @@
 #include "repertorydata.h"
 
-functions::repertoryData::repertoryData(const openCtree & repertory, QTextCodec * codec){
+func::repertoryData::repertoryData(const openCtree & repertory, QTextCodec * codec){
     reset(repertory, codec);
 }
-void functions::repertoryData::reset(const openCtree & repertory, QTextCodec * codec){
+void func::repertoryData::reset(const openCtree & repertory, QTextCodec * codec){
+    clear();
     _codec = codec;
     _data = QByteArray::fromStdString(repertory.currentValue());
     _key = repertory.key();
@@ -18,7 +19,7 @@ void functions::repertoryData::reset(const openCtree & repertory, QTextCodec * c
     genLinks(_Tpos);
     genRemeds(_Tpos);
 }
-void functions::repertoryData::genLabels(const quint16 _Fpos, quint16 & _Spos){
+void func::repertoryData::genLabels(const quint16 _Fpos, quint16 & _Spos){
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
@@ -36,7 +37,7 @@ void functions::repertoryData::genLabels(const quint16 _Fpos, quint16 & _Spos){
 
     _labels = std::make_pair(native, localize);
 }
-void functions::repertoryData::genLinks(quint16 & _Tpos){
+void func::repertoryData::genLinks(quint16 & _Tpos){
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
@@ -73,7 +74,7 @@ void functions::repertoryData::genLinks(quint16 & _Tpos){
             break;
     }
 }
-void functions::repertoryData::linksHandler(const quint8 type, const QString synLinkText){
+void func::repertoryData::linksHandler(const quint8 type, const QString synLinkText){
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
@@ -116,7 +117,7 @@ void functions::repertoryData::linksHandler(const quint8 type, const QString syn
         }
     }
 }
-void functions::repertoryData::genRemeds(quint16 _Tpos){
+void func::repertoryData::genRemeds(quint16 _Tpos){
     while(_Tpos < _data.size()){
         quint16 remed = 0, author = 0, tLevel = 0;
         uint8_t rLevel = 0;
@@ -145,7 +146,7 @@ void functions::repertoryData::genRemeds(quint16 _Tpos){
 }
 
 
-void functions::repertoryData::clear(){
+void func::repertoryData::clear(){
     _data.clear();
     _key.clear();
     _remeds.clear();
@@ -159,43 +160,43 @@ void functions::repertoryData::clear(){
     _synonyms = std::make_pair("", "");
     _labels = std::make_pair("", "");
 }
-std::string functions::repertoryData::key() const{
+std::string func::repertoryData::key() const{
     if(isClear())
         throw repertoryDataException();
 
     return _key;
 }
-std::pair<QString, QString> functions::repertoryData::repertoryLabel() const{
+std::pair<QString, QString> func::repertoryData::repertoryLabel() const{
     if(isClear())
         throw repertoryDataException();
 
     return _labels;
 }
-std::pair<QString, QString> functions::repertoryData::synonymsList() const{
+std::pair<QString, QString> func::repertoryData::synonymsList() const{
     if(isClear())
         throw repertoryDataException();
 
     return _synonyms;
 }
-std::pair<QStringList, QStringList> functions::repertoryData::linksList() const{
+std::pair<QStringList, QStringList> func::repertoryData::linksList() const{
     if(isClear())
         throw repertoryDataException();
 
     return _links;
 }
-std::pair<QStringList, QStringList> functions::repertoryData::crossLinksList() const{
+std::pair<QStringList, QStringList> func::repertoryData::crossLinksList() const{
     if(isClear())
         throw repertoryDataException();
 
     return _crossLinks;
 }
-QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> functions::repertoryData::remedsList() const{
+QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> func::repertoryData::remedsList() const{
     if(isClear())
         throw repertoryDataException();
 
     return _remeds;
 }
-QByteArray functions::repertoryData::firstCurrentIndex() const{
+QByteArray func::repertoryData::firstCurrentIndex() const{
     if(isClear())
         throw repertoryDataException();
 
@@ -204,7 +205,7 @@ QByteArray functions::repertoryData::firstCurrentIndex() const{
 
     return key;
 }
-QByteArray functions::repertoryData::secondCurrentIndex() const{
+QByteArray func::repertoryData::secondCurrentIndex() const{
     if(isClear())
         throw repertoryDataException();
 
@@ -213,7 +214,7 @@ QByteArray functions::repertoryData::secondCurrentIndex() const{
 
     return key;
 }
-QByteArray functions::repertoryData::parentIndex() const{
+QByteArray func::repertoryData::parentIndex() const{
     if(isClear())
         throw repertoryDataException();
 
@@ -222,37 +223,37 @@ QByteArray functions::repertoryData::parentIndex() const{
 
     return key;
 }
-QByteArray functions::repertoryData::rawData() const{
+QByteArray func::repertoryData::rawData() const{
     if(isClear())
         throw repertoryDataException();
 
     return _data;
 }
-quint16 functions::repertoryData::labelIndexFilter() const{
+quint16 func::repertoryData::labelIndexFilter() const{
     if(isClear())
         throw repertoryDataException();
 
     return qFromLittleEndian<quint16>(_data.constData() + 26);
 }
-quint16 functions::repertoryData::maxDrugs() const{
+quint16 func::repertoryData::maxDrugs() const{
     if(isClear())
         throw repertoryDataException();
 
     return qFromLittleEndian<quint16>(_data.constData() + 22);
 }
-quint16 functions::repertoryData::childrenLabels() const{
+quint16 func::repertoryData::childrenLabels() const{
     if(isClear())
         throw repertoryDataException();
 
     return qFromLittleEndian<quint16>(_data.constData() + 24);
 }
-quint8 functions::repertoryData::level() const{
+quint8 func::repertoryData::level() const{
     if(isClear())
         throw repertoryDataException();
 
     return qFromLittleEndian<quint8>(_data.constData() + 21);
 }
-quint8 functions::repertoryData::chapterNumber() const{
+quint8 func::repertoryData::chapterNumber() const{
     if(isClear())
         throw repertoryDataException();
 

@@ -1,8 +1,8 @@
 #ifndef REPERTORYDATA_H
 #define REPERTORYDATA_H
-#include "commonfunctions.h"
+#include "commonfunction/commonfunctions.h"
 
-namespace functions{
+namespace func{
     class repertoryData
     {
     public:
@@ -31,7 +31,7 @@ namespace functions{
         std::pair<QStringList, QStringList> linksList() const;
         std::pair<QStringList, QStringList> crossLinksList() const;
 
-        QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> remedsList() const;
+        QVector<std::tuple<quint16, quint8, quint16, quint16>> remedsList() const;
 
         class repertoryDataException : public std::exception {};
     private:
@@ -45,8 +45,8 @@ namespace functions{
         std::pair<QStringList, QStringList> _links;
         std::pair<QStringList, QStringList> _crossLinks;
 
-        QVector<std::tuple<quint16, quint8, quint16, quint16/*, quint16*/>> _remeds;
-        //remed, type, author, filter, remedPos
+        QVector<std::tuple<quint16, quint8, quint16, quint16>> _remeds;
+        //remed, type, author, filter
 
         std::string _key;
         QTextCodec * _codec;

@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
-#include "languages.h"
+#include "commonfunction/languages.h"
 
 namespace Ui {
 class keyReader;

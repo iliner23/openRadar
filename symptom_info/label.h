@@ -4,12 +4,12 @@
 #include <QtWidgets>
 #include <memory>
 #include <unordered_map>
-#include "customscene.h"
-#include "openctree.h"
-#include "remed_author.h"
-#include "author.h"
+#include "commonfunction/customscene.h"
+#include "openctree/openctree.h"
+#include "remed_info/remed_author.h"
+#include "author_info/author.h"
 #include "labelrender.h"
-#include "languages.h"
+#include "commonfunction/languages.h"
 
 namespace Ui {
 class Label;
@@ -30,7 +30,7 @@ private:
     std::pair<QStringList, QStringList> _crossLinks;
 
     keysRemedList * _remedList;
-    labelRender * _engine;
+    labelRender _engine;
     QTextCodec * _codec;
 
     void renderingChapter();
@@ -42,7 +42,7 @@ public:
                    const quint16, std::pair<QLocale, QLocale>, keysRemedList * remedList,
                    QWidget *parent = nullptr);
 
-    bool isHiddenLabels() const noexcept { return _engine->isHidden(); }
+    bool isHiddenLabels() const noexcept { return _engine.isHidden(); }
     ~Label();
 };
 

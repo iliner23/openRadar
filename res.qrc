@@ -1,0 +1,87 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>res/Icon1.png</file>
+        <file>res/Bitmap1057.bmp</file>
+        <file>res/Bitmap2.bmp</file>
+        <file>res/Bitmap3.bmp</file>
+        <file>res/Bitmap4.bmp</file>
+        <file>res/Bitmap5.bmp</file>
+        <file>res/Bitmap6.bmp</file>
+        <file>res/Bitmap7.bmp</file>
+        <file>res/Bitmap8.bmp</file>
+        <file>res/Bitmap9.bmp</file>
+        <file>res/Bitmap10.bmp</file>
+        <file>res/Bitmap11.bmp</file>
+        <file>res/Bitmap12.bmp</file>
+        <file>res/Bitmap13.bmp</file>
+        <file>res/Bitmap14.bmp</file>
+        <file>res/Bitmap15.bmp</file>
+        <file>res/Bitmap16.bmp</file>
+        <file>res/Bitmap17.bmp</file>
+        <file>res/Bitmap18.bmp</file>
+        <file>res/Bitmap19.bmp</file>
+        <file>res/Bitmap20.bmp</file>
+        <file>res/Bitmap21.bmp</file>
+        <file>res/Bitmap22.bmp</file>
+        <file>res/Bitmap23.bmp</file>
+        <file>res/Bitmap24.bmp</file>
+        <file>res/Bitmap25.bmp</file>
+        <file>res/Bitmap36.bmp</file>
+        <file>res/Bitmap37.bmp</file>
+        <file>res/Bitmap38.bmp</file>
+        <file>res/Bitmap39.bmp</file>
+        <file>res/Bitmap40.bmp</file>
+        <file>res/Bitmap41.bmp</file>
+        <file>res/Bitmap42.bmp</file>
+        <file>res/Bitmap43.bmp</file>
+        <file>res/Bitmap44.bmp</file>
+    </qresource>
+    <qresource prefix="/icons/notOpen/empty">
+        <file>res/Bitmap26.bmp</file>
+        <file>res/Bitmap27.bmp</file>
+        <file>res/Bitmap28.bmp</file>
+        <file>res/Bitmap29.bmp</file>
+        <file>res/Bitmap30.bmp</file>
+        <file>res/Bitmap31.bmp</file>
+        <file>res/Bitmap32.bmp</file>
+        <file>res/Bitmap33.bmp</file>
+        <file>res/Bitmap34.bmp</file>
+        <file>res/Bitmap35.bmp</file>
+    </qresource>
+    <qresource prefix="/icons/notOpen/full">
+        <file>res/Bitmap55.bmp</file>
+        <file>res/Bitmap56.bmp</file>
+        <file>res/Bitmap57.bmp</file>
+        <file>res/Bitmap58.bmp</file>
+        <file>res/Bitmap59.bmp</file>
+        <file>res/Bitmap60.bmp</file>
+        <file>res/Bitmap61.bmp</file>
+        <file>res/Bitmap62.bmp</file>
+        <file>res/Bitmap63.bmp</file>
+        <file>res/Bitmap64.bmp</file>
+    </qresource>
+    <qresource prefix="/icons/open/empty">
+        <file>res/Bitmap45.bmp</file>
+        <file>res/Bitmap46.bmp</file>
+        <file>res/Bitmap47.bmp</file>
+        <file>res/Bitmap48.bmp</file>
+        <file>res/Bitmap49.bmp</file>
+        <file>res/Bitmap50.bmp</file>
+        <file>res/Bitmap51.bmp</file>
+        <file>res/Bitmap52.bmp</file>
+        <file>res/Bitmap53.bmp</file>
+        <file>res/Bitmap54.bmp</file>
+    </qresource>
+    <qresource prefix="/icons/open/full">
+        <file>res/Bitmap65.bmp</file>
+        <file>res/Bitmap66.bmp</file>
+        <file>res/Bitmap67.bmp</file>
+        <file>res/Bitmap68.bmp</file>
+        <file>res/Bitmap69.bmp</file>
+        <file>res/Bitmap70.bmp</file>
+        <file>res/Bitmap71.bmp</file>
+        <file>res/Bitmap72.bmp</file>
+        <file>res/Bitmap73.bmp</file>
+        <file>res/Bitmap74.bmp</file>
+    </qresource>
+</RCC>

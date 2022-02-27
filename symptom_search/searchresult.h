@@ -4,8 +4,8 @@
 #include <QtWidgets>
 #include <QTextCodec>
 #include <QtConcurrent/QtConcurrent>
-#include "commonfunctions.h"
-#include "openctree.h"
+#include "commonfunction/commonfunctions.h"
+#include "openctree/openctree.h"
 
 namespace Ui {
 class searchResult;

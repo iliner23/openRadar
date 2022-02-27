@@ -14,7 +14,7 @@ repertoryRender::repertoryRender(const QDir filename, const std::shared_ptr<func
     repertoryRender::reset(filename, cache, codec);
 }
 void repertoryRender::reset(const QDir filename, const std::shared_ptr<func::cache> &cache, QTextCodec *codec){
-    _symptom.open(filename.filePath("symptom").toStdString());
+    _symptom.open(filename.path().toStdString());
     _symptom.back(false);
     _endIndex = QByteArray::fromStdString(_symptom.key());
     _cache = cache;
@@ -126,7 +126,7 @@ QVector<QGraphicsItemGroup*> repertoryRender::render(const QSize resolution){
     return endData;
 }
 QGraphicsItemGroup * repertoryRender::subRender(openCtree data){
-    functions::repertoryData dataParser(data, _codec);
+    func::repertoryData dataParser(data, _codec);
     bool hideLabel = !(_remFilter == (quint16)-1 ||
                        (dataParser.labelIndexFilter() & _remFilter) != 0);
 
@@ -287,7 +287,7 @@ QGraphicsItemGroup * repertoryRender::subRender(openCtree data){
         quint16 prevRemed = 0;
         auto counter = -1;
         QVector<QGraphicsItemGroup*> * arrayPtr = nullptr;
-        //remed, type, author, filter, remedPos
+        //remed, type, author, filter
 
         for(const auto & remIt : remeds){
             ++counter;
@@ -324,7 +324,7 @@ QGraphicsItemGroup * repertoryRender::subRender(openCtree data){
                     remedItem->setText((std::get<1>(remIt) > 2) ? remedName.toUpper() : remedName);
 
                     remedItem->setData(0, 3);
-                    remedItem->setData(1, /*std::get<4>(remIt)*/counter);
+                    remedItem->setData(1, counter);
                     remedItem->setData(2, QByteArray::fromStdString(dataParser.key()));
 
                     auto gr = new QGraphicsItemGroup;

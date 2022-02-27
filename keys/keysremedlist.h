@@ -4,8 +4,8 @@
 #include <QtWidgets>
 #include <QTextCodec>
 #include <QtConcurrent/QtConcurrent>
-#include "openctree.h"
-#include "languages.h"
+#include "openctree/openctree.h"
+#include "commonfunction/languages.h"
 #include "keyreader.h"
 
 namespace Ui {

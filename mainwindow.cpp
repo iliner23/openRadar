@@ -112,10 +112,6 @@ MainWindow::MainWindow(QWidget *parent)
             break;
     }
 
-    _choose = new RepChose(reperts , _repertsPos, _repertsLang, this);
-    _remedList = new keysRemedList(keysPos, keys, this);
-    _keych = new KeyChoose(keys, _remedList, this);
-
     openCtree remed(QDir("../system/remed").path().toStdString());
     openCtree author(QDir("../system/author").path().toStdString());
 
@@ -144,6 +140,15 @@ MainWindow::MainWindow(QWidget *parent)
         _cache->_cacheAuthor[kt] = std::move(tp);
     }
 
+    _choose = new RepChose(reperts , _repertsPos, _repertsLang, this);
+    _remedList = new keysRemedList(keysPos, keys, this);
+    _keych = new KeyChoose(keys, _remedList, this);
+    _takeRemed = new takeRemed(_clipNames, this);
+
+#ifdef _TEST_
+    _research = new researchRemed(_clipNames , _cache, this);
+#endif
+
     connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
     connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
     connect(ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::windowChanged);
@@ -155,10 +160,101 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_7, &QAction::triggered, this, &MainWindow::openChaptersInCurrentPos);
     connect(ui->action_8, &QAction::triggered, this, &MainWindow::openVocabulary);
     connect(ui->action39, &QAction::triggered, this, &MainWindow::openKeysChooseWindow);
-}
+    connect(ui->action8, &QAction::triggered, this, &MainWindow::openTakeRemed);
 
-MainWindow::~MainWindow()
-{
+    connect(_takeRemed, &takeRemed::changeClipboardsName, this, &MainWindow::setClipboardsName);
+    connect(_takeRemed, &takeRemed::addedClipboardsRemed, this, &MainWindow::addClipboardsRemed);
+    connect(this, &MainWindow::changeClipboardsName, _takeRemed, &takeRemed::setClipboardsName);
+
+#ifdef _TEST_
+    connect(this, &MainWindow::changeClipboardsRemed, _research, &researchRemed::setClipboardRemed);
+    connect(this, &MainWindow::changeClipboardsName, _research, &researchRemed::setClipboardName);
+
+    connect(ui->action29, &QAction::triggered, this, [&](){ openResearchTest(ui->action29); });
+    connect(ui->action30, &QAction::triggered, this, [&](){ openResearchTest(ui->action30); });
+    connect(ui->action31, &QAction::triggered, this, [&](){ openResearchTest(ui->action31); });
+    connect(ui->action32, &QAction::triggered, this, [&](){ openResearchTest(ui->action32); });
+    connect(ui->action33, &QAction::triggered, this, [&](){ openResearchTest(ui->action33); });
+    connect(ui->action34, &QAction::triggered, this, [&](){ openResearchTest(ui->action34); });
+    connect(ui->action35, &QAction::triggered, this, [&](){ openResearchTest(ui->action35); });
+    connect(ui->action36, &QAction::triggered, this, [&](){ openResearchTest(ui->action36); });
+    connect(ui->action37, &QAction::triggered, this, [&](){ openResearchTest(ui->action37); });
+    connect(ui->action38, &QAction::triggered, this, [&](){ openResearchTest(ui->action38); });
+#endif
+}
+void MainWindow::openTakeRemed(){
+    if(ui->mdiArea->currentSubWindow() != nullptr){
+        auto currentRep = qobject_cast<repertory*>(
+                    ui->mdiArea->currentSubWindow()->widget());
+
+        _takeRemed->setPos(currentRep->catalog(),
+                           currentRep->currentPosition(), currentRep->textCodec());
+        _takeRemed->show();
+    }
+}
+#ifdef _TEST_
+void MainWindow::openResearchTest(QAction * act){
+    auto compare = [&](QAction * com){
+        if(ui->action29 == com)
+            return 0;
+        if(ui->action30 == com)
+            return 1;
+        if(ui->action31 == com)
+            return 2;
+        if(ui->action32 == com)
+            return 3;
+        if(ui->action33 == com)
+            return 4;
+        if(ui->action34 == com)
+            return 5;
+        if(ui->action35 == com)
+            return 6;
+        if(ui->action36 == com)
+            return 7;
+        if(ui->action37 == com)
+            return 8;
+        if(ui->action38 == com)
+            return 9;
+
+        return -1;
+    };
+
+    std::array<bool, 10> val;
+
+    for(auto & it : val)
+        it = false;
+
+    if(_pressed){
+        if(act != nullptr && _pressedClipboard.indexOf(act) == -1)
+            _pressedClipboard.push_back(act);
+    }
+    else if(!_pressedClipboard.isEmpty()){
+        for(const auto & it : _pressedClipboard)
+            val.at(compare(it)) = true;
+
+        _research->show();
+        _research->setClipboards(val);
+
+        _pressedClipboard.clear();
+    }
+    else if(act != nullptr){
+        val.at(compare(act)) = true;
+        _research->show();
+        _research->setClipboards(val);
+    }
+}
+void MainWindow::keyPressEvent(QKeyEvent * event){
+    if(event->key() == Qt::Key_Control)
+        _pressed = true;
+}
+void MainWindow::keyReleaseEvent(QKeyEvent * event){
+    if(event->key() == Qt::Key_Control){
+        _pressed = false;
+        openResearchTest(nullptr);
+    }
+}
+#endif
+MainWindow::~MainWindow(){
     delete ui;
 }
 void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, std::pair<QLocale, QLocale> lang){
@@ -190,8 +286,9 @@ void MainWindow::windowChanged(){
     const auto list = ui->mdiArea->subWindowList();
 
     ui->action_4->setEnabled(!list.isEmpty());
-    ui->action_7->setEnabled(!list.isEmpty());
-    ui->action_8->setEnabled(!list.isEmpty());
+    ui->action_7->setEnabled(sub != nullptr);
+    ui->action_8->setEnabled(sub != nullptr);
+    ui->action8->setEnabled(sub != nullptr);
 
     for(auto & it : list){
         auto atr = ui->menu_6->addAction(it->windowTitle());
@@ -229,4 +326,25 @@ void MainWindow::setPositionInRepertory(const QModelIndex & pos, const qint32 wi
 void MainWindow::openVocabulary(){
     auto rep = qobject_cast<repertory*>(ui->mdiArea->activeSubWindow()->widget());
     rep->openVocabulary();
+}
+void MainWindow::setClipboardsName(QStringList name){
+    _clipNames = name;
+    emit changeClipboardsName(_clipNames);
+}
+void MainWindow::addClipboardsRemed(func::remedClipboardInfo remed, quint8 clip){
+    auto & clp = _clipboadrs.at(clip);
+
+    auto pred = [&](const auto f){
+        if(f.path == remed.path && f.key == remed.key)
+            return true;
+
+        return false;
+    };
+
+    auto iter = std::find_if(clp.cbegin(), clp.cend(), pred);
+
+    if(iter == clp.cend()){
+        clp += remed;
+        emit changeClipboardsRemed(_clipboadrs);
+    }
 }

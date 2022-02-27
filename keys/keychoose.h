@@ -2,8 +2,8 @@
 #define KEYCHOOSE_H
 
 #include <QtWidgets>
-#include "languages.h"
-#include "openctree.h"
+#include "commonfunction/languages.h"
+#include "openctree/openctree.h"
 #include "keysremedlist.h"
 
 namespace Ui {

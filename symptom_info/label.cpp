@@ -18,29 +18,29 @@ Label::Label(std::shared_ptr<func::cache> ch, const QDir path,
     ui->label_4->setText(lang.second.nativeLanguageName());
 
     _codec = QTextCodec::codecForName(lang::chooseCodec(lang));
-    _engine = new labelRender(_filename, _cache, _codec);
+    _engine.reset(_filename.filePath("symptom"), _cache, _codec);
 
-    _engine->setCurrentKey(pos);
-    _engine->setChaptersFilter(remFilter);
-    _scene->addItem(_engine->render(QSize(height(), width() - 40)).front());
+    _engine.setCurrentKey(pos);
+    _engine.setChaptersFilter(remFilter);
+    _scene->addItem(_engine.render(QSize(height(), width() - 40)).front());
 
-    _synonyms = _engine->synonymList();
-    _links = _engine->masterReferensesList();
-    _crossLinks = _engine->crossReferensesList();;
+    _synonyms = _engine.synonymList();
+    _links = _engine.masterReferensesList();
+    _crossLinks = _engine.crossReferensesList();;
 
-    const auto rem = _engine->remedsCount();
+    const auto rem = _engine.remedsCount();
 
     _remedSize[0] = rem.at(0);
     _remedSize[1] = rem.at(1);
     _remedSize[2] = rem.at(2);
     _remedSize[3] = rem.at(3);
 
-    if(QLocale::AnyLanguage == lang.second){
+    if(lang.second == QLocale::AnyLanguage){
         ui->label_4->setHidden(true);
         ui->listWidget_2->setHidden(true);
     }
 
-    ui->label->setText(_engine->renderingLabel());
+    ui->label->setText(_engine.renderingLabel());
 
     ui->label_2->setFont(QFont("default", 10));
     ui->label_2->setText(QString::number(_remedSize[0] + _remedSize[1]
@@ -99,7 +99,7 @@ void Label::clickedAction(const QGraphicsSimpleTextItem * item){
     switch (item->data(0).toInt()) {
         case 3 : {
             widget = new remed_author(_filename, _cache, item->data(2).toByteArray()
-                                          , _engine->chaptersFilter(), item->data(1).toUInt(),
+                                          , _engine.chaptersFilter(), item->data(1).toUInt(),
                                       _remedList, _codec, this);
             break;
         }

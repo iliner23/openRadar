@@ -104,9 +104,6 @@
    <addaction name="action_4"/>
    <addaction name="action_7"/>
    <addaction name="action_8"/>
-   <addaction name="action5"/>
-   <addaction name="action6"/>
-   <addaction name="action7"/>
    <addaction name="separator"/>
    <addaction name="action8"/>
    <addaction name="action9"/>
@@ -115,22 +112,6 @@
    <addaction name="action12"/>
    <addaction name="separator"/>
    <addaction name="action13"/>
-   <addaction name="action14"/>
-   <addaction name="separator"/>
-   <addaction name="action15"/>
-   <addaction name="action16"/>
-   <addaction name="action17"/>
-   <addaction name="action18"/>
-   <addaction name="action19"/>
-   <addaction name="separator"/>
-   <addaction name="action20"/>
-   <addaction name="action21"/>
-   <addaction name="action22"/>
-   <addaction name="separator"/>
-   <addaction name="action23"/>
-   <addaction name="action24"/>
-   <addaction name="separator"/>
-   <addaction name="action27"/>
   </widget>
   <widget class="QToolBar" name="toolBar_2">
    <property name="windowTitle">
@@ -154,11 +135,6 @@
    <addaction name="action38"/>
    <addaction name="separator"/>
    <addaction name="action39"/>
-   <addaction name="action40"/>
-   <addaction name="action41"/>
-   <addaction name="action42"/>
-   <addaction name="action43"/>
-   <addaction name="action44"/>
   </widget>
   <action name="action2">
    <property name="text">
@@ -189,34 +165,10 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="action5">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap5.bmp</normaloff>:/icons/res/Bitmap5.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>5</string>
-   </property>
-  </action>
-  <action name="action6">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap42.bmp</normaloff>:/icons/res/Bitmap42.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>6</string>
-   </property>
-  </action>
-  <action name="action7">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap6.bmp</normaloff>:/icons/res/Bitmap6.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>7</string>
-   </property>
-  </action>
   <action name="action8">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap7.bmp</normaloff>:/icons/res/Bitmap7.bmp</iconset>
@@ -226,6 +178,9 @@
    </property>
   </action>
   <action name="action9">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap8.bmp</normaloff>:/icons/res/Bitmap8.bmp</iconset>
@@ -235,6 +190,9 @@
    </property>
   </action>
   <action name="action10">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap9.bmp</normaloff>:/icons/res/Bitmap9.bmp</iconset>
@@ -244,6 +202,9 @@
    </property>
   </action>
   <action name="action11">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap10.bmp</normaloff>:/icons/res/Bitmap10.bmp</iconset>
@@ -253,6 +214,9 @@
    </property>
   </action>
   <action name="action12">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap11.bmp</normaloff>:/icons/res/Bitmap11.bmp</iconset>
@@ -262,143 +226,15 @@
    </property>
   </action>
   <action name="action13">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap12.bmp</normaloff>:/icons/res/Bitmap12.bmp</iconset>
    </property>
    <property name="text">
     <string>13</string>
-   </property>
-  </action>
-  <action name="action14">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap13.bmp</normaloff>:/icons/res/Bitmap13.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>14</string>
-   </property>
-  </action>
-  <action name="action15">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap14.bmp</normaloff>:/icons/res/Bitmap14.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>15</string>
-   </property>
-  </action>
-  <action name="action16">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap15.bmp</normaloff>:/icons/res/Bitmap15.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>16</string>
-   </property>
-  </action>
-  <action name="action17">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap16.bmp</normaloff>:/icons/res/Bitmap16.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>17</string>
-   </property>
-  </action>
-  <action name="action18">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap41.bmp</normaloff>:/icons/res/Bitmap41.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>18</string>
-   </property>
-  </action>
-  <action name="action19">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap43.bmp</normaloff>:/icons/res/Bitmap43.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>19</string>
-   </property>
-  </action>
-  <action name="action20">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap17.bmp</normaloff>:/icons/res/Bitmap17.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>20</string>
-   </property>
-  </action>
-  <action name="action21">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap18.bmp</normaloff>:/icons/res/Bitmap18.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>21</string>
-   </property>
-  </action>
-  <action name="action22">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap19.bmp</normaloff>:/icons/res/Bitmap19.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>22</string>
-   </property>
-  </action>
-  <action name="action23">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap20.bmp</normaloff>:/icons/res/Bitmap20.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>23</string>
-   </property>
-  </action>
-  <action name="action24">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap21.bmp</normaloff>:/icons/res/Bitmap21.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>24</string>
-   </property>
-  </action>
-  <action name="action25">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap22.bmp</normaloff>:/icons/res/Bitmap22.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>25</string>
-   </property>
-  </action>
-  <action name="action26">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap23.bmp</normaloff>:/icons/res/Bitmap23.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>26</string>
-   </property>
-  </action>
-  <action name="action27">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap24.bmp</normaloff>:/icons/res/Bitmap24.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>27</string>
-   </property>
-  </action>
-  <action name="action28">
-   <property name="text">
-    <string>28</string>
    </property>
   </action>
   <action name="action29">
@@ -506,51 +342,6 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="action40">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap44.bmp</normaloff>:/icons/res/Bitmap44.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>40</string>
-   </property>
-  </action>
-  <action name="action41">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap36.bmp</normaloff>:/icons/res/Bitmap36.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>41</string>
-   </property>
-  </action>
-  <action name="action42">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap37.bmp</normaloff>:/icons/res/Bitmap37.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>42</string>
-   </property>
-  </action>
-  <action name="action43">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap38.bmp</normaloff>:/icons/res/Bitmap38.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>43</string>
-   </property>
-  </action>
-  <action name="action44">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/res/Bitmap39.bmp</normaloff>:/icons/res/Bitmap39.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>44</string>
-   </property>
-  </action>
   <action name="action">
    <property name="text">
     <string>Каскадом</string>
@@ -596,6 +387,9 @@
    </property>
    <property name="text">
     <string>Найти из текущего симптома</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_8">

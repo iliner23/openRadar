@@ -3,7 +3,7 @@
 #include <QtCore>
 #include <QTextCodec>
 #include <QtConcurrent/QtConcurrent>
-#include "openctree.h"
+#include "openctree/openctree.h"
 
 namespace func {
     QString renderingLabel(openCtree symptom, bool passLastChapter,
@@ -45,6 +45,19 @@ namespace func {
         std::unordered_map<uint16_t, std::string> _cacheRemed;
         std::unordered_map<uint16_t, std::string> _cacheAuthor;
         uint16_t _lenRem, _lenAuthor;
+    };
+
+    struct remedClipboardInfo{
+        QDir path;
+        QByteArray key;
+        QTextCodec * codec;
+        quint8 intensity = 1;
+        bool elim = false;
+        bool cas = false;
+        QString group;
+        bool measure[4] = { true, true, true, true};
+        bool remGroup = false;
+        quint16 remFilter = -1;
     };
 }
 #endif // COMMONFUNCTIONS_H

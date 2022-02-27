@@ -1,6 +1,6 @@
 #ifndef LABELRENDER_H
 #define LABELRENDER_H
-#include "repertoryrender.h"
+#include "commonfunction/repertoryrender.h"
 
 class labelRender : public repertoryRender
 {
