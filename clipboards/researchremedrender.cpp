@@ -152,6 +152,7 @@ std::tuple<QGraphicsItemGroup*, qreal, qreal> researchRemedRender::drawOneDigits
 QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sortFunction(std::function<void(QMap<QString, std::pair<QVector<quint8>, int>> &, QString, const func::remedClipboardInfo &,
                                                                                             std::tuple<quint16, quint8, quint16, quint16>)> compute){
     QMap<QString, std::pair<QVector<quint8>, int>> remeds;
+    QSet<QString> notIgnoreRemedies;
     //<name treatment, pair<QVector<intensity>, num> (num = count of coincidences)>
     auto numrep = 0, repSize = 0;
 
@@ -198,8 +199,12 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sor
 
                         remeds[remedName].first[numrep] = degree;
 
-                        if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0)
+                        if(iter.remFilter == (quint16)-1 || (std::get<3>(itrem) & iter.remFilter) != 0){
                             compute(remeds, remedName, iter, itrem);
+
+                            if(iter.elim)
+                                notIgnoreRemedies.insert(remedName);
+                        }
                     }
 
                 } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }
@@ -213,9 +218,13 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sor
 
     QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;
 
-    for(auto & it : remeds.keys()){
-        const auto val = remeds.value(it);
-        remed.append(std::make_tuple(it, val.first, val.second, 0));
+    for(auto iter = remeds.cbegin(); iter != remeds.cend(); ++iter){
+        const auto val = *iter;
+
+        if(!notIgnoreRemedies.isEmpty() && !notIgnoreRemedies.contains(iter.key()))
+            continue;
+
+        remed.append(std::make_tuple(iter.key(), val.first, val.second, 0));
     }
 
     remeds.clear();

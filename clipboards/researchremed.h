@@ -37,7 +37,12 @@ private:
     researchRemedRender _render;
     QStringList _clipNames;
     QGraphicsScene * _scene;
+
     QMenu * _strategyMenu, * _showMenu;
+    QList<QAction*> _sympthomAndAnalis;
+    QList<QAction*> _strategy;
+    QAction * _intensity;
+    QList<QAction*> _orientation;
 
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);

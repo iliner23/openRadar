@@ -11,7 +11,7 @@ class researchRemedRender
 public:
     using rci = func::remedClipboardInfo;
     enum class showType{ waffle, grid, clipboard, strategy, result };
-    enum class strategy{ sumRemedies, sumDegrees, sumRemediesAndDegrees };
+    enum class strategy{ sumRemediesAndDegrees, sumRemedies, sumDegrees };
 
     researchRemedRender() { initFont(); }
     researchRemedRender(const std::shared_ptr<func::cache> & cache)

@@ -24,30 +24,27 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
     };
 
     {//strategy
-        QList<QAction*> actions;
         const QStringList labels = { "Сумма симптомов и степеней", "Сумма симптомов", "Сумма степеней" };
 
-        addActions(_strategyMenu, actions, labels);
-        actions.at(1)->setChecked(true);
+        addActions(_strategyMenu, _strategy, labels);
+        _strategy.at(1)->setChecked(true);
         _strategyMenu->addSeparator();
 
-        auto inten = new QAction("Учитывать интенсивность", _strategyMenu);
-        inten->setCheckable(true);
-        inten->setChecked(true);
-        _strategyMenu->addAction(inten);
+        _intensity = new QAction("Учитывать интенсивность", _strategyMenu);
+        _intensity->setCheckable(true);
+        _intensity->setChecked(true);
+        _strategyMenu->addAction(_intensity);
     }
     {//show
-        QList<QAction*> actions;
         QStringList labels = { "Только симптомы", "Только анализ", "Симптомы и анализ" };
 
-        addActions(_showMenu, actions, labels);
-        actions.at(2)->setChecked(true);
-        actions.clear();
+        addActions(_showMenu, _sympthomAndAnalis, labels);
+        _sympthomAndAnalis.at(2)->setChecked(true);
         _showMenu->addSeparator();
 
-        labels = { "Рядом", "Над/Под" };
-        addActions(_showMenu, actions, labels);
-        actions.at(0)->setChecked(true);
+        labels = QStringList{ "Рядом", "Над/Под" };
+        addActions(_showMenu, _orientation, labels);
+        _orientation.at(0)->setChecked(true);
     }
 
     connect(_strategyMenu, &QMenu::triggered, this, &researchRemed::triggeredStrategy);
@@ -98,7 +95,12 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
         for(auto & it : clipboards.at(iter)){
             openCtree data(it.path.filePath("symptom").toStdString());
             data.at(it.key.toStdString(), false);
-            ui->listWidget->addItem(func::renderingLabel(data, false, it.codec));
+            auto name = func::renderingLabel(data, false, it.codec);
+
+            if(name.indexOf('\n') == -1)
+                name.append('\n');
+
+            ui->listWidget->addItem(name);
         }
 
         _render.setClipboardHeight(ui->listWidget->sizeHintForRow(0));
@@ -135,20 +137,24 @@ void researchRemed::setOrientation(Qt::Orientation orien){
         layout->addWidget(ui->graphicsView, 2, 0);
         layout->setColumnStretch(0,0);
         layout->setColumnStretch(2,0);
-        layout->setRowStretch(1,1);
-        layout->setRowStretch(2,1);
+
+        bool checked = _sympthomAndAnalis.at(2)->isChecked();
+        layout->setRowStretch(1, (checked) ? 1 : 0);
+        layout->setRowStretch(2, (checked) ? 1 : 0);
     }
     else{
         layout->removeItem(ui->verticalLayout_4);
         layout->removeWidget(ui->graphicsView);
-        ui->widget->show();
 
         layout->addItem(ui->verticalLayout_4, 1, 0);
         layout->addWidget(ui->graphicsView, 1, 2);
         layout->setRowStretch(1,0);
         layout->setRowStretch(2,0);
-        layout->setColumnStretch(0,3);
-        layout->setColumnStretch(2,8);
+
+        bool checked = _sympthomAndAnalis.at(2)->isChecked();
+        ui->widget->setHidden(!checked);
+        layout->setColumnStretch(0, (checked) ? 3 : 0);
+        layout->setColumnStretch(2, (checked) ? 8 : 0);
     }
 
     QApplication::processEvents();
@@ -164,59 +170,58 @@ void researchRemed::openShowMenu(){
     _showMenu->popup(QPoint(mapToGlobal(pos)));
 }
 void researchRemed::triggeredStrategy(QAction * action){
-    const auto actions = _strategyMenu->actions();
-    auto pos = actions.indexOf(action);
+    auto pos = _strategy.indexOf(action);
 
-    if(pos != actions.size() - 1){
-        for(auto it = 0; it != actions.size() - 2; ++it)
-            actions.at(it)->setChecked(false);
+    if(pos != -1){
+        researchRemedRender::strategy strategy[] =
+                { researchRemedRender::strategy::sumRemediesAndDegrees,
+                  researchRemedRender::strategy::sumRemedies,
+                  researchRemedRender::strategy::sumDegrees };
 
-        actions.at(pos)->setChecked(true);
+        for(auto & it : _strategy)
+            it->setChecked(false);
+
+        action->setChecked(true);
+        _render.setStrategyType(strategy[pos]);
     }
-
-    switch(pos){
-    case 0 :
-        _render.setStrategyType(researchRemedRender::strategy::sumRemediesAndDegrees);
-        break;
-    case 1 :
-        _render.setStrategyType(researchRemedRender::strategy::sumRemedies);
-        break;
-    case 2 :
-        _render.setStrategyType(researchRemedRender::strategy::sumDegrees);
-        break;
-    case 4 :
-        _render.setConsideIntencity(actions.at(pos)->isChecked());
-        break;
-    default:
+    else if(action == _intensity)
+        _render.setConsideIntencity(_intensity->isChecked());
+    else
         return;
-    }
 
     if(!isHidden())
         drawScene();
 }
 void researchRemed::triggeredShow(QAction * action){
-    const auto actions = _showMenu->actions();//TODO : make expand listWidget and graphicsView
-    auto pos = actions.indexOf(action);
-
-    auto checking = [&](auto begin, auto end){
-        for(auto it = begin; it != end; ++it)
+    auto checking = [&](auto actions){
+        for(auto it = 0; it != actions.size(); ++it)
             actions.at(it)->setChecked(false);
 
-        actions.at(pos)->setChecked(true);
+        action->setChecked(true);
     };
 
-    if(pos < 3){
-        checking(0, 3);
-        bool list = (pos != 2) ? actions.at(0)->isChecked() : false;
-        bool view = (pos != 2) ? actions.at(1)->isChecked() : false;
+    auto pos = _sympthomAndAnalis.indexOf(action);
+
+    if(pos != -1){
+        checking(_sympthomAndAnalis);
+        bool list = (pos != 2) ? _sympthomAndAnalis.at(0)->isChecked() : false;
+        bool view = (pos != 2) ? _sympthomAndAnalis.at(1)->isChecked() : false;
 
         ui->listWidget->setHidden(list);
         ui->graphicsView->setHidden(view);
-    }
-    else if(pos > 3 && pos < 6){
-        checking(4, 6);
-        setOrientation((pos == 4) ? Qt::Vertical : Qt::Horizontal);
+
+        setOrientation(_render.orientation());
         drawScene();
+        return;
+    }
+
+    pos = _orientation.indexOf(action);
+
+    if(pos != -1){
+        checking(_orientation);
+        setOrientation((pos == 0) ? Qt::Vertical : Qt::Horizontal);
+        drawScene();
+        return;
     }
 }
 researchRemed::~researchRemed(){
