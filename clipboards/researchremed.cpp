@@ -13,10 +13,11 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
     _strategyMenu = new QMenu(ui->strategy);
     _showMenu = new QMenu(ui->show);
 
-    auto addActions = [](auto * menu, auto & actions, const auto labels){
+    auto addActions = [](auto * menu, auto & actions, const auto labels, bool checkable = true){
         for(const auto & item : labels){
             auto action = new QAction(item, menu);
-            action->setCheckable(true);
+            if(checkable)
+                action->setCheckable(true);
             actions.push_back(action);
         }
 
@@ -38,8 +39,7 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
     {//show
         QStringList labels = { "Только симптомы", "Только анализ", "Симптомы и анализ" };
 
-        addActions(_showMenu, _sympthomAndAnalis, labels);
-        _sympthomAndAnalis.at(2)->setChecked(true);
+        addActions(_showMenu, _sympthomAndAnalis, labels, false);
         _showMenu->addSeparator();
 
         labels = QStringList{ "Рядом", "Над/Под" };
@@ -55,11 +55,11 @@ void researchRemed::renameLabels(){
         _labels[i].label->setText(_clipNames.at(i));
 }
 void researchRemed::drawScene(){
-    _scene->clear();
     auto var = _render.render(ui->graphicsView->size());
+    _scene->clear();
     _scene->setSceneRect(0, 0, 0, 0);
     _scene->addItem(var);
-    ui->widget->setMinimumHeight(_render.labelHeight());
+    ui->spacefiller->setMinimumHeight(_render.labelHeight());
 }
 void researchRemed::setClipboards(std::array<bool, 10> act){
     drawLabels(act);
@@ -125,38 +125,19 @@ void researchRemed::setClipboardRemed(std::array<QVector<rci>, 10> array){
     }
 }
 void researchRemed::setOrientation(Qt::Orientation orien){
-    auto layout = qobject_cast<QGridLayout*>(ui->horizontalLayoutWidget->layout());
     _render.setOrientation(orien);
+    ui->spacefiller->setHidden(orien == Qt::Horizontal);
+    ui->splitter->setOrientation((orien == Qt::Horizontal)
+                                 ? Qt::Vertical : Qt::Horizontal);
 
-    if(orien == Qt::Horizontal){
-        layout->removeItem(ui->verticalLayout_4);
-        layout->removeWidget(ui->graphicsView);
-        ui->widget->hide();
+    const auto list = (_hide == 1) ? 0 :
+                ((orien == Qt::Vertical) ? ui->listWidget->size().height() :
+                                           ui->listWidget->size().width());
+    const auto view = (_hide == 0) ? 0 :
+                ((orien == Qt::Vertical) ? ui->graphicsView->size().height() :
+                                           ui->graphicsView->size().width());
 
-        layout->addItem(ui->verticalLayout_4, 1, 0);
-        layout->addWidget(ui->graphicsView, 2, 0);
-        layout->setColumnStretch(0,0);
-        layout->setColumnStretch(2,0);
-
-        bool checked = _sympthomAndAnalis.at(2)->isChecked();
-        layout->setRowStretch(1, (checked) ? 1 : 0);
-        layout->setRowStretch(2, (checked) ? 1 : 0);
-    }
-    else{
-        layout->removeItem(ui->verticalLayout_4);
-        layout->removeWidget(ui->graphicsView);
-
-        layout->addItem(ui->verticalLayout_4, 1, 0);
-        layout->addWidget(ui->graphicsView, 1, 2);
-        layout->setRowStretch(1,0);
-        layout->setRowStretch(2,0);
-
-        bool checked = _sympthomAndAnalis.at(2)->isChecked();
-        ui->widget->setHidden(!checked);
-        layout->setColumnStretch(0, (checked) ? 3 : 0);
-        layout->setColumnStretch(2, (checked) ? 8 : 0);
-    }
-
+    ui->splitter->setSizes({ list, view });
     QApplication::processEvents();
 }
 void researchRemed::openStrategyMenu(){
@@ -204,14 +185,11 @@ void researchRemed::triggeredShow(QAction * action){
 
     if(pos != -1){
         checking(_sympthomAndAnalis);
-        bool list = (pos != 2) ? _sympthomAndAnalis.at(0)->isChecked() : false;
-        bool view = (pos != 2) ? _sympthomAndAnalis.at(1)->isChecked() : false;
-
-        ui->listWidget->setHidden(list);
-        ui->graphicsView->setHidden(view);
-
+        _hide = pos;
         setOrientation(_render.orientation());
-        drawScene();
+
+        if(ui->graphicsView->isVisible())
+            drawScene();
         return;
     }
 
@@ -220,7 +198,9 @@ void researchRemed::triggeredShow(QAction * action){
     if(pos != -1){
         checking(_orientation);
         setOrientation((pos == 0) ? Qt::Vertical : Qt::Horizontal);
-        drawScene();
+
+        if(ui->graphicsView->isVisible())
+            drawScene();
         return;
     }
 }

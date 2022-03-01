@@ -22,43 +22,46 @@ QGraphicsItemGroup * researchRemedRender::render(const QSize windowSize){
     }
 }
 QGraphicsItemGroup * researchRemedRender::waffleRender(){
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> remed;// = sumRemeds();//TODO : switch strategy
+    auto rendering = [&](const auto remed){
+        auto blueprint = new QGraphicsItemGroup;
+        blueprint->setHandlesChildEvents(false);
+        blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
+
+        auto digits = drawOneDigitsRemeds(remed);
+        auto rmd = drawRemeds(remed, std::get<1>(digits));
+
+        const auto heightLine = std::get<2>(digits) + rmd->boundingRect().height() + _clipboardHeight;
+        auto lines = drawLines(std::get<1>(digits), heightLine, remed.size());
+
+        std::get<0>(digits)->setPos(0, 0);
+
+        lines->setZValue(-1);
+        rmd->setPos(0, std::get<2>(digits) + _clipboardHeight);
+
+        blueprint->addToGroup(std::get<0>(digits));
+        blueprint->addToGroup(lines);
+        blueprint->addToGroup(rmd);
+
+        _labelHeight = -blueprint->boundingRect().y() + std::get<2>(digits);
+        blueprint->setPos(0, -blueprint->boundingRect().y());
+
+        return blueprint;
+    };
 
     switch(_strategy){
-    case strategy::sumRemediesAndDegrees:
-        remed = sumDegreesAndRemedies();
-        break;
-    case strategy::sumRemedies:
-        remed = sumRemedies();
-        break;
-    case strategy::sumDegrees:
-        remed = sumDegrees();
-        break;
+        case strategy::sumRemediesAndDegrees : {
+            const auto remed = sumDegreesAndRemedies();
+            return rendering(remed);
+        }
+        case strategy::sumRemedies : {
+            const auto remed = sumRemedies();
+            return rendering(remed);
+        }
+        case strategy::sumDegrees : {
+            const auto remed = sumDegrees();
+            return rendering(remed);
+        }
     }
-
-    auto blueprint = new QGraphicsItemGroup;
-    blueprint->setHandlesChildEvents(false);
-    blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
-
-    auto digits = drawOneDigitsRemeds(remed);
-    auto rmd = drawRemeds(remed, std::get<1>(digits));
-
-    const auto heightLine = std::get<2>(digits) + rmd->boundingRect().height() + _clipboardHeight;
-    auto lines = drawLines(std::get<1>(digits), heightLine, remed.size());
-
-    std::get<0>(digits)->setPos(0, 0);
-
-    lines->setZValue(-1);
-    rmd->setPos(0, std::get<2>(digits) + _clipboardHeight);
-
-    blueprint->addToGroup(std::get<0>(digits));
-    blueprint->addToGroup(lines);
-    blueprint->addToGroup(rmd);
-
-    _labelHeight = -blueprint->boundingRect().y() + std::get<2>(digits);
-    blueprint->setPos(0, -blueprint->boundingRect().y());
-
-    return blueprint;
 }
 QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengthText, int countLines){
     auto * lines = new QGraphicsItemGroup;

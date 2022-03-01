@@ -43,6 +43,7 @@ private:
     QList<QAction*> _strategy;
     QAction * _intensity;
     QList<QAction*> _orientation;
+    quint8 _hide = 2;//0 - hide list, 1 - hide view, 2 - show all
 
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);

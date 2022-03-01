@@ -14,27 +14,8 @@
    <string>Окно исследования препаратов</string>
   </property>
   <widget class="QWidget" name="horizontalLayoutWidget">
-   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" columnstretch="3,0,7">
-    <property name="spacing">
-     <number>1</number>
-    </property>
-    <item row="1" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QWidget" name="widget" native="true"/>
-      </item>
-      <item>
-       <widget class="QListWidget" name="listWidget"/>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="0" colspan="3">
+   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1">
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <spacer name="horizontalSpacer">
@@ -65,35 +46,50 @@
       </item>
      </layout>
     </item>
-    <item row="1" column="2">
-     <widget class="QGraphicsView" name="graphicsView">
-      <property name="enabled">
-       <bool>true</bool>
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-      </property>
-      <property name="renderHints">
-       <set>QPainter::Antialiasing|QPainter::TextAntialiasing</set>
-      </property>
-      <property name="cacheMode">
-       <set>QGraphicsView::CacheBackground</set>
-      </property>
-      <property name="viewportUpdateMode">
-       <enum>QGraphicsView::SmartViewportUpdate</enum>
-      </property>
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QWidget" name="spacefiller" native="true"/>
+        </item>
+        <item>
+         <widget class="QListWidget" name="listWidget"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGraphicsView" name="graphicsView">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <property name="renderHints">
+        <set>QPainter::Antialiasing|QPainter::TextAntialiasing</set>
+       </property>
+       <property name="cacheMode">
+        <set>QGraphicsView::CacheBackground</set>
+       </property>
+       <property name="viewportUpdateMode">
+        <enum>QGraphicsView::SmartViewportUpdate</enum>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>
