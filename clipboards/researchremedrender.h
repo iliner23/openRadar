@@ -11,7 +11,8 @@ class researchRemedRender
 public:
     using rci = func::remedClipboardInfo;
     enum class showType{ waffle, grid, clipboard, strategy, result };
-    enum class strategy{ sumRemediesAndDegrees, sumRemedies, sumDegrees };
+    enum class strategy{ sumRemediesAndDegrees, sumRemedies, sumDegrees,
+                         sumRemediesBySortDegrees };
 
     researchRemedRender() { initFont(); }
     researchRemedRender(const std::shared_ptr<func::cache> & cache)
@@ -75,16 +76,18 @@ protected:
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sumRemedies();
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegrees();
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegreesAndRemedies();
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumRemediesBySortDegrees();
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sortFunction(
-            std::function<void(QMap<QString, std::pair<QVector<quint8>, int>> &, QString, const func::remedClipboardInfo &,
+            std::function<void(QMap<QString, std::tuple<QVector<quint8>, int, int>> &, QString, const func::remedClipboardInfo &,
                                                                                           std::tuple<quint16, quint8, quint16, quint16>)>);
+
     //Return value
     //QString - remed name, QVector - intensity remedy for symptom
     //int - primal sort, int - secondary sort
     //if the 4th argument is null then the 3th - secondary sort
     //and remedy name is primal sorting tag
 
-    std::tuple<QGraphicsItemGroup*, qreal, qreal> drawOneDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>);
+    std::tuple<QGraphicsItemGroup*, qreal, qreal> drawDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, bool twoDigits = false);
     //1 - width line and remed, 2 - height until 2nd horizon line
 
     bool _consideIntencity = true;

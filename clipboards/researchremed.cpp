@@ -57,7 +57,7 @@ void researchRemed::renameLabels(){
 void researchRemed::drawScene(){
     auto var = _render.render(ui->graphicsView->size());
     _scene->clear();
-    _scene->setSceneRect(0, 0, 0, 0);
+    _scene->setSceneRect(0, 0, var->boundingRect().width(), var->boundingRect().height());
     _scene->addItem(var);
     ui->spacefiller->setMinimumHeight(_render.labelHeight());
 }
