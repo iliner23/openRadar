@@ -65,6 +65,10 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
             const auto remed = sumRemediesBySortDegrees();
             return rendering(remed, true);
         }
+        case strategy::sumDegreesBySortRemedies : {
+            const auto remed = sumDegreesBySortRemedies();
+            return rendering(remed, true);
+        }
     }
 }
 QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengthText, int countLines){
@@ -107,6 +111,7 @@ std::tuple<QGraphicsItemGroup*, qreal, qreal> researchRemedRender::drawDigitsRem
     auto blueprint = new QGraphicsItemGroup;
     blueprint->setHandlesChildEvents(false);
     blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
+    //twoDigits = true if using for sorting by 2nd sign
 
     qreal boundHeight = 0;
     qreal upperLineYPos = 0, lowerLineYPos = 0;
@@ -115,10 +120,10 @@ std::tuple<QGraphicsItemGroup*, qreal, qreal> researchRemedRender::drawDigitsRem
     QPointF lastPos;
 
     for(auto i = 0; i != remeds.size(); ++i){
-        auto text = new QGraphicsSimpleTextItem(std::get<0>(remeds.at(i)));
-        auto sum = new QGraphicsSimpleTextItem(QString::number(std::get<2>(remeds.at(i))));
-        auto sort = (twoDigits) ? new QGraphicsSimpleTextItem(QString::number(std::get<3>(remeds.at(i)))) : nullptr;//TODO : test work for two digits
-        auto number = new QGraphicsSimpleTextItem(QString::number(i + 1));
+        auto text = new QGraphicsSimpleTextItem(std::get<0>(remeds.at(i)));//remedy text
+        auto sum = new QGraphicsSimpleTextItem(QString::number(std::get<2>(remeds.at(i))));//main sort sign
+        auto sort = (twoDigits) ? new QGraphicsSimpleTextItem(QString::number(std::get<3>(remeds.at(i)))) : nullptr;//for 2nd digits (sort sign)
+        auto number = new QGraphicsSimpleTextItem(QString::number(i + 1));//number of remedy
 
         text->setFont(_defFont);
         text->setPos(lastPos);
@@ -249,19 +254,30 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sor
 
     remeds.clear();
 
-    auto sort = [](const auto & front, const auto & end){//TODO : sort for two digits
-        return std::get<2>(front) > std::get<2>(end);
+    auto sort = [](const auto & front, const auto & end){
+        return std::tie(std::get<2>(front), std::get<3>(front)) >
+               std::tie(std::get<2>(end), std::get<3>(end));
     };
 
     std::sort(remed.begin(), remed.end(), sort);
     return remed;
 }
+QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumDegreesBySortRemedies(){
+    auto func = [&](QMap<QString, std::tuple<QVector<quint8>, int, int>> & remeds,
+                QString remedName, const func::remedClipboardInfo & iter,
+                std::tuple<quint16, quint8, quint16, quint16> itrem){
+        std::get<1>(remeds[remedName]) += std::get<1>(itrem) * ((_consideIntencity) ? iter.intensity : 1);
+        std::get<2>(remeds[remedName]) += (_consideIntencity) ? iter.intensity : 1;
+    };
 
+    return sortFunction(func);
+}
 QVector<std::tuple<QString, QVector<quint8>, int, int>> researchRemedRender::sumRemediesBySortDegrees(){
     auto func = [&](QMap<QString, std::tuple<QVector<quint8>, int, int>> & remeds,
                 QString remedName, const func::remedClipboardInfo & iter,
                 std::tuple<quint16, quint8, quint16, quint16> itrem){
-        //TODO : realize filling algorithm
+        std::get<1>(remeds[remedName]) += (_consideIntencity) ? iter.intensity : 1;
+        std::get<2>(remeds[remedName]) += std::get<1>(itrem) * ((_consideIntencity) ? iter.intensity : 1);
     };
 
     return sortFunction(func);

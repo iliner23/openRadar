@@ -12,7 +12,7 @@ public:
     using rci = func::remedClipboardInfo;
     enum class showType{ waffle, grid, clipboard, strategy, result };
     enum class strategy{ sumRemediesAndDegrees, sumRemedies, sumDegrees,
-                         sumRemediesBySortDegrees };
+                         sumRemediesBySortDegrees, sumDegreesBySortRemedies };
 
     researchRemedRender() { initFont(); }
     researchRemedRender(const std::shared_ptr<func::cache> & cache)
@@ -77,6 +77,7 @@ protected:
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegrees();
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegreesAndRemedies();
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sumRemediesBySortDegrees();
+    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegreesBySortRemedies();
     QVector<std::tuple<QString, QVector<quint8>, int, int>> sortFunction(
             std::function<void(QMap<QString, std::tuple<QVector<quint8>, int, int>> &, QString, const func::remedClipboardInfo &,
                                                                                           std::tuple<quint16, quint8, quint16, quint16>)>);

@@ -25,10 +25,11 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
     };
 
     {//strategy
-        const QStringList labels = { "Сумма симптомов и степеней", "Сумма симптомов", "Сумма степеней" };
+        const QStringList labels = { "Сумма симптомов, сорт: степень", "Сумма степеней, сорт: симптом",
+                                     "Сумма симптомов и степеней", "Сумма симптомов", "Сумма степеней" };
 
         addActions(_strategyMenu, _strategy, labels);
-        _strategy.at(1)->setChecked(true);
+        _strategy.at(2)->setChecked(true);
         _strategyMenu->addSeparator();
 
         _intensity = new QAction("Учитывать интенсивность", _strategyMenu);
@@ -155,7 +156,9 @@ void researchRemed::triggeredStrategy(QAction * action){
 
     if(pos != -1){
         researchRemedRender::strategy strategy[] =
-                { researchRemedRender::strategy::sumRemediesAndDegrees,
+                { researchRemedRender::strategy::sumRemediesBySortDegrees,
+                  researchRemedRender::strategy::sumDegreesBySortRemedies,
+                  researchRemedRender::strategy::sumRemediesAndDegrees,
                   researchRemedRender::strategy::sumRemedies,
                   researchRemedRender::strategy::sumDegrees };
 
