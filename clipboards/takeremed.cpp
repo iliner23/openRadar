@@ -21,8 +21,6 @@ takeRemed::takeRemed(QStringList name, QWidget *parent) :
     ui->comboBox->setCurrentIndex(1);
 
     connect(ui->pushButton, &QPushButton::clicked, this, &takeRemed::setDefault);
-    connect(ui->checkBox, &QCheckBox::stateChanged, this, [&](int state){clickedBox(state, 0);});
-    connect(ui->checkBox_2, &QCheckBox::stateChanged, this, [&](int state){clickedBox(state, 1);});
 }
 void takeRemed::setDefault(){
     ui->checkBox_3->setChecked(true);
@@ -31,7 +29,6 @@ void takeRemed::setDefault(){
     ui->checkBox_6->setChecked(true);
 
     ui->lineEdit->clear();
-    ui->checkBox->setChecked(false);
     ui->checkBox_2->setChecked(false);
 
     ui->checkBox_7->setChecked(false);
@@ -55,14 +52,6 @@ void takeRemed::setDefault(){
 void takeRemed::showEvent(QShowEvent *event){
     setDefault();
     event->ignore();
-}
-void takeRemed::clickedBox(int state, int box){
-    if(state == Qt::Checked){
-        if(box == 0)
-            ui->checkBox_2->setChecked(false);
-        else if(box == 1)
-            ui->checkBox->setChecked(false);
-    }
 }
 void takeRemed::setClipboardsName(QStringList name){
     _name = name;
@@ -105,7 +94,6 @@ void takeRemed::accept(){
     info.measure[2] = ui->checkBox_5->isChecked();
     info.measure[3] = ui->checkBox_6->isChecked();
 
-    info.remGroup = ui->checkBox->isChecked();
     info.codec = _codec;
     info.path = _repertory;
     info.key = _key;

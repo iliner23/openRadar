@@ -86,10 +86,10 @@ protected:
     //QString - remed name, QVector - intensity remedy for symptom
     //int - primal sort, int - secondary sort
     //if the 4th argument is null then the 3th - secondary sort
-    //and remedy name is primal sorting tag
+    //and remedy's name is primal sorting tag
 
     std::tuple<QGraphicsItemGroup*, qreal, qreal> drawDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, bool twoDigits = false);
-    //1 - width line and remed, 2 - height until 2nd horizon line
+    //1 - width line and remedy, 2 - height until 2nd horizon line
 
     bool _consideIntencity = true;
     //false value is ignoring remedies intencity in computing

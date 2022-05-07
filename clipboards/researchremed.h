@@ -48,6 +48,7 @@ private:
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);
     void drawScene();
+    void resizeEvent(QResizeEvent * event) override;
 };
 
 #endif // RESEARCHREMED_H

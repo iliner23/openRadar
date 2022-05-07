@@ -193,6 +193,7 @@ void researchRemed::triggeredShow(QAction * action){
 
         if(ui->graphicsView->isVisible())
             drawScene();
+
         return;
     }
 
@@ -204,8 +205,13 @@ void researchRemed::triggeredShow(QAction * action){
 
         if(ui->graphicsView->isVisible())
             drawScene();
+
         return;
     }
+}
+void researchRemed::resizeEvent(QResizeEvent * event){
+    drawScene();
+    event->ignore();
 }
 researchRemed::~researchRemed(){
     delete ui;

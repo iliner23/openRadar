@@ -18,7 +18,6 @@ public:
     ~takeRemed();
 private slots:
     void setDefault();
-    void clickedBox(int, int);
 public slots:
     void setClipboardsName(QStringList name);
     void accept() override;

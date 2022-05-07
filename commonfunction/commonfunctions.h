@@ -56,7 +56,6 @@ namespace func {
         bool cas = false;
         QString group;
         bool measure[4] = { true, true, true, true};
-        bool remGroup = false;
         quint16 remFilter = -1;
     };
 }
