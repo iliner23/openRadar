@@ -3,6 +3,7 @@
 
 #include <QtWidgets>
 #include <memory>
+#include <array>
 #include "openctree/openctree.h"
 #include "repertory/repchose.h"
 #include "repertory/repertory.h"
@@ -43,14 +44,14 @@ private slots:
     void openVocabulary();
     void openTakeRemed();
 
-    void setClipboardsName(QStringList name);
+    void setClipboardsName();
     void addClipboardsRemed(func::remedClipboardInfo, quint8);
 #ifdef _TEST_
     void openResearchTest(QAction *act);
 #endif
 signals:
-    void changeClipboardsName(QStringList);
-    void changeClipboardsRemed(std::array<QVector<rci>, 10>);
+    void changeClipboardsName();
+    void changeClipboardsRemed();
 private:
     Ui::MainWindow *ui;
     RepChose * _choose = nullptr;
@@ -71,19 +72,7 @@ private:
     QVector<QDir> _repertsPos;
     QVector<std::pair<QLocale, QLocale>> _repertsLang;
     std::shared_ptr<func::cache> _cache;
-    std::array<QVector<rci>, 10> _clipboadrs;
-
-    QStringList _clipNames = {
-        "Клипборд 1",
-        "Клипборд 2",
-        "Клипборд 3",
-        "Клипборд 4",
-        "Клипборд 5",
-        "Клипборд 6",
-        "Клипборд 7",
-        "Клипборд 8",
-        "Клипборд 9",
-        "Клипборд 10",
-    };
+    std::shared_ptr<std::array<QVector<rci>, 10>> _clipboadrs;
+    std::shared_ptr<QStringList> _clipNames;
 };
 #endif // MAINWINDOW_H

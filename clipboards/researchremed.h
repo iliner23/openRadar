@@ -2,6 +2,7 @@
 #define RESEARCHREMED_H
 
 #include <QtWidgets>
+#include <memory>
 #include "researchremedrender.h"
 
 namespace Ui {
@@ -13,7 +14,8 @@ class researchRemed : public QMainWindow
     Q_OBJECT
     using rci = func::remedClipboardInfo;
 public:
-    explicit researchRemed(QStringList clipNames, const std::shared_ptr<func::cache> &, QWidget *parent = nullptr);
+    explicit researchRemed(std::shared_ptr<QStringList> clipNames, std::shared_ptr<std::array<QVector<rci>, 10>> clipRemed,
+                           const std::shared_ptr<func::cache> &, QWidget *parent = nullptr);
     ~researchRemed();
 private slots:
     void setOrientation(Qt::Orientation);
@@ -23,8 +25,8 @@ private slots:
     void triggeredShow(QAction*);
 public slots:
     void setClipboards(std::array<bool, 10>);
-    void setClipboardName(QStringList);
-    void setClipboardRemed(std::array<QVector<rci>, 10>);
+    void setClipboardName();
+    void setClipboardRemed();
 private:
     Ui::researchRemed *ui;
 
@@ -35,7 +37,7 @@ private:
 
     std::array<clipList, 10> _labels;
     researchRemedRender _render;
-    QStringList _clipNames;
+    std::shared_ptr<QStringList> _clipNames;
     QGraphicsScene * _scene;
 
     QMenu * _strategyMenu, * _showMenu;
@@ -44,6 +46,8 @@ private:
     QAction * _intensity;
     QList<QAction*> _orientation;
     quint8 _hide = 2;//0 - hide list, 1 - hide view, 2 - show all
+
+    std::shared_ptr<std::array<QVector<rci>, 10>> _clipRemed;
 
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);

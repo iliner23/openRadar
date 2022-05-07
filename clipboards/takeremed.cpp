@@ -1,7 +1,7 @@
 #include "takeremed.h"
 #include "ui_takeremed.h"
 
-takeRemed::takeRemed(QStringList name, QWidget *parent) :
+takeRemed::takeRemed(std::shared_ptr<QStringList> name, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::takeRemed)
 {
@@ -45,7 +45,7 @@ void takeRemed::setDefault(){
     ui->checkBox_17->setChecked(false);
     ui->checkBox_18->setChecked(false);
 
-    setClipboardsName(_name);
+    setClipboardsName();
 
     ui->comboBox->setCurrentIndex(1);
 }
@@ -53,35 +53,33 @@ void takeRemed::showEvent(QShowEvent *event){
     setDefault();
     event->ignore();
 }
-void takeRemed::setClipboardsName(QStringList name){
-    _name = name;
-
-    ui->lineEdit_2->setText(_name.at(0));
-    ui->lineEdit_3->setText(_name.at(1));
-    ui->lineEdit_4->setText(_name.at(2));
-    ui->lineEdit_5->setText(_name.at(3));
-    ui->lineEdit_6->setText(_name.at(4));
-    ui->lineEdit_7->setText(_name.at(5));
-    ui->lineEdit_8->setText(_name.at(6));
-    ui->lineEdit_9->setText(_name.at(7));
-    ui->lineEdit_10->setText(_name.at(8));
-    ui->lineEdit_11->setText(_name.at(9));
+void takeRemed::setClipboardsName(){
+    ui->lineEdit_2->setText(_name->at(0));
+    ui->lineEdit_3->setText(_name->at(1));
+    ui->lineEdit_4->setText(_name->at(2));
+    ui->lineEdit_5->setText(_name->at(3));
+    ui->lineEdit_6->setText(_name->at(4));
+    ui->lineEdit_7->setText(_name->at(5));
+    ui->lineEdit_8->setText(_name->at(6));
+    ui->lineEdit_9->setText(_name->at(7));
+    ui->lineEdit_10->setText(_name->at(8));
+    ui->lineEdit_11->setText(_name->at(9));
 }
 void takeRemed::accept(){
     QDialog::accept();
 
-    _name[0] = ui->lineEdit_2->text();
-    _name[1] = ui->lineEdit_3->text();
-    _name[2] = ui->lineEdit_4->text();
-    _name[3] = ui->lineEdit_5->text();
-    _name[4] = ui->lineEdit_6->text();
-    _name[5] = ui->lineEdit_7->text();
-    _name[6] = ui->lineEdit_8->text();
-    _name[7] = ui->lineEdit_9->text();
-    _name[8] = ui->lineEdit_10->text();
-    _name[9] = ui->lineEdit_11->text();
+    (*_name)[0] = ui->lineEdit_2->text();
+    (*_name)[1] = ui->lineEdit_3->text();
+    (*_name)[2] = ui->lineEdit_4->text();
+    (*_name)[3] = ui->lineEdit_5->text();
+    (*_name)[4] = ui->lineEdit_6->text();
+    (*_name)[5] = ui->lineEdit_7->text();
+    (*_name)[6] = ui->lineEdit_8->text();
+    (*_name)[7] = ui->lineEdit_9->text();
+    (*_name)[8] = ui->lineEdit_10->text();
+    (*_name)[9] = ui->lineEdit_11->text();
 
-    emit changeClipboardsName(_name);
+    emit changeClipboardsName();
 
     func::remedClipboardInfo info;
     info.intensity = ui->comboBox->currentIndex();

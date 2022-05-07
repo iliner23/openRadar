@@ -8,6 +8,25 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     _chapters = new windowChapters(this);
 
+    {
+        QStringList clip = {
+            "Клипборд 1",
+            "Клипборд 2",
+            "Клипборд 3",
+            "Клипборд 4",
+            "Клипборд 5",
+            "Клипборд 6",
+            "Клипборд 7",
+            "Клипборд 8",
+            "Клипборд 9",
+            "Клипборд 10",
+        };
+
+        _clipNames = std::make_shared<QStringList>(std::move(clip));
+        _clipNames->append(clip);
+        _clipboadrs = std::make_shared<std::array<QVector<rci>, 10>>();
+    }
+
     _catalog.open(QDir::toNativeSeparators("../system/catalog").toStdString());
     auto dataDirs = QDir("../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     auto keysDirs = QDir("../data/keynotes").entryInfoList(QDir::Files);
@@ -146,7 +165,7 @@ MainWindow::MainWindow(QWidget *parent)
     _takeRemed = new takeRemed(_clipNames, this);
 
 #ifdef _TEST_
-    _research = new researchRemed(_clipNames , _cache, this);
+    _research = new researchRemed(_clipNames , _clipboadrs, _cache, this);
 #endif
 
     connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
@@ -195,28 +214,16 @@ void MainWindow::openTakeRemed(){
 #ifdef _TEST_
 void MainWindow::openResearchTest(QAction * act){
     auto compare = [&](QAction * com){
-        if(ui->action29 == com)
-            return 0;
-        if(ui->action30 == com)
-            return 1;
-        if(ui->action31 == com)
-            return 2;
-        if(ui->action32 == com)
-            return 3;
-        if(ui->action33 == com)
-            return 4;
-        if(ui->action34 == com)
-            return 5;
-        if(ui->action35 == com)
-            return 6;
-        if(ui->action36 == com)
-            return 7;
-        if(ui->action37 == com)
-            return 8;
-        if(ui->action38 == com)
-            return 9;
+        QAction * actions[] = {ui->action29, ui->action30, ui->action31,
+                          ui->action32, ui->action33, ui->action34,
+                          ui->action35, ui->action36, ui->action37, ui->action38};
 
-        return -1;
+        const auto value = std::find(std::cbegin(actions), std::cend(actions), com);
+
+        if(value == std::cend(actions))
+            return -1;
+
+        return (int) std::distance(std::cbegin(actions), value);
     };
 
     std::array<bool, 10> val;
@@ -327,12 +334,11 @@ void MainWindow::openVocabulary(){
     auto rep = qobject_cast<repertory*>(ui->mdiArea->activeSubWindow()->widget());
     rep->openVocabulary();
 }
-void MainWindow::setClipboardsName(QStringList name){
-    _clipNames = name;
-    emit changeClipboardsName(_clipNames);
+void MainWindow::setClipboardsName(){
+    emit changeClipboardsName();
 }
 void MainWindow::addClipboardsRemed(func::remedClipboardInfo remed, quint8 clip){
-    auto & clp = _clipboadrs.at(clip);
+    auto & clp = _clipboadrs->at(clip);
 
     auto pred = [&](const auto f){
         if(f.path == remed.path && f.key == remed.key)
@@ -345,6 +351,6 @@ void MainWindow::addClipboardsRemed(func::remedClipboardInfo remed, quint8 clip)
 
     if(iter == clp.cend()){
         clp += remed;
-        emit changeClipboardsRemed(_clipboadrs);
+        emit changeClipboardsRemed();
     }
 }

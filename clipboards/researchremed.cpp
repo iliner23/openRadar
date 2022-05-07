@@ -1,11 +1,12 @@
 #include "researchremed.h"
 #include "ui_researchremed.h"
 
-researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::cache> & cache, QWidget *parent) :
+researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared_ptr<std::array<QVector<rci>, 10>> clipRemed, const std::shared_ptr<func::cache> & cache, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::researchRemed){
     ui->setupUi(this);
     _clipNames = clipNames;
+    _clipRemed = clipRemed;
     _scene = new QGraphicsScene(this);
     _render.reset(cache);
     ui->graphicsView->setScene(_scene);
@@ -53,7 +54,7 @@ researchRemed::researchRemed(QStringList clipNames, const std::shared_ptr<func::
 }
 void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
-        _labels[i].label->setText(_clipNames.at(i));
+        _labels[i].label->setText(_clipNames->at(i));
 }
 void researchRemed::drawScene(){
     auto var = _render.render(ui->graphicsView->size());
@@ -78,7 +79,7 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
 
         auto widget = new QWidget;
         auto layout = new QHBoxLayout;
-        _labels[iter].label = new QLabel(_clipNames.at(iter));
+        _labels[iter].label = new QLabel(_clipNames->at(iter));
         _labels[iter].exit = new QPushButton("Закрыть клипборд");
         auto item = new QListWidgetItem;
 
@@ -111,14 +112,12 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
     //NOTE : only for test
     _render.setAnalysisType(researchRemedRender::showType::waffle);
 }
-void researchRemed::setClipboardName(QStringList name){
-    _clipNames = name;
-
+void researchRemed::setClipboardName(){
     if(!isHidden())
         drawLabels(_render.showedClipboards());
 }
-void researchRemed::setClipboardRemed(std::array<QVector<rci>, 10> array){
-    _render.setClipboards(array);
+void researchRemed::setClipboardRemed(){
+    _render.setClipboards(*_clipRemed);
 
     if(!isHidden()){
         drawLabels(_render.showedClipboards());
