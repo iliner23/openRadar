@@ -369,7 +369,7 @@ QGraphicsItemGroup * researchRemedRender::drawRemeds(const QVector<std::tuple<QS
             ++pos;
             lastPos.setX(0);
 
-            if(_ori == Qt::Horizontal){
+            if(_ori == Qt::Horizontal && !remeds.isEmpty()){
                 auto counter = new QGraphicsSimpleTextItem(QString::number(pos));
                 counter->setFont(_defFont);
                 counter->setPos(-maxSymptomsSize * 2, lastPos.y() + rectDownPtr.height() / 2);

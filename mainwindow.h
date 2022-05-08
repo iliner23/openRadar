@@ -13,8 +13,6 @@
 #include "clipboards/researchremed.h"
 #include "clipboards/takeremed.h"
 
-#define _TEST_
-
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -46,9 +44,7 @@ private slots:
 
     void setClipboardsName();
     void addClipboardsRemed(func::remedClipboardInfo, quint8);
-#ifdef _TEST_
     void openResearchTest(QAction *act);
-#endif
 signals:
     void changeClipboardsName();
     void changeClipboardsRemed();
@@ -60,14 +56,13 @@ private:
     windowChapters * _chapters = nullptr;
     takeRemed * _takeRemed = nullptr;
 
-#ifdef _TEST_
     researchRemed * _research = nullptr;
     void keyPressEvent(QKeyEvent *) override;
     void keyReleaseEvent(QKeyEvent *) override;
 
     QVector<QAction*> _pressedClipboard;
     bool _pressed = false;
-#endif
+
     openCtree _catalog;
     QVector<QDir> _repertsPos;
     QVector<std::pair<QLocale, QLocale>> _repertsLang;

@@ -17,12 +17,6 @@ public:
     explicit researchRemed(std::shared_ptr<QStringList> clipNames, std::shared_ptr<std::array<QVector<rci>, 10>> clipRemed,
                            const std::shared_ptr<func::cache> &, QWidget *parent = nullptr);
     ~researchRemed();
-private slots:
-    void setOrientation(Qt::Orientation);
-    void openStrategyMenu();
-    void openShowMenu();
-    void triggeredStrategy(QAction*);
-    void triggeredShow(QAction*);
 public slots:
     void setClipboards(std::array<bool, 10>);
     void setClipboardName();
@@ -30,12 +24,7 @@ public slots:
 private:
     Ui::researchRemed *ui;
 
-    struct clipList{
-        QLabel * label = nullptr;
-        QPushButton * exit = nullptr;
-    };
-
-    std::array<clipList, 10> _labels;
+    std::array<QLabel*, 10> _labels;
     researchRemedRender _render;
     std::shared_ptr<QStringList> _clipNames;
     QGraphicsScene * _scene;
@@ -53,6 +42,13 @@ private:
     void drawLabels(std::array<bool, 10> act);
     void drawScene();
     void resizeEvent(QResizeEvent * event) override;
+private slots:
+    void setOrientation(Qt::Orientation);
+    void openStrategyMenu();
+    void openShowMenu();
+    void triggeredStrategy(QAction*);
+    void triggeredShow(QAction*);
+    void closeClipboard(QLabel*);
 };
 
 #endif // RESEARCHREMED_H

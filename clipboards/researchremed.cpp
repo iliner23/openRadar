@@ -54,7 +54,7 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
 }
 void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
-        _labels[i].label->setText(_clipNames->at(i));
+        _labels[i]->setText(_clipNames->at(i));
 }
 void researchRemed::drawScene(){
     auto var = _render.render(ui->graphicsView->size());
@@ -71,30 +71,31 @@ void researchRemed::setClipboards(std::array<bool, 10> act){
 void researchRemed::drawLabels(std::array<bool, 10> act){
     ui->listWidget->clear();
     _render.setShowedClipboards(act);
-    const auto clipboards = _render.clipboards();
 
     for(auto iter = 0; iter != act.size(); ++iter){
-        if(!act.at(iter) || clipboards.at(iter).isEmpty())
+        if(!act.at(iter) || _clipRemed->at(iter).isEmpty())
             continue;
 
         auto widget = new QWidget;
         auto layout = new QHBoxLayout;
-        _labels[iter].label = new QLabel(_clipNames->at(iter));
-        _labels[iter].exit = new QPushButton("Закрыть клипборд");
+        _labels[iter] = new QLabel(_clipNames->at(iter));
+        auto exit = new QPushButton("Закрыть клипборд");
+        connect(exit, &QPushButton::clicked, this, [=](){researchRemed::closeClipboard(_labels[iter]);});
+
         auto item = new QListWidgetItem;
 
-        layout->addWidget(_labels[iter].label);
-        layout->addWidget(_labels[iter].exit);
+        layout->addWidget(_labels[iter]);
+        layout->addWidget(exit);
         layout->setSizeConstraint(QLayout::SetFixedSize);
         widget->setLayout(layout);
 
-        _labels[iter].exit->setStyleSheet("background-color: gray");
+        exit->setStyleSheet("background-color: gray");
         item->setBackground(Qt::gray);
         item->setSizeHint(widget->sizeHint());
         ui->listWidget->addItem(item);
         ui->listWidget->setItemWidget(item, widget);
 
-        for(auto & it : clipboards.at(iter)){
+        for(const auto & it : _clipRemed->at(iter)){
             openCtree data(it.path.filePath("symptom").toStdString());
             data.at(it.key.toStdString(), false);
             auto name = func::renderingLabel(data, false, it.codec);
@@ -207,6 +208,16 @@ void researchRemed::triggeredShow(QAction * action){
 
         return;
     }
+}
+void researchRemed::closeClipboard(QLabel * closeButton){
+    auto findIter = std::find(_labels.cbegin(), _labels.cend(), closeButton);
+    auto showClip = _render.showedClipboards();
+
+    showClip.at(findIter - _labels.cbegin()) = false;
+    _render.setShowedClipboards(showClip);
+
+    if(!isHidden())
+        setClipboards(showClip);
 }
 void researchRemed::resizeEvent(QResizeEvent * event){
     drawScene();

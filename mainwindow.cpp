@@ -27,9 +27,9 @@ MainWindow::MainWindow(QWidget *parent)
         _clipboadrs = std::make_shared<std::array<QVector<rci>, 10>>();
     }
 
-    _catalog.open(QDir::toNativeSeparators("../system/catalog").toStdString());
-    auto dataDirs = QDir("../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-    auto keysDirs = QDir("../data/keynotes").entryInfoList(QDir::Files);
+    _catalog.open(QDir::toNativeSeparators("../../system/catalog").toStdString());
+    auto dataDirs = QDir("../../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    auto keysDirs = QDir("../../data/keynotes").entryInfoList(QDir::Files);
     const QStringList tpCmp = {"view", "word1", "word2", "chapter", "extract", "symptom"};
 
     QTextCodec * cd = QTextCodec::codecForName(lang::defaultCodec());
@@ -43,7 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
 
         if(str.at(4) == 1){
             for(auto & ir : dataDirs){
-                auto st = str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
+                auto st = "../" + str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
+                //NOTE: work directory for repertory
                 st.chop(2);
                 QFileInfo dir(st);
 
@@ -110,7 +111,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
         else if(str.at(4) == 2){
             for(auto & ir : keysDirs){
-                auto st = str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
+                auto st = "../" + str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
+                //NOTE: work directory for keys
                 st.chop(1);
                 QFileInfo dir(st + ".dat");
 
@@ -131,8 +133,8 @@ MainWindow::MainWindow(QWidget *parent)
             break;
     }
 
-    openCtree remed(QDir("../system/remed").path().toStdString());
-    openCtree author(QDir("../system/author").path().toStdString());
+    openCtree remed(QDir("../../system/remed").path().toStdString());
+    openCtree author(QDir("../../system/author").path().toStdString());
 
     _cache = std::make_shared<func::cache>();
     _cache->_lenRem = remed.serviceDataLenght();
@@ -163,10 +165,7 @@ MainWindow::MainWindow(QWidget *parent)
     _remedList = new keysRemedList(keysPos, keys, this);
     _keych = new KeyChoose(keys, _remedList, this);
     _takeRemed = new takeRemed(_clipNames, this);
-
-#ifdef _TEST_
     _research = new researchRemed(_clipNames , _clipboadrs, _cache, this);
-#endif
 
     connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
     connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
@@ -185,21 +184,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_takeRemed, &takeRemed::addedClipboardsRemed, this, &MainWindow::addClipboardsRemed);
     connect(this, &MainWindow::changeClipboardsName, _takeRemed, &takeRemed::setClipboardsName);
 
-#ifdef _TEST_
     connect(this, &MainWindow::changeClipboardsRemed, _research, &researchRemed::setClipboardRemed);
     connect(this, &MainWindow::changeClipboardsName, _research, &researchRemed::setClipboardName);
 
-    connect(ui->action29, &QAction::triggered, this, [&](){ openResearchTest(ui->action29); });
-    connect(ui->action30, &QAction::triggered, this, [&](){ openResearchTest(ui->action30); });
-    connect(ui->action31, &QAction::triggered, this, [&](){ openResearchTest(ui->action31); });
-    connect(ui->action32, &QAction::triggered, this, [&](){ openResearchTest(ui->action32); });
-    connect(ui->action33, &QAction::triggered, this, [&](){ openResearchTest(ui->action33); });
-    connect(ui->action34, &QAction::triggered, this, [&](){ openResearchTest(ui->action34); });
-    connect(ui->action35, &QAction::triggered, this, [&](){ openResearchTest(ui->action35); });
-    connect(ui->action36, &QAction::triggered, this, [&](){ openResearchTest(ui->action36); });
-    connect(ui->action37, &QAction::triggered, this, [&](){ openResearchTest(ui->action37); });
-    connect(ui->action38, &QAction::triggered, this, [&](){ openResearchTest(ui->action38); });
-#endif
+    QAction * researchPtrs[] = {ui->action29, ui->action30, ui->action31, ui->action32,
+                                      ui->action33, ui->action34, ui->action35, ui->action36,
+                                      ui->action37, ui->action38};
+
+    for(auto it : researchPtrs)
+        connect(it, &QAction::triggered, this, [=](){ openResearchTest(it); });
 }
 void MainWindow::openTakeRemed(){
     if(ui->mdiArea->currentSubWindow() != nullptr){
@@ -211,7 +204,6 @@ void MainWindow::openTakeRemed(){
         _takeRemed->show();
     }
 }
-#ifdef _TEST_
 void MainWindow::openResearchTest(QAction * act){
     auto compare = [&](QAction * com){
         QAction * actions[] = {ui->action29, ui->action30, ui->action31,
@@ -260,13 +252,12 @@ void MainWindow::keyReleaseEvent(QKeyEvent * event){
         openResearchTest(nullptr);
     }
 }
-#endif
 MainWindow::~MainWindow(){
     delete ui;
 }
 void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, std::pair<QLocale, QLocale> lang){
     auto index = item.row();
-    auto rep = new repertory(QDir(_repertsPos.at(index)), QDir("../system"),
+    auto rep = new repertory(QDir(_repertsPos.at(index)), QDir("../../system"),
                              _cache, lang, _remedList, repLevel, ui->mdiArea);
     rep->setAttribute(Qt::WA_DeleteOnClose);
     rep->setWindowTitle(item.data().toString());
