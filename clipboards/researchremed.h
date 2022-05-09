@@ -4,6 +4,7 @@
 #include <QtWidgets>
 #include <memory>
 #include "researchremedrender.h"
+#include "setremedy.h"
 
 namespace Ui {
 class researchRemed;
@@ -29,9 +30,10 @@ private:
     std::shared_ptr<QStringList> _clipNames;
     QGraphicsScene * _scene;
 
-    QMenu * _strategyMenu, * _showMenu;
+    QMenu * _strategyMenu, * _showMenu, * _listMenu;
     QList<QAction*> _sympthomAndAnalis;
     QList<QAction*> _strategy;
+    QList<QAction*> _listAction;
     QAction * _intensity;
     QList<QAction*> _orientation;
     quint8 _hide = 2;//0 - hide list, 1 - hide view, 2 - show all
@@ -44,11 +46,15 @@ private:
     void resizeEvent(QResizeEvent * event) override;
 private slots:
     void setOrientation(Qt::Orientation);
+    void closeClipboard(QLabel*);
+
     void openStrategyMenu();
     void openShowMenu();
+    void openListMenu(const QPoint&);
+
     void triggeredStrategy(QAction*);
     void triggeredShow(QAction*);
-    void closeClipboard(QLabel*);
+    void triggeredList(QAction*);
 };
 
 #endif // RESEARCHREMED_H

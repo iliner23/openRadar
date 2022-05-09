@@ -24,6 +24,7 @@ SOURCES += \
     chapters/windowchapters.cpp \
     clipboards/researchremed.cpp \
     clipboards/researchremedrender.cpp \
+    clipboards/setremedy.cpp \
     clipboards/takeremed.cpp \
     commonfunction/commonfunctions.cpp \
     commonfunction/customscene.cpp \
@@ -50,6 +51,7 @@ HEADERS += \
     chapters/windowchapters.h \
     clipboards/researchremed.h \
     clipboards/researchremedrender.h \
+    clipboards/setremedy.h \
     clipboards/takeremed.h \
     commonfunction/commonfunctions.h \
     commonfunction/customscene.h \
@@ -72,6 +74,7 @@ FORMS += \
     author_info/author.ui \
     chapters/windowchapters.ui \
     clipboards/researchremed.ui \
+    clipboards/setremedy.ui \
     clipboards/takeremed.ui \
     keys/keychoose.ui \
     keys/keyreader.ui \

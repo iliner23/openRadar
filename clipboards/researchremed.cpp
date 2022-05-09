@@ -13,6 +13,7 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
 
     _strategyMenu = new QMenu(ui->strategy);
     _showMenu = new QMenu(ui->show);
+    _listMenu = new QMenu(ui->listWidget);
 
     auto addActions = [](auto * menu, auto & actions, const auto labels, bool checkable = true){
         for(const auto & item : labels){
@@ -49,6 +50,14 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
         _orientation.at(0)->setChecked(true);
     }
 
+    {//listWidget contex menu
+        QStringList labels = { "Редактировать - Свойства" };
+        addActions(_listMenu, _listAction, labels, false);
+        ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    }
+
+    connect(_listMenu, &QMenu::triggered, this, &researchRemed::triggeredList);
+    connect(ui->listWidget, &QListWidget::customContextMenuRequested, this, &researchRemed::openListMenu);
     connect(_strategyMenu, &QMenu::triggered, this, &researchRemed::triggeredStrategy);
     connect(_showMenu, &QMenu::triggered, this, &researchRemed::triggeredShow);
 }
@@ -72,7 +81,7 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
     ui->listWidget->clear();
     _render.setShowedClipboards(act);
 
-    for(auto iter = 0; iter != act.size(); ++iter){
+    for(qsizetype iter = 0; iter != act.size(); ++iter){
         if(!act.at(iter) || _clipRemed->at(iter).isEmpty())
             continue;
 
@@ -92,18 +101,35 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
         exit->setStyleSheet("background-color: gray");
         item->setBackground(Qt::gray);
         item->setSizeHint(widget->sizeHint());
+
         ui->listWidget->addItem(item);
         ui->listWidget->setItemWidget(item, widget);
 
-        for(const auto & it : _clipRemed->at(iter)){
-            openCtree data(it.path.filePath("symptom").toStdString());
-            data.at(it.key.toStdString(), false);
-            auto name = func::renderingLabel(data, false, it.codec);
+        widget->setAttribute(Qt::WA_DeleteOnClose);
+        exit->setAttribute(Qt::WA_DeleteOnClose);
+        _labels[iter]->setAttribute(Qt::WA_DeleteOnClose);
+
+        const auto & clipData = _clipRemed->at(iter);
+
+        for(qsizetype it = 0; it != clipData.size(); ++it){
+            openCtree data(clipData.at(it).path.filePath("symptom").toStdString());
+            data.at(clipData.at(it).key.toStdString(), false);
+            auto name = func::renderingLabel(data, false, clipData.at(it).codec);
 
             if(name.indexOf('\n') == -1)
                 name.append('\n');
 
-            ui->listWidget->addItem(name);
+            const QString groupStr = _clipRemed->at(iter).at(it).group %
+                    ((_clipRemed->at(iter).at(it).group.isEmpty()) ? "" : ". ");
+
+            auto item = new QListWidgetItem;
+            item->setText(groupStr % name);
+
+            QVariant var;
+            var.setValue(std::make_pair(iter, it));
+            item->setData(Qt::UserRole, var);
+
+            ui->listWidget->addItem(item);
         }
 
         _render.setClipboardHeight(ui->listWidget->sizeHintForRow(0));
@@ -220,8 +246,34 @@ void researchRemed::closeClipboard(QLabel * closeButton){
         setClipboards(showClip);
 }
 void researchRemed::resizeEvent(QResizeEvent * event){
-    drawScene();
+    if(ui->graphicsView->isVisible() && ui->listWidget->count() != 0)
+        drawScene();
+
     event->ignore();
+}
+void researchRemed::openListMenu(const QPoint & point){
+    auto index = ui->listWidget->itemAt(point);//TODO: test functionality
+    auto globalPos = ui->listWidget->mapToGlobal(point);
+
+    if(index != nullptr && ui->listWidget->itemWidget(index) == nullptr)
+        _listMenu->exec(globalPos);
+}
+void researchRemed::triggeredList(QAction * action){
+    const auto act = _listAction.indexOf(action);//TODO: test functionality
+
+    if(act != 0)
+        return;
+
+    auto item = ui->listWidget->currentItem();
+
+    if(item != nullptr && ui->listWidget->itemWidget(item) == nullptr){
+        auto setRmd = new setRemedy(_clipRemed,
+            item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>(), this);
+
+        setRmd->setAttribute(Qt::WA_DeleteOnClose);
+        connect(setRmd, &setRemedy::clipboardRemedChanged, this, &researchRemed::setClipboardRemed);
+        setRmd->exec();
+    }
 }
 researchRemed::~researchRemed(){
     delete ui;

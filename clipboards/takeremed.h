@@ -12,7 +12,6 @@ class takeRemed;
 class takeRemed : public QDialog
 {
     Q_OBJECT
-
 public:
     explicit takeRemed(std::shared_ptr<QStringList> name, QWidget *parent = nullptr);
     void setPos(QDir repertory, QByteArray key, QTextCodec *codec);

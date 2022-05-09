@@ -6,12 +6,6 @@ takeRemed::takeRemed(std::shared_ptr<QStringList> name, QWidget *parent) :
     ui(new Ui::takeRemed)
 {
     ui->setupUi(this);
-    ui->groupBox_5->setLayout(ui->formLayout);
-    ui->groupBox_3->setLayout(ui->horizontalLayout_3);
-    ui->groupBox_4->setLayout(ui->horizontalLayout_2);
-    ui->groupBox_6->setLayout(ui->horizontalLayout);
-    ui->groupBox_2->setLayout(ui->verticalLayout);
-    ui->groupBox->setLayout(ui->verticalLayout_4);
 
     _name = name;
 
@@ -97,16 +91,9 @@ void takeRemed::accept(){
     info.key = _key;
 
     std::array<QCheckBox*, 10> array = {
-        ui->checkBox_9,
-        ui->checkBox_10,
-        ui->checkBox_11,
-        ui->checkBox_12,
-        ui->checkBox_13,
-        ui->checkBox_14,
-        ui->checkBox_15,
-        ui->checkBox_16,
-        ui->checkBox_17,
-        ui->checkBox_18};
+        ui->checkBox_9, ui->checkBox_10, ui->checkBox_11, ui->checkBox_12,
+        ui->checkBox_13, ui->checkBox_14, ui->checkBox_15, ui->checkBox_16,
+        ui->checkBox_17, ui->checkBox_18 };
 
     for(auto it = 0; it != array.size(); ++it){
         if(array.at(it)->isChecked())
