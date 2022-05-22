@@ -28,7 +28,7 @@ private:
     std::array<QLabel*, 10> _labels;
     researchRemedRender _render;
     std::shared_ptr<QStringList> _clipNames;
-    QGraphicsScene * _scene;
+    QGraphicsScene * _scene, * _labelsScene;
 
     QMenu * _strategyMenu, * _showMenu, * _listMenu;
     QList<QAction*> _sympthomAndAnalis;
@@ -42,7 +42,7 @@ private:
 
     void renameLabels();
     void drawLabels(std::array<bool, 10> act);
-    void drawScene();
+    void drawScene(bool renderLabels = true);
     void resizeEvent(QResizeEvent * event) override;
 private slots:
     void setOrientation(Qt::Orientation);

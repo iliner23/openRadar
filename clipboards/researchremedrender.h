@@ -4,6 +4,7 @@
 #include <QtWidgets>
 #include <algorithm>
 #include <cmath>
+#include "remediessortclass.h"
 #include "commonfunction/repertorydata.h"
 
 class researchRemedRender
@@ -16,15 +17,17 @@ public:
 
     researchRemedRender() { initFont(); }
     researchRemedRender(const std::shared_ptr<func::cache> & cache)
-                                                { _cache = cache; initFont(); }
-    virtual void reset(const std::shared_ptr<func::cache> & cache)
-                                                { _cache = cache; }
-    virtual QGraphicsItemGroup * render(const QSize);
+                            { _cache = cache; _sort.setCache(cache); initFont(); }
+    void setCache(const std::shared_ptr<func::cache> & cache)
+                            { _cache = cache; _sort.setCache(cache); }
+
+    virtual QGraphicsItemGroup * renderRemedies(const QSize);
+    virtual QGraphicsItemGroup * renderLabels();
 
     void setClipboards(std::array<QVector<rci>, 10> clipboards)
-                                    { _clipboards = clipboards; }
+                                    { _sort.setClipboards(clipboards); }
     std::array<QVector<rci>, 10> clipboards() const
-                                    { return _clipboards; }
+                                    { return _sort.clipboards(); }
 
     void setSymptomHeight(quint32);
     int symptomHeight() const { return _symptomHeight; }
@@ -45,12 +48,14 @@ public:
     strategy strategyType() const { return _strategy; }
 
     void setShowedClipboards(std::array<bool, 10> clip)
-                                        { _showClipboadrs = clip; }
+                                        { _sort.setShowedClipboards(clip); }
     std::array<bool, 10> showedClipboards() const
-                                        { return _showClipboadrs; }
+                                        { return _sort.showedClipboards(); }
 
-    void setConsideIntencity(bool intencity) { _consideIntencity = intencity; }
-    bool consideIntencity() const noexcept { return _consideIntencity; }
+    void setConsideIntencity(bool intencity)
+                            { _sort.setConsideIntencity(intencity); }
+    bool consideIntencity() const noexcept
+                            { return _sort.consideIntencity(); }
 
     int labelHeight() const { return _labelHeight; }
 protected:
@@ -59,9 +64,6 @@ protected:
     Qt::Orientation _ori = Qt::Vertical;
     quint32 _symptomHeight = 0;
     quint32 _clipboardHeight = 0;
-
-    std::array<bool, 10> _showClipboadrs;
-    std::array<QVector<rci>, 10> _clipboards;
     std::shared_ptr<func::cache> _cache;
     QSize _windowSize;
 
@@ -72,27 +74,10 @@ protected:
     QGraphicsItemGroup * waffleRender();
     QGraphicsItemGroup * drawLines(qreal, qreal, int);
     QGraphicsItemGroup * drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, qreal);
+    QGraphicsItemGroup * drawDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, bool twoDigits = false);
 
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumRemedies();
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegrees();
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegreesAndRemedies();
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumRemediesBySortDegrees();
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> sumDegreesBySortRemedies();
-    QVector<std::tuple<QString, QVector<quint8>, int, int>> sortFunction(
-            std::function<void(QMap<QString, std::tuple<QVector<quint8>, int, int>> &, QString, const func::remedClipboardInfo &,
-                                                                                          std::tuple<quint16, quint8, quint16, quint16>)>);
-
-    //Return value
-    //QString - remed name, QVector - intensity remedy for symptom
-    //int - primal sort, int - secondary sort
-    //if the 4th argument is null then the 3th - secondary sort
-    //and remedy's name is primal sorting tag
-
-    std::tuple<QGraphicsItemGroup*, qreal, qreal> drawDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, bool twoDigits = false);
-    //1 - width line and remedy, 2 - height until 2nd horizon line
-
-    bool _consideIntencity = true;
-    //false value is ignoring remedies intencity in computing
+    remediesSortClass _sort;
+    //Class for sorting remedies and clipboadrs data
 };
 
 #endif // RESEARCHREMEDRENDER_H

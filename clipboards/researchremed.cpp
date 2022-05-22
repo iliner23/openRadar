@@ -7,9 +7,14 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     ui->setupUi(this);
     _clipNames = clipNames;
     _clipRemed = clipRemed;
+
     _scene = new QGraphicsScene(this);
-    _render.reset(cache);
+    _labelsScene = new QGraphicsScene(this);
+    _render.setCache(cache);
+
+    ui->graphicsViewRemedies->setScene(_labelsScene);
     ui->graphicsView->setScene(_scene);
+
 
     _strategyMenu = new QMenu(ui->strategy);
     _showMenu = new QMenu(ui->show);
@@ -65,10 +70,16 @@ void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
         _labels[i]->setText(_clipNames->at(i));
 }
-void researchRemed::drawScene(){
-    auto var = _render.render(ui->graphicsView->size());
+void researchRemed::drawScene(bool renderLabels){
+    if(renderLabels){
+        _labelsScene->clear();
+        _labelsScene->addItem(_render.renderLabels());
+        ui->graphicsViewRemedies->setFixedHeight(_render.labelHeight());
+        QApplication::processEvents();
+    }
+
+    auto var = _render.renderRemedies(ui->graphicsView->size());
     _scene->clear();
-    _scene->setSceneRect(0, 0, var->boundingRect().width(), var->boundingRect().height());
     _scene->addItem(var);
     ui->spacefiller->setMinimumHeight(_render.labelHeight());
 }
@@ -247,7 +258,7 @@ void researchRemed::closeClipboard(QLabel * closeButton){
 }
 void researchRemed::resizeEvent(QResizeEvent * event){
     if(ui->graphicsView->isVisible() && ui->listWidget->count() != 0)
-        drawScene();
+        drawScene(false);
 
     event->ignore();
 }
