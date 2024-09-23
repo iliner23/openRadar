@@ -9,8 +9,8 @@ windowChapters::windowChapters(QWidget *parent) :
     _model = new searchModel(this);
     _layout = new QStackedLayout;
 
-    auto page1 = new QWidget(this);
-    auto page2 = new QWidget(this);
+    auto chapters = new QWidget(this);
+    auto chapterSymptom = new QWidget(this);
 
     _filterModel = new proxySearchModel(this);
     _filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -19,13 +19,11 @@ windowChapters::windowChapters(QWidget *parent) :
 
     ui->listView->setModel(_filterModel);
 
-    page1->setLayout(ui->verticalLayout_2);
-    page2->setLayout(ui->verticalLayout_3);
+    chapters->setLayout(ui->verticalLayout_2);
+    chapterSymptom->setLayout(ui->verticalLayout_3);
 
-    _layout->addWidget(page1);
-    _layout->addWidget(page2);
-
-    ui->groupBox->setLayout(ui->horizontalLayout_3);
+    _layout->addWidget(chapters);
+    _layout->addWidget(chapterSymptom);
 
     setLayout(ui->verticalLayout);
 
@@ -36,24 +34,8 @@ windowChapters::windowChapters(QWidget *parent) :
 
     setFixedSize(680, 700);
 
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
-    ui->groupBox_2->setLayout(ui->horizontalLayout_5);
-
-    connect(ui->lineEdit, &QLineEdit::textChanged, this, &windowChapters::textFilter);
-    connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &windowChapters::textFilter_2);
-
-    connect(ui->tableWidget, &QTableWidget::currentItemChanged, this, &windowChapters::selectedItemTable);
-    connect(ui->tableWidget, &QTableWidget::itemActivated, this, &windowChapters::accept_1);
-
-    connect(ui->listView, &QListView::clicked, this, &windowChapters::listClicked);
-    connect(ui->listView, &QListView::activated, this, &windowChapters::listClicked);
-
-    connect(ui->pushButton, &QPushButton::clicked, this, &windowChapters::returnBranch);
-
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &windowChapters::accept_1);
-    connect(ui->buttonBox_2, &QDialogButtonBox::rejected, this, &windowChapters::reject_2);
-    connect(ui->buttonBox_2, &QDialogButtonBox::accepted, this, &windowChapters::sendActivatedBranch);
+    ui->chapterBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    ui->symptomsBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
     connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &windowChapters::selectedItemList);
 }
@@ -63,9 +45,9 @@ windowChapters::~windowChapters(){
 }
 void windowChapters::selectedItemList(const QModelIndex & current){
     if(current.isValid())
-        ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->symptomsBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     else
-        ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->symptomsBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 void windowChapters::setActiveRepertory(int comboIndex){
     if(_layout->currentIndex() != 0){
@@ -77,8 +59,8 @@ void windowChapters::setActiveRepertory(int comboIndex){
     tableRender(comboIndex);
 }
 void windowChapters::tableRender(int comboIndex){
-    ui->lineEdit->clear();
-    ui->lineEdit_2->clear();
+    ui->chapterEdit->clear();
+    ui->symptomEdit->clear();
     _codec = ui->comboBox->itemData(comboIndex).value<repertory*>()->textCodec();
 
     constexpr int mx = 8;
@@ -234,30 +216,30 @@ void windowChapters::show(QList<QMdiSubWindow*> win, QMdiSubWindow * mdiSub, con
     _layout->setCurrentIndex(1);
     QWidget::show();
 }
-void windowChapters::textFilter(const QString text){
+void windowChapters::chapterTextFilter(const QString text){
     auto items = ui->tableWidget->findItems(text, Qt::MatchFlag::MatchContains);
 
     if(!items.isEmpty())
         ui->tableWidget->setCurrentItem(items.at(0));
 }
-void windowChapters::textFilter_2(const QString text){
+void windowChapters::symptomTextFilter(const QString text){
     _filterModel->setFilterFixedString(text);
 }
 void windowChapters::selectedItemTable(QTableWidgetItem * item){
     if(item == nullptr || item->text().isEmpty())
-        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+        ui->chapterBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     else
-        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->chapterBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
-void windowChapters::accept_1(){
+void windowChapters::chapterAccept(){
     const auto key = ui->tableWidget->currentItem()->data(Qt::UserRole).toByteArray();
-    ui->lineEdit->clear();
+    ui->chapterEdit->clear();
     showListChapter(key);
     changeChapterText(key.right(6));
     setWindowTitle("Окно выбора симптома");
     _layout->setCurrentIndex(1);
 }
-void windowChapters::reject_2(){
+void windowChapters::symptomReject(){
     _layout->setCurrentIndex(0);
     setWindowTitle("Окно выбора глав");
     clearModel();
@@ -270,7 +252,7 @@ void windowChapters::showListChapter(const QByteArray key){
 void windowChapters::listClicked(const QModelIndex & indexSort){
     if(indexSort.isValid()){
         auto index = _filterModel->mapToSource(indexSort);
-        ui->lineEdit_2->clear();
+        ui->symptomEdit->clear();
         auto indexPtr = static_cast<const searchModel::_node*>(index.internalPointer());
 
         if(indexPtr->marker()){
@@ -287,7 +269,7 @@ void windowChapters::listClicked(const QModelIndex & indexSort){
     }
 }
 void windowChapters::returnBranch(){
-    ui->lineEdit_2->clear();
+    ui->symptomEdit->clear();
     auto root = ui->listView->rootIndex();
 
     _filterModel->setRootIndex(root.parent());
@@ -297,7 +279,7 @@ void windowChapters::returnBranch(){
     auto rootBasicModel = _filterModel->mapToSource(root);
 
     if(ui->listView->rootIndex() == root)
-        reject_2();
+        symptomReject();
     else{
         auto rootPtr = static_cast<const searchModel::_node*>(rootBasicModel.internalPointer());
         changeChapterText(rootPtr->parent()->key().right(6));
@@ -322,7 +304,7 @@ void windowChapters::sendActivatedBranch(){
 }
 void windowChapters::clearModel(){
     _filterModel->setRootIndex(QModelIndex());
-    ui->buttonBox_2->button(QDialogButtonBox::Ok)->setEnabled(false);
+    ui->symptomsBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 void windowChapters::reject(){
     clearModel();

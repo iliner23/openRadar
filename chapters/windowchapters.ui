@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>602</height>
+    <width>731</width>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,10 +19,10 @@
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>371</width>
-     <height>171</height>
+     <x>6</x>
+     <y>6</y>
+     <width>491</width>
+     <height>60</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -47,10 +47,10 @@
        </size>
       </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::Shape::StyledPanel</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+       <enum>QFrame::Shadow::Raised</enum>
       </property>
       <widget class="QWidget" name="horizontalLayoutWidget_2">
        <property name="geometry">
@@ -58,7 +58,7 @@
          <x>0</x>
          <y>0</y>
          <width>351</width>
-         <height>31</height>
+         <height>34</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -81,10 +81,10 @@
   <widget class="QWidget" name="verticalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>200</y>
-     <width>401</width>
-     <height>201</height>
+     <x>6</x>
+     <y>374</y>
+     <width>325</width>
+     <height>266</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -95,39 +95,32 @@
         <property name="title">
          <string>Найти главу</string>
         </property>
-        <widget class="QWidget" name="horizontalLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>20</y>
-           <width>61</width>
-           <height>41</height>
-          </rect>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="spacing">
+          <number>1</number>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="leftMargin">
-           <number>10</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>10</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QLineEdit" name="lineEdit"/>
-          </item>
-         </layout>
-        </widget>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="chapterEdit"/>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QDialogButtonBox" name="buttonBox">
+       <widget class="QDialogButtonBox" name="chapterBox">
         <property name="standardButtons">
-         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+         <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
         </property>
        </widget>
       </item>
@@ -136,10 +129,10 @@
     <item>
      <widget class="QTableWidget" name="tableWidget">
       <property name="editTriggers">
-       <set>QAbstractItemView::NoEditTriggers</set>
+       <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
       </property>
       <property name="selectionMode">
-       <enum>QAbstractItemView::SingleSelection</enum>
+       <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
       </property>
       <property name="showGrid">
        <bool>false</bool>
@@ -169,15 +162,21 @@
   <widget class="QWidget" name="verticalLayoutWidget_3">
    <property name="geometry">
     <rect>
-     <x>470</x>
-     <y>30</y>
-     <width>520</width>
-     <height>381</height>
+     <x>6</x>
+     <y>72</y>
+     <width>533</width>
+     <height>354</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,0,0">
     <item>
      <widget class="QLabel" name="label_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>chapter</string>
       </property>
@@ -190,34 +189,43 @@
         <property name="title">
          <string>Добавить подрубрики к вышеуказанному симптому</string>
         </property>
-        <widget class="QWidget" name="horizontalLayoutWidget_4">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>20</y>
-           <width>127</width>
-           <height>27</height>
-          </rect>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>1</number>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLineEdit" name="lineEdit_2"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>&lt;-</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLineEdit" name="symptomEdit"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>&lt;-</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QDialogButtonBox" name="buttonBox_2">
+       <widget class="QDialogButtonBox" name="symptomsBox">
         <property name="standardButtons">
-         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+         <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
         </property>
        </widget>
       </item>
@@ -228,7 +236,7 @@
       <item>
        <widget class="QListView" name="listView">
         <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
+         <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
         </property>
         <property name="uniformItemSizes">
          <bool>true</bool>
@@ -243,7 +251,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>chapterBox</sender>
    <signal>rejected()</signal>
    <receiver>windowChapters</receiver>
    <slot>reject()</slot>
@@ -258,5 +266,176 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>chapterEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>windowChapters</receiver>
+   <slot>chapterTextFilter(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>420</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>symptomEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>windowChapters</receiver>
+   <slot>symptomTextFilter(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>144</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tableWidget</sender>
+   <signal>currentItemChanged(QTableWidgetItem*,QTableWidgetItem*)</signal>
+   <receiver>windowChapters</receiver>
+   <slot>selectedItemTable(QTableWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>542</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tableWidget</sender>
+   <signal>itemActivated(QTableWidgetItem*)</signal>
+   <receiver>windowChapters</receiver>
+   <slot>chapterAccept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>542</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listView</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>windowChapters</receiver>
+   <slot>listClicked(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>272</x>
+     <y>298</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listView</sender>
+   <signal>activated(QModelIndex)</signal>
+   <receiver>windowChapters</receiver>
+   <slot>listClicked(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>272</x>
+     <y>298</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>windowChapters</receiver>
+   <slot>returnBranch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>310</x>
+     <y>144</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chapterBox</sender>
+   <signal>accepted()</signal>
+   <receiver>windowChapters</receiver>
+   <slot>chapterAccept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>241</x>
+     <y>407</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>symptomsBox</sender>
+   <signal>rejected()</signal>
+   <receiver>windowChapters</receiver>
+   <slot>symptomReject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>449</x>
+     <y>131</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>symptomsBox</sender>
+   <signal>accepted()</signal>
+   <receiver>windowChapters</receiver>
+   <slot>sendActivatedBranch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>449</x>
+     <y>131</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>chapterTextFilter(QString)</slot>
+  <slot>symptomTextFilter(QString)</slot>
+  <slot>selectedItemTable(QTableWidgetItem*)</slot>
+  <slot>chapterAccept()</slot>
+  <slot>listClicked(QModelIndex)</slot>
+  <slot>returnBranch()</slot>
+  <slot>symptomReject()</slot>
+  <slot>sendActivatedBranch()</slot>
+  <slot>selectedItemList(QModelIndex)</slot>
+ </slots>
 </ui>

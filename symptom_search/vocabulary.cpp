@@ -39,11 +39,6 @@ vocabulary::vocabulary(const QDir system, const std::pair<QLocale, QLocale> lang
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->listView->setUniformItemSizes(true);
 
-    connect(ui->lineEdit, &QLineEdit::textChanged, this, &vocabulary::filter);
-    connect(ui->listView, &QListView::clicked, this, &vocabulary::selectedModelItem);
-    connect(ui->listView, &QListView::activated, this, &vocabulary::selectedModelItem);
-    connect(ui->plainTextEdit_2, &QPlainTextEdit::textChanged, this, &vocabulary::changedPlainText);
-    connect(ui->pushButton_2, &QPushButton::clicked, this, &vocabulary::openResults);
     connect(_results, &searchResult::accepted, this, &vocabulary::sendOn);
 }
 vocabulary::~vocabulary()
@@ -135,102 +130,73 @@ void vocabulary::renderingRoots(openCtree base){
         return (value == -1) ? _size : value;
     };
 
-    auto threadFunc = [&](openCtree tree, const int from, const int until){
-        QStringList list;
+    QStringList list;
 
-        for(auto i = from; i != until; ++i){
-            QByteArray str;
+    for(auto i = 0; i != base.size(); ++i){
+        //root word
 
-            if(i == from)
-                str = QByteArray::fromStdString(tree.at(i));
-            else
-                str = QByteArray::fromStdString(tree.next());
+        QByteArray str;
 
-            //root word
-            auto lastTextPos = return_size(
-                str.indexOf('\0', tree.serviceDataLenght()), str.size());
+        if(i == 0)
+            str = QByteArray::fromStdString(base.front());
+        else
+            str = QByteArray::fromStdString(base.next());
 
-            if(lastTextPos == str.size())
-                continue;
+        auto lastTextPos = return_size(
+            str.indexOf('\0', base.serviceDataLenght()), str.size());
 
-            auto localed = _codec->toUnicode(str.mid(tree.serviceDataLenght(),
-                          lastTextPos - tree.serviceDataLenght()));
+        if(lastTextPos == str.size())
+            continue;
 
+        auto localed = _codec->toUnicode(str.mid(base.serviceDataLenght(),
+                                                     lastTextPos - base.serviceDataLenght()));
             list.push_back(localed);
 
-            //synonym words
-            while(lastTextPos < str.size()){
-                const auto startPos = lastTextPos + 1;
+        //synonym words
+        while(lastTextPos < str.size()){
+            const auto startPos = lastTextPos + 1;
 
-                lastTextPos = return_size(
-                            str.indexOf('|', startPos), str.size());
+            lastTextPos = return_size(
+                str.indexOf('|', startPos), str.size());
 
-                localed = _codec->toUnicode(str.mid(startPos,
-                            lastTextPos - startPos));
+            localed = _codec->toUnicode(str.mid(startPos,
+                                                lastTextPos - startPos));
 
-                list.push_back("  " + localed);
-            }
+            list.push_back("  " + localed);
         }
+    }
 
-        return list;
-    };
-
-    threadsLaunch(base, threadFunc);
+    _model->setStringList(std::move(list));
 }
 void vocabulary::renderingWords(openCtree base){
     auto return_size = [](const auto & value, const auto & _size){
         return (value == -1) ? _size : value;
     };
 
-    auto threadFunc = [&](openCtree tree, const int from, const int until){
-        QStringList list;
+    QStringList list;
 
-        for(auto i = from; i != until; ++i){
-            QByteArray str;
+    for(auto i = 0; i != base.size(); ++i){
+        QByteArray str;
 
-            if(i == from)
-                str = QByteArray::fromStdString(tree.at(i));
-            else
-                str = QByteArray::fromStdString(tree.next());
+        if(i == 0)
+            str = QByteArray::fromStdString(base.front());
+        else
+            str = QByteArray::fromStdString(base.next());
 
-            const auto lastTextPos = return_size(
-                str.indexOf('\0', tree.serviceDataLenght()), str.size());
+        const auto lastTextPos = return_size(
+            str.indexOf('\0', base.serviceDataLenght()), str.size());
 
-            const auto localed = _codec
-                    ->toUnicode(str.mid(tree.serviceDataLenght(),
-                          lastTextPos - tree.serviceDataLenght()));
+        const auto localed = _codec
+                ->toUnicode(str.mid(base.serviceDataLenght(),
+                        lastTextPos - base.serviceDataLenght()));
 
-            if(*(str.constData() + 6) != '\0')
-                continue;
+        if(*(str.constData() + 6) != '\0')
+            continue;
 
-            list.push_back(localed);
-        }
-
-        return list;
-    };
-
-    threadsLaunch(base, threadFunc);
-}
-void vocabulary::threadsLaunch(openCtree & base, std::function<QStringList(openCtree, const int, const int)> threadFunc){
-    QStringList wordList;
-
-    if(base.size() != 0){
-        QVector<QFuture<QStringList>> threads;
-
-        const auto maxThreads = (base.size() > QThread::idealThreadCount()) ?
-                    QThread::idealThreadCount() : base.size();
-        const auto del = base.size() / maxThreads;
-
-        for(auto i = 0; i != maxThreads; ++i){
-            threads.append(QtConcurrent::run(threadFunc, base, del * i ,
-                (i == maxThreads - 1) ? base.size() : del * (i + 1)));
-        }
-
-        for(auto & it : threads)
-            wordList.append(it.result());
+        list.push_back(localed);
     }
 
-    _model->setStringList(std::move(wordList));
+    _model->setStringList(std::move(list));
 }
 void vocabulary::filter(const QString flt){
     ui->listView->selectionModel()->clearCurrentIndex();

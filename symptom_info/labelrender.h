@@ -7,9 +7,9 @@ class labelRender : public repertoryRender
 public:
     labelRender() = default;
     labelRender(const QDir filename, const std::shared_ptr<func::cache> & cache,
-                QTextCodec * codec = QTextCodec::codecForName("system"));
+                QTextCodec * codec = QTextCodec::codecForLocale());
     void reset(const QDir filename, const std::shared_ptr<func::cache> & cache,
-                       QTextCodec * codec = QTextCodec::codecForName("system")) override;
+                       QTextCodec * codec = QTextCodec::codecForLocale()) override;
     QVector<QGraphicsItemGroup*> render(const QSize resolution) override;
     bool isLocalize() { return _localize; };
     bool isHidden() const noexcept { return _hideLabel; }

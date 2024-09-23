@@ -29,7 +29,7 @@
          <item row="0" column="0">
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="sizeConstraint">
-            <enum>QLayout::SetMaximumSize</enum>
+            <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -109,16 +109,16 @@
            <item row="0" column="0">
             <widget class="QGraphicsView" name="graphicsView">
              <property name="verticalScrollBarPolicy">
-              <enum>Qt::ScrollBarAsNeeded</enum>
+              <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
              </property>
              <property name="horizontalScrollBarPolicy">
-              <enum>Qt::ScrollBarAsNeeded</enum>
+              <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
              </property>
              <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
              </property>
              <property name="transformationAnchor">
-              <enum>QGraphicsView::NoAnchor</enum>
+              <enum>QGraphicsView::ViewportAnchor::NoAnchor</enum>
              </property>
             </widget>
            </item>
@@ -133,5 +133,26 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>listWidget_3</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>Label</receiver>
+   <slot>showTextInformation()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>182</x>
+     <y>389</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>349</x>
+     <y>349</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>showTextInformation()</slot>
+  <slot>clickedAction(QGraphicsSimpleTextItem*)</slot>
+ </slots>
 </ui>

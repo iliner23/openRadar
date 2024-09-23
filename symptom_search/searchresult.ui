@@ -3,7 +3,7 @@
  <class>searchResult</class>
  <widget class="QDialog" name="searchResult">
   <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
+   <enum>Qt::WindowModality::ApplicationModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -41,7 +41,7 @@
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -75,7 +75,7 @@
    <item row="1" column="0">
     <widget class="QListWidget" name="listWidget">
      <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
+      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
      </property>
      <property name="uniformItemSizes">
       <bool>true</bool>
@@ -118,5 +118,40 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>listWidget</sender>
+   <signal>itemActivated(QListWidgetItem*)</signal>
+   <receiver>searchResult</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>347</x>
+     <y>321</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listWidget</sender>
+   <signal>currentItemChanged(QListWidgetItem*,QListWidgetItem*)</signal>
+   <receiver>searchResult</receiver>
+   <slot>acceptKey(QListWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>347</x>
+     <y>321</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>347</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>acceptKey(QListWidgetItem*)</slot>
+ </slots>
 </ui>

@@ -42,7 +42,7 @@ private:
             std::tuple<quint16, quint8, quint16, quint16>)>);
 
     //Return value
-    //QString - remed name, QVector - intensity remedy for symptom
+    //QString - remedy name, QVector - intensity remedy for symptom
     //int - primal sort, int - secondary sort
     //if the 4th argument is null then the 3th - secondary sort
     //and remedy's name is primal sorting tag

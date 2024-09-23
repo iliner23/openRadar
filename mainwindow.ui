@@ -30,7 +30,7 @@
      <x>0</x>
      <y>0</y>
      <width>1164</width>
-     <height>25</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -425,5 +425,173 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>mdiArea</sender>
+   <signal>subWindowActivated(QMdiSubWindow*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>windowChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>604</x>
+     <y>405</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action</sender>
+   <signal>triggered()</signal>
+   <receiver>mdiArea</receiver>
+   <slot>cascadeSubWindows()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>604</x>
+     <y>405</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_3</sender>
+   <signal>triggered()</signal>
+   <receiver>mdiArea</receiver>
+   <slot>tileSubWindows()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>604</x>
+     <y>405</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_5</sender>
+   <signal>triggered()</signal>
+   <receiver>mdiArea</receiver>
+   <slot>activateNextSubWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>604</x>
+     <y>405</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_6</sender>
+   <signal>triggered()</signal>
+   <receiver>mdiArea</receiver>
+   <slot>activatePreviousSubWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>604</x>
+     <y>405</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_4</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openChapters()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_7</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openChaptersInCurrentPos()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action_8</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openVocabulary()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action39</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openKeysChooseWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>action8</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openTakeRemed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>windowChanged()</slot>
+  <slot>openChapters()</slot>
+  <slot>openChaptersInCurrentPos()</slot>
+  <slot>openVocabulary()</slot>
+  <slot>openKeysChooseWindow()</slot>
+  <slot>openTakeRemed()</slot>
+ </slots>
 </ui>

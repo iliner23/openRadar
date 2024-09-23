@@ -11,6 +11,8 @@ class researchRemedRender
 {
 public:
     using rci = func::remedClipboardInfo;
+    using sortRemedies = QVector<std::tuple<QString, QVector<quint8>, int, int>>;
+
     enum class showType{ waffle, grid, clipboard, strategy, result };
     enum class strategy{ sumRemediesAndDegrees, sumRemedies, sumDegrees,
                          sumRemediesBySortDegrees, sumDegreesBySortRemedies };
@@ -21,7 +23,7 @@ public:
     void setCache(const std::shared_ptr<func::cache> & cache)
                             { _cache = cache; _sort.setCache(cache); }
 
-    virtual QGraphicsItemGroup * renderRemedies(const QSize);
+    virtual QGraphicsItemGroup * renderRemedies(const QSize, bool partlyRendering);
     virtual QGraphicsItemGroup * renderLabels();
 
     void setClipboards(std::array<QVector<rci>, 10> clipboards)
@@ -57,7 +59,16 @@ public:
     bool consideIntencity() const noexcept
                             { return _sort.consideIntencity(); }
 
-    int labelHeight() const { return _labelHeight; }
+    std::pair<qsizetype, QList<bool>> clipboardAndRemediesNumbers() const;
+    //Return values: first - numbers of remedies
+    //               second - array where bool value: true - spacer between clipboards
+    //                                                false - it's symptom
+    //If function renderRemedies newer called, will be called exception
+
+    QGraphicsItemGroup * symptomsHCounter();
+    //Return numbers in QGraphicsItemGroup for horizontal mode
+
+    //int labelHeight() const { return _labelHeight; }
 protected:
     showType _showType = showType::waffle;
     strategy _strategy = strategy::sumRemedies;
@@ -66,12 +77,13 @@ protected:
     quint32 _clipboardHeight = 0;
     std::shared_ptr<func::cache> _cache;
     QSize _windowSize;
-
     QFont _defFont, _numberFont;
-    int _labelHeight = 0;
+    sortRemedies _oldSortRemedies;
+    std::pair<qsizetype, QList<bool>> _crNumbers;
+    QGraphicsItemGroup * _symptomsHCounter = nullptr;
 
     void initFont();
-    QGraphicsItemGroup * waffleRender();
+    QGraphicsItemGroup * waffleRender(bool partlyRendering);
     QGraphicsItemGroup * drawLines(qreal, qreal, int);
     QGraphicsItemGroup * drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, qreal);
     QGraphicsItemGroup * drawDigitsRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>>, bool twoDigits = false);

@@ -19,9 +19,7 @@ KeyChoose::KeyChoose(const QStringList keys, keysRemedList * list, QWidget *pare
     ui->listView->setModel(_proxyModel);
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    connect(ui->lineEdit, &QLineEdit::textChanged, this, &KeyChoose::finding);
     connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &KeyChoose::activateLevel);
-    connect(ui->listView, &QListView::activated, this, &KeyChoose::accept);
 
     ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(false);
 }

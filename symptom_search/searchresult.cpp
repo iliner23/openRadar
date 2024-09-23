@@ -6,8 +6,6 @@ searchResult::searchResult(QWidget * parent):
     ui(new Ui::searchResult)
 {
     ui->setupUi(this);
-    connect(ui->listWidget, &QListWidget::itemActivated, this, &searchResult::accept);
-    connect(ui->listWidget, &QListWidget::currentItemChanged, this, &searchResult::acceptKey);
 }
 searchResult::searchResult(const QFileInfo word, const QFileInfo symptom, const QString expression, QTextCodec * codec, QWidget *parent) :
     QDialog(parent),

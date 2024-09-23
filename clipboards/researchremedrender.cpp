@@ -11,12 +11,12 @@ void researchRemedRender::initFont(){
     _defFont = QFont("default", fontSize);
     _numberFont = QFont("default", fontSize * 0.8);
 }
-QGraphicsItemGroup * researchRemedRender::renderRemedies(const QSize windowSize){
+QGraphicsItemGroup * researchRemedRender::renderRemedies(const QSize windowSize, bool partlyRendering){
     _windowSize = windowSize;
 
     switch (_showType) {
     case showType::waffle :
-        return waffleRender();
+        return waffleRender(partlyRendering);
     default :
         return nullptr;
     }
@@ -45,9 +45,10 @@ QGraphicsItemGroup * researchRemedRender::renderLabels(){
         }
     }
 }
-QGraphicsItemGroup * researchRemedRender::waffleRender(){
+QGraphicsItemGroup * researchRemedRender::waffleRender(bool partlyRendering){
     auto rendering = [&](const auto remed) -> QGraphicsItemGroup * {
         auto blueprint = new QGraphicsItemGroup;
+
         blueprint->setHandlesChildEvents(false);
         blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
 
@@ -57,7 +58,7 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
         const qreal widthLine = QFontMetrics(_defFont).height() * (1 + 0.5);
         auto rmd = drawRemeds(remed, widthLine);
 
-        const auto heightLine = rmd->boundingRect().height();
+        const auto heightLine = rmd->boundingRect().height() + _clipboardHeight;
         auto lines = drawLines(widthLine, heightLine, remed.size());
 
         lines->setZValue(-1);
@@ -70,28 +71,78 @@ QGraphicsItemGroup * researchRemedRender::waffleRender(){
         return blueprint;
     };
 
+    sortRemedies remed;
+
+    if(partlyRendering && !_oldSortRemedies.isEmpty())
+        return rendering(_oldSortRemedies);
+
     switch(_strategy){
         case strategy::sumRemediesAndDegrees : {
-            const auto remed = _sort.sumDegreesAndRemedies();//sumDegreesAndRemedies();
-            return rendering(remed);
+            remed = _sort.sumDegreesAndRemedies();//sumDegreesAndRemedies();
+            break;
         }
         case strategy::sumRemedies : {
-            const auto remed = _sort.sumRemedies(); //sumRemedies();
-            return rendering(remed);
+            remed = _sort.sumRemedies(); //sumRemedies();
+            break;
         }
         case strategy::sumDegrees : {
-            const auto remed = _sort.sumDegrees(); //sumDegrees();
-            return rendering(remed);
+            remed = _sort.sumDegrees(); //sumDegrees();
+            break;
         }
         case strategy::sumRemediesBySortDegrees : {
-            const auto remed = _sort.sumRemediesBySortDegrees();// sumRemediesBySortDegrees();
-            return rendering(remed);
+            remed = _sort.sumRemediesBySortDegrees();// sumRemediesBySortDegrees();
+            break;
         }
         case strategy::sumDegreesBySortRemedies : {
-            const auto remed = _sort.sumDegreesBySortRemedies();// sumDegreesBySortRemedies();
-            return rendering(remed);
+            remed = _sort.sumDegreesBySortRemedies();// sumDegreesBySortRemedies();
+            break;
         }
     }
+
+    _oldSortRemedies = remed;
+
+    if(!_oldSortRemedies.isEmpty()){
+        const auto clipbd = _sort.clipboards();
+        const auto showClip = _sort.showedClipboards();
+
+        QList<bool> value;
+
+        for(qsizetype i = 0; i != clipbd.size(); ++i){
+            if(!showClip.at(i))
+                continue;
+
+            QList<bool> tempVal;
+
+            for(auto it = 0; it != clipbd.at(i).size(); ++it)
+                tempVal.append(false);
+
+            if((!tempVal.isEmpty()) && i != clipbd.size() - 1)
+                value.append(true);
+
+            value.append(tempVal);
+        }
+
+        _crNumbers = std::make_pair(_oldSortRemedies.size(), value);
+    }
+    else
+        _crNumbers = std::make_pair(0, QList<bool>());
+
+    return rendering(remed);
+}
+std::pair<qsizetype, QList<bool>> researchRemedRender::clipboardAndRemediesNumbers() const{
+    if(_crNumbers.second.isEmpty())
+        throw std::logic_error("don't called render");
+
+    return _crNumbers;
+}
+QGraphicsItemGroup * researchRemedRender::symptomsHCounter(){
+    if(_symptomsHCounter == nullptr)
+        throw std::logic_error("don't called render");
+
+    auto temp = _symptomsHCounter;
+    _symptomsHCounter = nullptr;
+
+    return temp;
 }
 QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengthText, int countLines){
     auto * lines = new QGraphicsItemGroup;
@@ -99,7 +150,7 @@ QGraphicsItemGroup * researchRemedRender::drawLines(qreal lineWidth, qreal lengt
     lines->setFlag(QGraphicsItem::ItemHasNoContents);
 
     QPointF lastPos(-lineWidth, 0);
-    lengthText = (lengthText > _windowSize.height()) ? lengthText : _windowSize.height();
+    lengthText += _windowSize.height();
 
     for(auto i = 0; i != countLines; ++i){
         lastPos += QPointF(lineWidth, 0);
@@ -153,10 +204,10 @@ QGraphicsItemGroup * researchRemedRender::drawDigitsRemeds(const QVector<std::tu
             upperLineYPos = startXPos + number->boundingRect().height();
 
             if(!twoDigits)
-                lowerLineYPos = upperLineYPos + number->boundingRect().height() * (1 + 0.1);
+                lowerLineYPos = upperLineYPos + number->boundingRect().height() * (1.1);
             else{
-                midLineYPos = upperLineYPos + number->boundingRect().height() * (1 + 0.1);
-                lowerLineYPos = midLineYPos + sum->boundingRect().height() * (1 + 0.1);
+                midLineYPos = upperLineYPos + number->boundingRect().height() * (1.1);
+                lowerLineYPos = midLineYPos + sum->boundingRect().height() * (1.1);
             }
         }
 
@@ -220,28 +271,25 @@ QGraphicsItemGroup * researchRemedRender::drawDigitsRemeds(const QVector<std::tu
 
     blue->setZValue(-1);
     blueprint->addToGroup(blue);
-    _labelHeight = blueprint->boundingRect().height();
 
-    if(_ori == Qt::Horizontal){
-        const auto maxSymptomsSize = defFontMetr.horizontalAdvance(QString::number(remeds.empty() ? 0 :
-                                        std::get<1>(remeds.at(remeds.size() - 1)).size()));
-        QTransform moving;
-        moving.translate(maxSymptomsSize * 2, 0);
-        blueprint->setTransform(moving);
-    }
+    const auto brect = blueprint->boundingRect();
+    blueprint->setPos(-brect.x(), -brect.y());
     return blueprint;
 }
 QGraphicsItemGroup * researchRemedRender::drawRemeds(const QVector<std::tuple<QString, QVector<quint8>, int, int>> remeds, qreal lineWidth){
     auto blueprint = new QGraphicsItemGroup;
+    _symptomsHCounter = new QGraphicsItemGroup;
+
     int pos = 0;
     QFontMetrics numMetric(_defFont);
     const QRectF rectDownPtr(0, _symptomHeight * 0.1, lineWidth * (1 - 0.2), _symptomHeight * (1 - 0.2));
 
-    const auto maxSymptomsSize = numMetric.horizontalAdvance(QString::number(remeds.empty() ? 0 :
-                                    std::get<1>(remeds.at(remeds.size() - 1)).size()));
     QPointF lastPos(0, _clipboardHeight);
     const auto clipbd = _sort.clipboards();
     const auto showClip = _sort.showedClipboards();
+
+    _symptomsHCounter->setHandlesChildEvents(false);
+    _symptomsHCounter->setFlag(QGraphicsItem::ItemHasNoContents);
 
     blueprint->setHandlesChildEvents(false);
     blueprint->setFlag(QGraphicsItem::ItemHasNoContents);
@@ -271,8 +319,8 @@ QGraphicsItemGroup * researchRemedRender::drawRemeds(const QVector<std::tuple<QS
             if(_ori == Qt::Horizontal && !remeds.isEmpty()){
                 auto counter = new QGraphicsSimpleTextItem(QString::number(pos));
                 counter->setFont(_defFont);
-                counter->setPos(-maxSymptomsSize * 2, lastPos.y() + rectDownPtr.height() / 2);
-                blueprint->addToGroup(counter);
+                counter->setPos(0, lastPos.y() + rectDownPtr.height() / 2);
+                _symptomsHCounter->addToGroup(counter);
             }
 
             if(i != clipbd.size() - 1)

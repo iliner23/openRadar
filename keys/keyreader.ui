@@ -33,7 +33,7 @@
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -79,5 +79,41 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>keyReader</receiver>
+   <slot>setCodec()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>562</x>
+     <y>455</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>keyReader</receiver>
+   <slot>showKeyChoose()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>65</x>
+     <y>455</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>setCodec()</slot>
+  <slot>showKeyChoose()</slot>
+ </slots>
 </ui>

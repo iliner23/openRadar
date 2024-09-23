@@ -12,9 +12,6 @@ keyReader::keyReader(QByteArray text, QString title, QDialog * keyRemedList, QWi
     setWindowTitle(title);
 
     ui->plainTextEdit->setPlainText(_codec->toUnicode(text));
-
-    connect(ui->pushButton_3, &QPushButton::clicked, this, &keyReader::setCodec);
-    connect(ui->pushButton, &QPushButton::clicked, this, &keyReader::showKeyChoose);
 }
 void keyReader::setCodec(){
     using namespace lang;

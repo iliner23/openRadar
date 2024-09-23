@@ -24,9 +24,6 @@ remed_author::remed_author(const QDir path, std::shared_ptr<func::cache> ch,
     ui->label_2->setFont(QFont("defalut", 10));
     rendering();
 
-    connect(ui->listWidget_2, &QListWidget::itemSelectionChanged, this, &remed_author::showTextInformation);
-    connect(ui->pushButton, &QPushButton::clicked, this, &remed_author::showRemedList);
-
     ui->listWidget_2->setCurrentRow(0);
 }
 

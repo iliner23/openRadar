@@ -8,13 +8,14 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     _clipNames = clipNames;
     _clipRemed = clipRemed;
 
-    _scene = new QGraphicsScene(this);
-    _labelsScene = new QGraphicsScene(this);
+    _scene_header = new QGraphicsScene(this);
+    _scene_remedies = new QGraphicsScene(this);
+    _scene_counter = new QGraphicsScene(this);
+
     _render.setCache(cache);
-
-    ui->graphicsViewRemedies->setScene(_labelsScene);
-    ui->graphicsView->setScene(_scene);
-
+    ui->graphicsView_header->setScene(_scene_header);
+    ui->graphicsView_remedies->setScene(_scene_remedies);
+    ui->graphicsView_count->setScene(_scene_counter);
 
     _strategyMenu = new QMenu(ui->strategy);
     _showMenu = new QMenu(ui->show);
@@ -36,7 +37,7 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
                                      "Сумма симптомов и степеней", "Сумма симптомов", "Сумма степеней" };
 
         addActions(_strategyMenu, _strategy, labels);
-        _strategy.at(2)->setChecked(true);
+        _strategy.at(3)->setChecked(true);
         _strategyMenu->addSeparator();
 
         _intensity = new QAction("Учитывать интенсивность", _strategyMenu);
@@ -61,8 +62,15 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
         ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     }
 
+    QPalette pal = QPalette();
+    pal.setColor(QPalette::Window, Qt::white);
+
+    ui->widgetFiller->setAutoFillBackground(true);
+    ui->widgetFiller->setPalette(pal);
+
+    ui->horizontalScrollBar->hide();
+
     connect(_listMenu, &QMenu::triggered, this, &researchRemed::triggeredList);
-    connect(ui->listWidget, &QListWidget::customContextMenuRequested, this, &researchRemed::openListMenu);
     connect(_strategyMenu, &QMenu::triggered, this, &researchRemed::triggeredStrategy);
     connect(_showMenu, &QMenu::triggered, this, &researchRemed::triggeredShow);
 }
@@ -70,23 +78,76 @@ void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
         _labels[i]->setText(_clipNames->at(i));
 }
-void researchRemed::drawScene(bool renderLabels){
-    if(renderLabels){
-        _labelsScene->clear();
-        _labelsScene->addItem(_render.renderLabels());
-        ui->graphicsViewRemedies->setFixedHeight(_render.labelHeight());
-        QApplication::processEvents();
+void researchRemed::drawHeader(){
+    _scene_header->clear();
+
+    auto labels  = _render.renderLabels();
+    const qreal height = labels->boundingRect().height();
+
+    ui->graphicsView_header->setFixedHeight(height);
+    _scene_header->addItem(labels);
+
+    ui->spacefiller->setMinimumHeight(height);
+}
+inline void researchRemed::hideAndShowSliders(){
+    const auto size = ui->graphicsView_remedies->maximumViewportSize();
+    const auto data = _render.clipboardAndRemediesNumbers();
+    const auto viewportSize = std::roundf(size.width() / horizontalSize());
+
+    if(data.first <= viewportSize)
+        ui->horizontalScrollBar->hide();
+    else{
+        ui->horizontalScrollBar->show();
+        ui->horizontalScrollBar->setRange(0, data.first - 1);
     }
 
-    auto var = _render.renderRemedies(ui->graphicsView->size());
-    _scene->clear();
-    _scene->addItem(var);
-    ui->spacefiller->setMinimumHeight(_render.labelHeight());
+    //TODO : only for test
+    if(ui->splitter->orientation() == Qt::Vertical){
+        qsizetype counter = 0;
+
+        for(auto i : data.second){
+            if(!i)
+                ++counter;
+        }
+
+        ui->verticalScrollBar->setRange(0, counter - 1);
+    }
+    else
+        ui->verticalScrollBar->setRange(0, data.second.size() - 1);
+
+    QApplication::processEvents();
 }
-void researchRemed::setClipboards(std::array<bool, 10> act){
+void researchRemed::drawRemedies(bool partlyRendering){
+    _scene_remedies->clear();
+
+    auto size = ui->graphicsView_remedies->maximumViewportSize();
+    size.setHeight(size.height() + ui->horizontalScrollBar->height());
+    auto var = _render.renderRemedies(size, partlyRendering);
+
+    _scene_remedies->setSceneRect(0, 0, var->boundingRect().width(), var->boundingRect().height());
+    _scene_remedies->addItem(var);
+
+    hideAndShowSliders();
+
+    if(ui->splitter->orientation() == Qt::Vertical && !partlyRendering){
+        auto counter = _render.symptomsHCounter();
+        const auto rect = counter->boundingRect();
+
+        _scene_counter->clear();
+        _scene_counter->addItem(counter);
+
+        ui->graphicsView_count->setFixedWidth(rect.width() * 2);
+        ui->widgetFiller->setFixedWidth(rect.width() * 2);
+        _scene_counter->setSceneRect(0, 0, 1, 1);
+    }
+}
+void researchRemed::show(std::array<bool, 10> act){
     drawLabels(act);
     setOrientation(_render.orientation());
-    drawScene();
+
+    drawHeader();
+    QWidget::show();
+    drawRemedies();
 }
 void researchRemed::drawLabels(std::array<bool, 10> act){
     ui->listWidget->clear();
@@ -159,7 +220,8 @@ void researchRemed::setClipboardRemed(){
 
     if(!isHidden()){
         drawLabels(_render.showedClipboards());
-        drawScene();
+        drawHeader();
+        drawRemedies();
     }
 }
 void researchRemed::setOrientation(Qt::Orientation orien){
@@ -168,14 +230,26 @@ void researchRemed::setOrientation(Qt::Orientation orien){
     ui->splitter->setOrientation((orien == Qt::Horizontal)
                                  ? Qt::Vertical : Qt::Horizontal);
 
-    const auto list = (_hide == 1) ? 0 :
-                ((orien == Qt::Vertical) ? ui->listWidget->size().height() :
-                                           ui->listWidget->size().width());
-    const auto view = (_hide == 0) ? 0 :
-                ((orien == Qt::Vertical) ? ui->graphicsView->size().height() :
-                                           ui->graphicsView->size().width());
+    int maxSplitterPos = 0;
+    ui->splitter->getRange(1, nullptr, &maxSplitterPos);
+    maxSplitterPos /= 2;
+
+    const auto list = (_hide == 1) ? 0 : maxSplitterPos;
+    const auto view = (_hide == 0) ? 0 : maxSplitterPos;
+
+    if(orien == Qt::Horizontal){
+        ui->graphicsView_count->show();
+        ui->widgetFiller->show();
+    }
+    else{
+        ui->graphicsView_count->hide();
+        ui->widgetFiller->hide();
+    }
 
     ui->splitter->setSizes({ list, view });
+    ui->verticalScrollBar->setValue(0);
+    ui->graphicsView_count->setSceneRect(0, 0, 1, 1);
+
     QApplication::processEvents();
 }
 void researchRemed::openStrategyMenu(){
@@ -210,8 +284,11 @@ void researchRemed::triggeredStrategy(QAction * action){
     else
         return;
 
-    if(!isHidden())
-        drawScene();
+    if(!isHidden()){
+        drawHeader();
+        QApplication::processEvents();
+        drawRemedies();
+    }
 }
 void researchRemed::triggeredShow(QAction * action){
     auto checking = [&](auto actions){
@@ -221,29 +298,121 @@ void researchRemed::triggeredShow(QAction * action){
         action->setChecked(true);
     };
 
-    auto pos = _sympthomAndAnalis.indexOf(action);
+    const auto posFilter = _sympthomAndAnalis.indexOf(action);
+    const auto posOrientation = _orientation.indexOf(action);
 
-    if(pos != -1){
-        checking(_sympthomAndAnalis);
-        _hide = pos;
+    if(posFilter != -1){
+        _hide = posFilter;
         setOrientation(_render.orientation());
-
-        if(ui->graphicsView->isVisible())
-            drawScene();
-
-        return;
     }
-
-    pos = _orientation.indexOf(action);
-
-    if(pos != -1){
+    else if(posOrientation != -1){
         checking(_orientation);
-        setOrientation((pos == 0) ? Qt::Vertical : Qt::Horizontal);
-
-        if(ui->graphicsView->isVisible())
-            drawScene();
-
+        setOrientation((posOrientation == 0) ? Qt::Vertical : Qt::Horizontal);
+    }
+    else
         return;
+
+    if(_hide != 0){
+        drawHeader();
+        drawRemedies();
+    }
+    else
+        ui->spacefiller->setVisible(false);
+}
+void researchRemed::splitterMoved(int pos, int){
+    int maxSplitterPos = 0, minSplitterPos = 0;
+    ui->splitter->getRange(1, &minSplitterPos, &maxSplitterPos);
+
+    if(pos == maxSplitterPos){
+        _hide = 0;
+        ui->spacefiller->setVisible(false);
+    }
+    else{
+        const auto oldHide = _hide;
+        _hide = (pos == minSplitterPos) ? 1 : 2;
+
+        drawRemedies(true);
+
+        if(oldHide == 0 && _hide == 2)
+            drawHeader();
+
+        if(ui->splitter->orientation() == Qt::Horizontal)
+            ui->spacefiller->setVisible(true);
+    }
+}
+inline qreal researchRemed::horizontalSize() const{
+    auto font = QFont("default", 10);
+    return QFontMetrics(font).height() * (1 + 0.5);
+}
+void researchRemed::hScrollBarMoved(int pos){
+    const auto prevPos = ui->graphicsView_remedies->sceneRect();
+    const auto horizon = horizontalSize();
+
+    ui->graphicsView_header->setSceneRect(pos * horizon, 0, 1, 1);
+    ui->graphicsView_remedies->setSceneRect(pos * horizon, prevPos.y(), 1, 1);
+}
+void researchRemed::vScrollBarMoved(int pos){
+    const auto prevPos = ui->graphicsView_header->sceneRect();
+
+    if(ui->splitter->orientation() == Qt::Horizontal){
+        const auto data = _render.clipboardAndRemediesNumbers();
+        const qint32 viewportHeigth = ui->listWidget->maximumViewportSize().height();
+        qint32 height = 0;
+
+        auto countPixels = [](auto & data, auto & _render, const auto pos){
+            qint32 height = 0;
+
+            for(auto i = data.second.cbegin(); i != data.second.cend(); ++i){
+                if(std::distance(data.second.cbegin(), i) == pos + 1)
+                    break;
+
+                height += (*i) ? _render.clipboardHeight() : _render.symptomHeight();
+            }
+
+            return height;
+        };
+
+        height = countPixels(data, _render, pos);
+        ui->listWidget->setCurrentRow(pos);
+
+        if(viewportHeigth < height - _oldHeight){
+            ++_beginPos;
+            _oldHeight = countPixels(data, _render, _beginPos - 1);
+            ui->graphicsView_remedies->setSceneRect(prevPos.x(), _oldHeight, 1, 1);
+        }
+        else if(height - _oldHeight <= 0){
+            --_beginPos;
+            _oldHeight = countPixels(data, _render, _beginPos - 1);
+            ui->graphicsView_remedies->setSceneRect(prevPos.x(), _oldHeight, 1, 1);
+        }
+        else if(pos == 0){
+            _beginPos = 0;
+            _oldHeight = countPixels(data, _render, pos - 1);
+            ui->graphicsView_remedies->setSceneRect(prevPos.x(), _oldHeight, 1, 1);
+        }
+    }
+    else{
+        if(!pos)
+            ui->listWidget->setCurrentRow(0);
+
+        const auto data = _render.clipboardAndRemediesNumbers();
+        qsizetype clipCounter = 0, counter = -1;
+        qint32 height = 0;
+
+        for(auto i : data.second){
+            if(i) ++clipCounter;
+            else ++counter;
+
+            if(counter == pos)
+                break;
+
+            if(counter != -1)
+                height += (i) ? _render.clipboardHeight() : _render.symptomHeight();
+        }
+
+        ui->graphicsView_remedies->setSceneRect(prevPos.x(), height, 1, 1);
+        ui->graphicsView_count->setSceneRect(0, height, 1, 1);
+        ui->listWidget->setCurrentRow(clipCounter + pos);
     }
 }
 void researchRemed::closeClipboard(QLabel * closeButton){
@@ -254,13 +423,14 @@ void researchRemed::closeClipboard(QLabel * closeButton){
     _render.setShowedClipboards(showClip);
 
     if(!isHidden())
-        setClipboards(showClip);
+        //setClipboards(showClip);
+        show(showClip);
 }
 void researchRemed::resizeEvent(QResizeEvent * event){
-    if(ui->graphicsView->isVisible() && ui->listWidget->count() != 0)
-        drawScene(false);
+    event->accept();
 
-    event->ignore();
+    if(_hide && ui->listWidget->count() != 0)
+        drawRemedies(true);
 }
 void researchRemed::openListMenu(const QPoint & point){
     auto index = ui->listWidget->itemAt(point);//TODO: test functionality

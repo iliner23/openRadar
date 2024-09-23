@@ -3,7 +3,7 @@
  <class>RepChose</class>
  <widget class="QDialog" name="RepChose">
   <property name="windowModality">
-   <enum>Qt::NonModal</enum>
+   <enum>Qt::WindowModality::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -39,10 +39,10 @@
           <string>Доступные репертории</string>
          </property>
          <property name="textFormat">
-          <enum>Qt::PlainText</enum>
+          <enum>Qt::TextFormat::PlainText</enum>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -62,7 +62,7 @@
           <number>0</number>
          </property>
          <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
+          <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
          </property>
          <property name="topMargin">
           <number>50</number>
@@ -142,8 +142,57 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>lineEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>RepChose</receiver>
+   <slot>finding(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listView</sender>
+   <signal>activated(QModelIndex)</signal>
+   <receiver>RepChose</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>249</x>
+     <y>296</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>RepChose</receiver>
+   <slot>showLevels()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>539</x>
+     <y>294</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>finding(QString)</slot>
+  <slot>showLevels()</slot>
  </slots>
 </ui>

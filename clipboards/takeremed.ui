@@ -402,5 +402,24 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>takeRemed</receiver>
+   <slot>setDefault()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>101</x>
+     <y>523</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>404</x>
+     <y>298</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>setDefault()</slot>
+ </slots>
 </ui>

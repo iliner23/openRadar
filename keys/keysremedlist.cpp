@@ -20,10 +20,6 @@ keysRemedList::keysRemedList(const QVector<QDir> keysFile, QStringList keysText,
     ui->buttonBox->button(ui->buttonBox->Ok)->setEnabled(false);
 
     connect(ui->comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &keysRemedList::renderingTable);
-
-    connect(ui->lineEdit, &QLineEdit::textChanged, this, &keysRemedList::shortFilter);
-    connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &keysRemedList::fullFilter);
-    connect(ui->tableView, &QTableView::activated, this, &keysRemedList::tableActivated);
     connect(ui->tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &keysRemedList::activateOkBut);
 }
 void keysRemedList::changeTable(int pos){

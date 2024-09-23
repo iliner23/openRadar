@@ -29,7 +29,7 @@ private:
     QTextCodec * _codec = nullptr;
     QVector<std::pair<QLocale, QLocale>> _lang;
 public slots:
-    void accept();
+    void accept() override;
 private slots:
     void finding(const QString);
     void activateLevel(const QModelIndex &);

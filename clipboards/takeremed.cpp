@@ -13,8 +13,6 @@ takeRemed::takeRemed(std::shared_ptr<QStringList> name, QWidget *parent) :
         ui->comboBox->addItem(QString::number(i));
 
     ui->comboBox->setCurrentIndex(1);
-
-    connect(ui->pushButton, &QPushButton::clicked, this, &takeRemed::setDefault);
 }
 void takeRemed::setDefault(){
     ui->checkBox_3->setChecked(true);

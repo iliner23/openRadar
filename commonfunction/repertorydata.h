@@ -7,8 +7,8 @@ namespace func{
     {
     public:
         repertoryData() = default;
-        repertoryData(const openCtree & repertory, QTextCodec * codec = QTextCodec::codecForName("system"));
-        void reset(const openCtree & repertory, QTextCodec * codec = QTextCodec::codecForName("system"));
+        repertoryData(const openCtree & repertory, QTextCodec * codec = QTextCodec::codecForLocale());
+        void reset(const openCtree & repertory, QTextCodec * codec = QTextCodec::codecForLocale());
         void clear();
         bool isClear() const { return _data.isEmpty(); }
 

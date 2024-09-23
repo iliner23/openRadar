@@ -137,36 +137,14 @@ std::pair<QStringList, QByteArrayList> func::linksParser::logicalParser(QVector<
 
     QStringList list;
 
-    auto thread = [&](openCtree symptom, auto begin, auto end){
-        QStringList lst;
-
-        for(auto it = begin; it != end; ++it){
+    if(!keysList.isEmpty()){
+        for(auto it = keysList.constBegin(); it != keysList.constEnd(); ++it){
             try{
-                symptom.at(it->toStdString(), false);
-                lst.push_back(renderingLabel(symptom, false, _codec));
+                _symptom.at(it->toStdString(), false);
+                list.push_back(renderingLabel(_symptom, false, _codec));
             }
             catch(std::exception){}
         }
-
-        return lst;
-    };
-
-    if(!keysList.isEmpty()){
-        QVector<QFuture<QStringList>> threads;
-
-        const auto maxThreads = (keysList.size() > QThread::idealThreadCount()) ?
-                    QThread::idealThreadCount() : keysList.size();
-        const auto del = keysList.size() / maxThreads;
-
-        for(auto i = 0; i != maxThreads; ++i){
-            threads.append(QtConcurrent::run(thread, _symptom,
-                keysList.constBegin() + del * i ,
-                (i == maxThreads - 1) ? keysList.constEnd()
-                                      : keysList.constBegin() + del * (i + 1)));
-        }
-
-        for(auto & it : threads)
-            list.append(it.result());
     }
 
     return std::make_pair(list, keysList);
@@ -186,10 +164,10 @@ void func::linksParser::logicalANDparser(const QByteArrayList firstList, const Q
     QVector<QByteArrayList> fList, sList;
 
     auto listFiller = [](openCtree symptom,
-                            const auto & sourceList, auto begin, auto end){
+                            const auto & sourceList){
         QVector<QByteArrayList> flist;
-
-        for(auto i = begin; i != end; ++i){
+        
+        for(auto i = 0; i != sourceList.size(); ++i){
             try{
                 symptom.at(sourceList.at(i).toStdString(), false);
                 flist += getRootPath(symptom);
@@ -200,84 +178,42 @@ void func::linksParser::logicalANDparser(const QByteArrayList firstList, const Q
         return flist;
     };
 
-    fList = threadsParent(*list1, listFiller);
-    sList = threadsParent(*list2, listFiller);
+    fList = listFiller(_symptom, *list1);
+    sList = listFiller(_symptom, *list2);
 
     if(firstList == secondList){
         tempList = firstList;
         return;
     }
 
-    auto threadFor = [&](auto begin, auto end){
-        QByteArrayList tpList;
+    QByteArrayList tpList;
 
-        for(auto it = begin; it != end; ++it){
-            for(auto ir = list2->constBegin(); ir != list2->constEnd(); ++ir){
-                if(*it == *ir && tempList.indexOf(*ir) == -1 &&
+    for(auto it = list1->constBegin(); it != list1->constEnd(); ++it){
+        for(auto ir = list2->constBegin(); ir != list2->constEnd(); ++ir){
+            if(*it == *ir && tempList.indexOf(*ir) == -1 &&
+                                tpList.indexOf(*ir) == -1){
+                tpList.push_back(*it);
+            }
+            else if(*it < *ir && tempList.indexOf(*ir) == -1 &&
                                     tpList.indexOf(*ir) == -1){
+                const auto iter = sList.at(ir - list2->constBegin()).indexOf(*it);
+
+                if(iter != -1)
+                    tpList.push_back(*ir);
+            }
+            else if(*it > *ir && tempList.indexOf(*it) == -1 &&
+                                    tpList.indexOf(*it) == -1){
+                const auto iter = fList.at(it - list1->constBegin()).indexOf(*ir);
+
+                if(iter != -1)
                     tpList.push_back(*it);
-                }
-                else if(*it < *ir && tempList.indexOf(*ir) == -1 &&
-                                        tpList.indexOf(*ir) == -1){
-                    const auto iter = sList.at(ir - list2->constBegin()).indexOf(*it);
-
-                    if(iter != -1)
-                        tpList.push_back(*ir);
-                }
-                else if(*it > *ir && tempList.indexOf(*it) == -1 &&
-                                        tpList.indexOf(*it) == -1){
-                    const auto iter = fList.at(it - list1->constBegin()).indexOf(*ir);
-
-                    if(iter != -1)
-                        tpList.push_back(*it);
-                }
             }
         }
-
-        return tpList;
-    };
-
-    if(list1->size() != 0){
-        QVector<QFuture<QByteArrayList>> threads;
-
-        const auto maxThreads = (list1->size() > QThread::idealThreadCount()) ?
-                    QThread::idealThreadCount() : list1->size();
-        const auto del = list1->size() / maxThreads;
-
-        for(auto i = 0; i != maxThreads; ++i){
-            threads.append(QtConcurrent::run(threadFor,
-                list1->constBegin() + del * i ,
-                (i == maxThreads - 1) ? list1->constEnd() :
-                                        list1->constBegin() + del * (i + 1)));
-        }
-
-        for(auto & it : threads)
-            tempList.append(it.result());
-    }
-}
-QVector<QByteArrayList> func::linksParser::threadsParent(const QByteArrayList & sourceList,
-                                 std::function<QVector<QByteArrayList>(openCtree symptom, const QByteArrayList & , quint32 , quint32 )> threadFunc){
-    QVector<QByteArrayList> fillerList;
-
-    if(!sourceList.isEmpty()){
-        QVector<QFuture<QVector<QByteArrayList>>> threads;
-
-        const auto maxThreads = (sourceList.size() > QThread::idealThreadCount()) ?
-                    QThread::idealThreadCount() : sourceList.size();
-        const auto del = sourceList.size() / maxThreads;
-
-        for(auto i = 0; i != maxThreads; ++i){
-            threads.append(QtConcurrent::run(threadFunc, _symptom, sourceList, del * i ,
-                (i == maxThreads - 1) ? sourceList.size() : del * (i + 1)));
-        }
-
-        for(auto & it : threads)
-            fillerList.append(it.result());
     }
 
-    return fillerList;
+    tempList.append(tpList);
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QString func::renderingLabel(openCtree symptom, bool pass, QTextCodec * codec){
     QStringList original, localization;

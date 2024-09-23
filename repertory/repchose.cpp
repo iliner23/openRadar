@@ -34,10 +34,7 @@ RepChose::RepChose(const QStringList repertories, const QVector<QDir> reppos, QV
     ui->listView->setModel(_proxyModel);
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    connect(ui->lineEdit, &QLineEdit::textChanged, this, &RepChose::finding);
     connect(ui->listView->selectionModel(), &QItemSelectionModel::currentChanged, this, &RepChose::activateLevel);
-    connect(ui->listView, &QListView::activated, this, &RepChose::accept);
-    connect(ui->pushButton_3, &QPushButton::clicked, this, &RepChose::showLevels);
 }
 void RepChose::accept(){
     QDialog::accept();

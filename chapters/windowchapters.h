@@ -30,11 +30,11 @@ signals:
     void activatedBranch(const QModelIndex &, const quint32);
 private slots:
     void show() {}
-    void textFilter(const QString);
-    void textFilter_2(const QString);
+    void chapterTextFilter(const QString);
+    void symptomTextFilter(const QString);
     void selectedItemTable(QTableWidgetItem *);
-    void accept_1();
-    void reject_2();
+    void chapterAccept();
+    void symptomReject();
     void listClicked(const QModelIndex &);
     void returnBranch();
     void sendActivatedBranch();

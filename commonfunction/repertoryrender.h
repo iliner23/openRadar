@@ -28,9 +28,9 @@ public:
 
     repertoryRender() { initFonts(); }
     repertoryRender(const QDir filename, const std::shared_ptr<func::cache> & cache,
-                    QTextCodec * codec = QTextCodec::codecForName("system"));
+                    QTextCodec * codec = QTextCodec::codecForLocale());
     virtual void reset(const QDir filename, const std::shared_ptr<func::cache> & cache,
-                       QTextCodec * codec = QTextCodec::codecForName("system"));
+                       QTextCodec * codec = QTextCodec::codecForLocale());
 
     virtual QVector<QGraphicsItemGroup*> render(const QSize resolution);
 

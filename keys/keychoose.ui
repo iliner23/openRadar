@@ -20,7 +20,7 @@
       <string>Доступные ключи</string>
      </property>
      <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
    </item>
@@ -35,10 +35,10 @@
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
        </property>
        <property name="centerButtons">
         <bool>true</bool>
@@ -86,5 +86,40 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>lineEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>KeyChoose</receiver>
+   <slot>finding(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>291</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>291</x>
+     <y>247</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listView</sender>
+   <signal>activated(QModelIndex)</signal>
+   <receiver>KeyChoose</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>242</x>
+     <y>278</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>291</x>
+     <y>247</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>finding(QString)</slot>
+ </slots>
 </ui>

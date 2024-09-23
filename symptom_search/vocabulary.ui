@@ -3,7 +3,7 @@
  <class>vocabulary</class>
  <widget class="QWidget" name="vocabulary">
   <property name="windowModality">
-   <enum>Qt::NonModal</enum>
+   <enum>Qt::WindowModality::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -78,7 +78,7 @@
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -140,7 +140,7 @@
          <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -232,5 +232,92 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>lineEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>vocabulary</receiver>
+   <slot>filter(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>288</x>
+     <y>67</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listView</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>vocabulary</receiver>
+   <slot>selectedModelItem(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>372</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listView</sender>
+   <signal>activated(QModelIndex)</signal>
+   <receiver>vocabulary</receiver>
+   <slot>selectedModelItem(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>372</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>plainTextEdit_2</sender>
+   <signal>textChanged()</signal>
+   <receiver>vocabulary</receiver>
+   <slot>changedPlainText()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>558</x>
+     <y>66</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>vocabulary</receiver>
+   <slot>openResults()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>603</x>
+     <y>151</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>352</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>filter(QString)</slot>
+  <slot>selectedModelItem(QModelIndex)</slot>
+  <slot>changedPlainText()</slot>
+  <slot>openResults()</slot>
+  <slot>sendOn()</slot>
+ </slots>
 </ui>

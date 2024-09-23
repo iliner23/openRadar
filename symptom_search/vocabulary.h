@@ -3,7 +3,6 @@
 
 #include <QtWidgets>
 #include <QTextCodec>
-#include <QtConcurrent/QtConcurrent>
 #include "openctree/openctree.h"
 #include "commonfunction/languages.h"
 #include "searchresult.h"

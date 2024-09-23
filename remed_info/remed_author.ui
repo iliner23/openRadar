@@ -48,7 +48,7 @@
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -82,7 +82,7 @@
          <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -134,5 +134,42 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>listWidget_2</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>remed_author</receiver>
+   <slot>showTextInformation()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>52</x>
+     <y>403</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>349</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>remed_author</receiver>
+   <slot>showRemedList()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>748</x>
+     <y>25</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>349</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>showTextInformation()</slot>
+  <slot>showRemedList()</slot>
+ </slots>
 </ui>

@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
                 auto st = "../" + str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
                 //NOTE: work directory for repertory
                 st.chop(2);
+                st.replace('\\', '/');
                 QFileInfo dir(st);
 
                 if(dir == ir){
@@ -114,6 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
                 auto st = "../" + str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
                 //NOTE: work directory for keys
                 st.chop(1);
+                st.replace('\\', '/');
                 QFileInfo dir(st + ".dat");
 
                 if(dir == ir){
@@ -169,16 +171,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
     connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
-    connect(ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::windowChanged);
-    connect(ui->action, &QAction::triggered, ui->mdiArea, &QMdiArea::cascadeSubWindows);
-    connect(ui->action_3, &QAction::triggered, ui->mdiArea, &QMdiArea::tileSubWindows);
-    connect(ui->action_5, &QAction::triggered, ui->mdiArea, &QMdiArea::activateNextSubWindow);
-    connect(ui->action_6, &QAction::triggered, ui->mdiArea, &QMdiArea::activatePreviousSubWindow);
-    connect(ui->action_4, &QAction::triggered, this, &MainWindow::openChapters);
-    connect(ui->action_7, &QAction::triggered, this, &MainWindow::openChaptersInCurrentPos);
-    connect(ui->action_8, &QAction::triggered, this, &MainWindow::openVocabulary);
-    connect(ui->action39, &QAction::triggered, this, &MainWindow::openKeysChooseWindow);
-    connect(ui->action8, &QAction::triggered, this, &MainWindow::openTakeRemed);
 
     connect(_takeRemed, &takeRemed::changeClipboardsName, this, &MainWindow::setClipboardsName);
     connect(_takeRemed, &takeRemed::addedClipboardsRemed, this, &MainWindow::addClipboardsRemed);
@@ -231,15 +223,15 @@ void MainWindow::openResearchTest(QAction * act){
         for(const auto & it : _pressedClipboard)
             val.at(compare(it)) = true;
 
-        _research->show();
-        _research->setClipboards(val);
+        _research->show(val);
+        //_research->setClipboards(val);
 
         _pressedClipboard.clear();
     }
     else if(act != nullptr){
         val.at(compare(act)) = true;
-        _research->show();
-        _research->setClipboards(val);
+        _research->show(val);
+        //_research->setClipboards(val);
     }
 }
 void MainWindow::keyPressEvent(QKeyEvent * event){

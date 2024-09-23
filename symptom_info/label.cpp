@@ -62,7 +62,6 @@ Label::Label(std::shared_ptr<func::cache> ch, const QDir path,
     if(_crossLinks.first.isEmpty() && _crossLinks.second.isEmpty())
         ui->listWidget_3->item(2)->setHidden(true);
 
-    connect(ui->listWidget_3, &QListWidget::itemSelectionChanged, this, &Label::showTextInformation);
     connect(_scene, &customScene::doubleClick, this, &Label::clickedAction);
 
     for(auto i = 0; i != 3; ++i){

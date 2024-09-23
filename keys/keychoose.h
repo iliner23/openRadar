@@ -29,7 +29,7 @@ private slots:
     void finding(const QString);
     void activateLevel(const QModelIndex &);
 public slots:
-    void accept();
+    void accept() override;
 signals:
     void openRemedList(int);
 };
