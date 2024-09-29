@@ -50,10 +50,13 @@
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="QSplitter" name="splitter">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
         <property name="opaqueResize">
          <bool>false</bool>
         </property>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <layout class="QVBoxLayout" name="verticalLayout">
           <property name="spacing">
            <number>0</number>
@@ -70,7 +73,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
            <number>0</number>
@@ -202,6 +205,22 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="property">
+   <property name="text">
+    <string>&quot;Редактировать - Свойства&quot;</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="deleteSymptom">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -301,6 +320,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>property</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>openProperty()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>deleteSymptom</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>deleteSymptom()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openStrategyMenu()</slot>
@@ -309,5 +360,7 @@
   <slot>openListMenu(QPoint)</slot>
   <slot>hScrollBarMoved(int)</slot>
   <slot>vScrollBarMoved(int)</slot>
+  <slot>openProperty()</slot>
+  <slot>deleteSymptom()</slot>
  </slots>
 </ui>

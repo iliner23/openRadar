@@ -36,7 +36,6 @@ private:
     QMenu * _strategyMenu, * _showMenu, * _listMenu;
     QList<QAction*> _sympthomAndAnalis;
     QList<QAction*> _strategy;
-    QList<QAction*> _listAction;
     QAction * _intensity;
     QList<QAction*> _orientation;
     quint8 _hide = 2;//0 - hide view, 1 - hide list, 2 - show all
@@ -62,7 +61,10 @@ private slots:
 
     void triggeredStrategy(QAction*);
     void triggeredShow(QAction*);
-    void triggeredList(QAction*);
+
+    //symptom contex menu
+    void openProperty();
+    void deleteSymptom();
 
     void splitterMoved(int, int);
 

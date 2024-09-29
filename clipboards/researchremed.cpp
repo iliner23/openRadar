@@ -17,6 +17,9 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     ui->graphicsView_remedies->setScene(_scene_remedies);
     ui->graphicsView_count->setScene(_scene_counter);
 
+    _scene_header->setItemIndexMethod(QGraphicsScene::NoIndex);
+    _scene_remedies->setItemIndexMethod(QGraphicsScene::NoIndex);
+
     _strategyMenu = new QMenu(ui->strategy);
     _showMenu = new QMenu(ui->show);
     _listMenu = new QMenu(ui->listWidget);
@@ -57,8 +60,9 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     }
 
     {//listWidget contex menu
-        QStringList labels = { "Редактировать - Свойства" };
-        addActions(_listMenu, _listAction, labels, false);
+        _listMenu->addAction(ui->deleteSymptom);
+        _listMenu->addSeparator();
+        _listMenu->addAction(ui->property);
         ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     }
 
@@ -70,7 +74,6 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
 
     ui->horizontalScrollBar->hide();
 
-    connect(_listMenu, &QMenu::triggered, this, &researchRemed::triggeredList);
     connect(_strategyMenu, &QMenu::triggered, this, &researchRemed::triggeredStrategy);
     connect(_showMenu, &QMenu::triggered, this, &researchRemed::triggeredShow);
 }
@@ -123,6 +126,9 @@ void researchRemed::drawRemedies(bool partlyRendering){
     auto size = ui->graphicsView_remedies->maximumViewportSize();
     size.setHeight(size.height() + ui->horizontalScrollBar->height());
     auto var = _render.renderRemedies(size, partlyRendering);
+
+    if(var == nullptr)
+        return;
 
     _scene_remedies->setSceneRect(0, 0, var->boundingRect().width(), var->boundingRect().height());
     _scene_remedies->addItem(var);
@@ -207,6 +213,13 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
         _render.setClipboardHeight(ui->listWidget->sizeHintForRow(0));
         _render.setSymptomHeight(ui->listWidget->sizeHintForRow(1));
     }
+
+    if(!ui->listWidget->count()){
+        ui->verticalScrollBar->setMaximum(0);
+        ui->verticalScrollBar->setEnabled(false);
+    }
+    else
+        ui->verticalScrollBar->setEnabled(true);
 
     //NOTE : only for test
     _render.setAnalysisType(researchRemedRender::showType::waffle);
@@ -439,22 +452,24 @@ void researchRemed::openListMenu(const QPoint & point){
     if(index != nullptr && ui->listWidget->itemWidget(index) == nullptr)
         _listMenu->exec(globalPos);
 }
-void researchRemed::triggeredList(QAction * action){
-    const auto act = _listAction.indexOf(action);//TODO: test functionality
-
-    if(act != 0)
-        return;
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void researchRemed::openProperty(){
     auto item = ui->listWidget->currentItem();
 
-    if(item != nullptr && ui->listWidget->itemWidget(item) == nullptr){
-        auto setRmd = new setRemedy(_clipRemed,
-            item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>(), this);
+    auto setRmd = new setRemedy(_clipRemed,
+        item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>(), this);
 
-        setRmd->setAttribute(Qt::WA_DeleteOnClose);
-        connect(setRmd, &setRemedy::clipboardRemedChanged, this, &researchRemed::setClipboardRemed);
-        setRmd->exec();
-    }
+    setRmd->setAttribute(Qt::WA_DeleteOnClose);
+    connect(setRmd, &setRemedy::clipboardRemedChanged, this, &researchRemed::setClipboardRemed);
+    setRmd->exec();
+}
+void researchRemed::deleteSymptom(){
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    _clipRemed->at(std::get<0>(symptomPos)).remove(std::get<1>(symptomPos));
+
+    if(!isHidden())
+        setClipboardRemed();
 }
 researchRemed::~researchRemed(){
     delete ui;

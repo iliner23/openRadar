@@ -2,7 +2,7 @@
 #define REPERTORYRENDER_H
 
 #include <QtWidgets>
-#include "commonfunction/repertorydata.h"
+#include "repertorydata.h"
 
 class repertoryRender
 {

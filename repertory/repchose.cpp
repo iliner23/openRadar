@@ -18,7 +18,7 @@ RepChose::RepChose(const QStringList repertories, const QVector<QDir> reppos, QV
         view.open(vw.path().toStdString());
 
         if(view.size() != 0)
-            _rLevels.push_back(it.path());
+            _rLevels.push_back(vw.path());
         else
             _rLevels.push_back("");
 

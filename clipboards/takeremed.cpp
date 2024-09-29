@@ -71,7 +71,8 @@ void takeRemed::accept(){
     (*_name)[8] = ui->lineEdit_10->text();
     (*_name)[9] = ui->lineEdit_11->text();
 
-    emit changeClipboardsName();
+    //emit changeClipboardsName();
+    //setClipboardsName();
 
     func::remedClipboardInfo info;
     info.intensity = ui->comboBox->currentIndex();

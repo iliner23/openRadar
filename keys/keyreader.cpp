@@ -7,7 +7,7 @@ keyReader::keyReader(QByteArray text, QString title, QDialog * keyRemedList, QWi
 {
     ui->setupUi(this);
     _text = text;
-    _codec = QTextCodec::codecForName(lang::defaultCodec());
+    _codec = QTextCodec::codecForName(lang::langToName(QLocale::system()));
     _keyRemedList = keyRemedList;
     setWindowTitle(title);
 

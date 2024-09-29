@@ -9,6 +9,7 @@
 #include "repertory/repertory.h"
 #include "chapters/windowchapters.h"
 #include "commonfunction/languages.h"
+#include "commonfunction/widgetaction.h"
 #include "keys/keychoose.h"
 #include "clipboards/researchremed.h"
 #include "clipboards/takeremed.h"
@@ -27,7 +28,7 @@ public:
 
     using rci = func::remedClipboardInfo;
 private slots:
-    void on_action1_triggered();
+    void openRepertoryWindow();
     void openKeysChooseWindow();
     void openRepertory(QModelIndex &, const quint16,
                        std::pair<QLocale, QLocale>);
@@ -42,9 +43,16 @@ private slots:
     void openVocabulary();
     void openTakeRemed();
 
-    void setClipboardsName();
+    //void setClipboardsName();
     void addClipboardsRemed(func::remedClipboardInfo, quint8);
-    void openResearchTest(QAction *act);
+    //void openResearchTest(QAction *act);
+    void openResearchTest(qint8);
+
+    void addClipboardsRemedIntense1();
+    void addClipboardsRemedIntense2();
+    void addClipboardsRemedIntense3();
+    void addClipboardsRemedIntense4();
+    void dragAndDropAddRemed(QByteArray, qint8);
 signals:
     void changeClipboardsName();
     void changeClipboardsRemed();
@@ -55,12 +63,15 @@ private:
     keysRemedList * _remedList = nullptr;
     windowChapters * _chapters = nullptr;
     takeRemed * _takeRemed = nullptr;
+    widgetAction * _clipboardsActions[10];
 
     researchRemed * _research = nullptr;
     void keyPressEvent(QKeyEvent *) override;
     void keyReleaseEvent(QKeyEvent *) override;
+    void setDefaultRemedClipboardInfo(func::remedClipboardInfo &);
 
-    QVector<QAction*> _pressedClipboard;
+    //QVector<QAction*> _pressedClipboard;
+    QVector<qint8> _pressedClipboard;
     bool _pressed = false;
 
     openCtree _catalog;
@@ -69,5 +80,8 @@ private:
     std::shared_ptr<func::cache> _cache;
     std::shared_ptr<std::array<QVector<rci>, 10>> _clipboadrs;
     std::shared_ptr<QStringList> _clipNames;
+
+    //defaults
+    qint8 _defaultClipboard = 0;
 };
 #endif // MAINWINDOW_H

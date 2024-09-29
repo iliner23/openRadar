@@ -23,11 +23,10 @@ MainWindow::MainWindow(QWidget *parent)
         };
 
         _clipNames = std::make_shared<QStringList>(std::move(clip));
-        _clipNames->append(clip);
         _clipboadrs = std::make_shared<std::array<QVector<rci>, 10>>();
     }
 
-    _catalog.open(QDir::toNativeSeparators("../../system/catalog").toStdString());
+    _catalog.open(QDir("../../system").filePath("catalog").toStdString());
     auto dataDirs = QDir("../../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     auto keysDirs = QDir("../../data/keynotes").entryInfoList(QDir::Files);
     const QStringList tpCmp = {"view", "word1", "word2", "chapter", "extract", "symptom"};
@@ -135,8 +134,8 @@ MainWindow::MainWindow(QWidget *parent)
             break;
     }
 
-    openCtree remed(QDir("../../system/remed").path().toStdString());
-    openCtree author(QDir("../../system/author").path().toStdString());
+    openCtree remed(QDir("../../system").filePath("remed").toStdString());
+    openCtree author(QDir("../../system").filePath("author").toStdString());
 
     _cache = std::make_shared<func::cache>();
     _cache->_lenRem = remed.serviceDataLenght();
@@ -172,19 +171,28 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_choose, &RepChose::chooseRep, this, &MainWindow::openRepertory);
     connect(_chapters, &windowChapters::activatedBranch, this, &MainWindow::setPositionInRepertory);
 
-    connect(_takeRemed, &takeRemed::changeClipboardsName, this, &MainWindow::setClipboardsName);
+    //connect(_takeRemed, &takeRemed::changeClipboardsName, this, &MainWindow::setClipboardsName);
     connect(_takeRemed, &takeRemed::addedClipboardsRemed, this, &MainWindow::addClipboardsRemed);
-    connect(this, &MainWindow::changeClipboardsName, _takeRemed, &takeRemed::setClipboardsName);
+    //connect(this, &MainWindow::changeClipboardsName, _takeRemed, &takeRemed::setClipboardsName);
 
     connect(this, &MainWindow::changeClipboardsRemed, _research, &researchRemed::setClipboardRemed);
     connect(this, &MainWindow::changeClipboardsName, _research, &researchRemed::setClipboardName);
 
-    QAction * researchPtrs[] = {ui->action29, ui->action30, ui->action31, ui->action32,
-                                      ui->action33, ui->action34, ui->action35, ui->action36,
-                                      ui->action37, ui->action38};
+    QAction * researchPtrs[] = {ui->clipboard1, ui->clipboard2, ui->clipboard3, ui->clipboard4,
+                               ui->clipboard5, ui->clipboard6, ui->clipboard7, ui->clipboard8,
+                               ui->clipboard9, ui->clipboard10};
 
-    for(auto it : researchPtrs)
-        connect(it, &QAction::triggered, this, [=](){ openResearchTest(it); });
+    for(qsizetype it = 0; it != std::size(_clipboardsActions); ++it){
+        _clipboardsActions[it] = new widgetAction();
+        _clipboardsActions[it]->setDefaultAction(researchPtrs[it]);
+        connect(_clipboardsActions[it], &widgetAction::clicked, this, [=](){ openResearchTest(it); });
+        connect(_clipboardsActions[it], &widgetAction::sendDropKey, this, [=](auto key) { dragAndDropAddRemed(key, it); } );
+
+        ui->toolBar_2->addWidget(_clipboardsActions[it]);
+    }
+
+    ui->toolBar_2->addSeparator();
+    ui->toolBar_2->addAction(ui->openKeys);
 }
 void MainWindow::openTakeRemed(){
     if(ui->mdiArea->currentSubWindow() != nullptr){
@@ -196,42 +204,26 @@ void MainWindow::openTakeRemed(){
         _takeRemed->show();
     }
 }
-void MainWindow::openResearchTest(QAction * act){
-    auto compare = [&](QAction * com){
-        QAction * actions[] = {ui->action29, ui->action30, ui->action31,
-                          ui->action32, ui->action33, ui->action34,
-                          ui->action35, ui->action36, ui->action37, ui->action38};
-
-        const auto value = std::find(std::cbegin(actions), std::cend(actions), com);
-
-        if(value == std::cend(actions))
-            return -1;
-
-        return (int) std::distance(std::cbegin(actions), value);
-    };
-
+void MainWindow::openResearchTest(qint8 pos){
     std::array<bool, 10> val;
 
     for(auto & it : val)
         it = false;
 
     if(_pressed){
-        if(act != nullptr && _pressedClipboard.indexOf(act) == -1)
-            _pressedClipboard.push_back(act);
+        if(pos != -1 && _pressedClipboard.indexOf(pos) == -1)
+            _pressedClipboard.push_back(pos);
     }
     else if(!_pressedClipboard.isEmpty()){
         for(const auto & it : _pressedClipboard)
-            val.at(compare(it)) = true;
+            val.at(it) = true;
 
         _research->show(val);
-        //_research->setClipboards(val);
-
         _pressedClipboard.clear();
     }
-    else if(act != nullptr){
-        val.at(compare(act)) = true;
+    else if(pos != -1){
+        val.at(pos) = true;
         _research->show(val);
-        //_research->setClipboards(val);
     }
 }
 void MainWindow::keyPressEvent(QKeyEvent * event){
@@ -241,7 +233,8 @@ void MainWindow::keyPressEvent(QKeyEvent * event){
 void MainWindow::keyReleaseEvent(QKeyEvent * event){
     if(event->key() == Qt::Key_Control){
         _pressed = false;
-        openResearchTest(nullptr);
+        //openResearchTest(nullptr);
+        openResearchTest(-1);
     }
 }
 MainWindow::~MainWindow(){
@@ -257,7 +250,7 @@ void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, std::
     repPtr->setMinimumSize(500, 500);
     repPtr->show();
 }
-void MainWindow::on_action1_triggered(){
+void MainWindow::openRepertoryWindow(){
     _choose->show();
 }
 void MainWindow::openKeysChooseWindow(){
@@ -275,10 +268,14 @@ void MainWindow::windowChanged(){
     const auto sub = ui->mdiArea->activeSubWindow();
     const auto list = ui->mdiArea->subWindowList();
 
-    ui->action_4->setEnabled(!list.isEmpty());
-    ui->action_7->setEnabled(sub != nullptr);
-    ui->action_8->setEnabled(sub != nullptr);
-    ui->action8->setEnabled(sub != nullptr);
+    ui->findSymptom->setEnabled(!list.isEmpty());
+    ui->findFromCurrentSymptom->setEnabled(sub != nullptr);
+    ui->externalSearch->setEnabled(sub != nullptr);
+    ui->takeSymptom->setEnabled(sub != nullptr);
+    ui->takeSymptom1->setEnabled(sub != nullptr);
+    ui->takeSymptom2->setEnabled(sub != nullptr);
+    ui->takeSymptom3->setEnabled(sub != nullptr);
+    ui->takeSymptom4->setEnabled(sub != nullptr);
 
     for(auto & it : list){
         auto atr = ui->menu_6->addAction(it->windowTitle());
@@ -317,9 +314,9 @@ void MainWindow::openVocabulary(){
     auto rep = qobject_cast<repertory*>(ui->mdiArea->activeSubWindow()->widget());
     rep->openVocabulary();
 }
-void MainWindow::setClipboardsName(){
+/*void MainWindow::setClipboardsName(){
     emit changeClipboardsName();
-}
+}*/
 void MainWindow::addClipboardsRemed(func::remedClipboardInfo remed, quint8 clip){
     auto & clp = _clipboadrs->at(clip);
 
@@ -333,7 +330,71 @@ void MainWindow::addClipboardsRemed(func::remedClipboardInfo remed, quint8 clip)
     auto iter = std::find_if(clp.cbegin(), clp.cend(), pred);
 
     if(iter == clp.cend()){
+        openCtree data(remed.path.filePath("symptom").toStdString());
+        data.at(remed.key.toStdString(), false);
+        func::repertoryData repdata(data);
+
+        if(repdata.remedsList().isEmpty()){
+            QMessageBox error;
+            error.setText("Симптом без препарата!");
+            error.setIcon(QMessageBox::Information);
+            error.exec();
+            return;
+        }
+
         clp += remed;
         emit changeClipboardsRemed();
     }
+    else{
+        QMessageBox error;
+        error.setText("Этот симптом уже есть в " % QString::number(clip + 1) % " клипборде!");
+        error.setIcon(QMessageBox::Information);
+        error.exec();
+    }
+}
+void MainWindow::setDefaultRemedClipboardInfo(func::remedClipboardInfo & info){
+    info.elim = false;
+    info.cas = false;
+    info.group = "";
+
+    for(auto & it : info.measure)
+        it = true;
+
+    auto currentRep = qobject_cast<repertory*>(
+        ui->mdiArea->currentSubWindow()->widget());
+
+    info.codec = currentRep->textCodec();
+    info.path = currentRep->catalog();
+    info.key = currentRep->currentPosition();
+}
+void MainWindow::dragAndDropAddRemed(QByteArray pos, qint8 droppedClip){
+    func::remedClipboardInfo info;
+    info.intensity = 1;
+    setDefaultRemedClipboardInfo(info);
+    info.key = pos;
+    addClipboardsRemed(info, droppedClip);
+}
+void MainWindow::addClipboardsRemedIntense1(){
+    func::remedClipboardInfo info;
+    info.intensity = 1;
+    setDefaultRemedClipboardInfo(info);
+    addClipboardsRemed(info, _defaultClipboard);
+}
+void MainWindow::addClipboardsRemedIntense2(){
+    func::remedClipboardInfo info;
+    info.intensity = 2;
+    setDefaultRemedClipboardInfo(info);
+    addClipboardsRemed(info, _defaultClipboard);
+}
+void MainWindow::addClipboardsRemedIntense3(){
+    func::remedClipboardInfo info;
+    info.intensity = 3;
+    setDefaultRemedClipboardInfo(info);
+    addClipboardsRemed(info, _defaultClipboard);
+}
+void MainWindow::addClipboardsRemedIntense4(){
+    func::remedClipboardInfo info;
+    info.intensity = 4;
+    setDefaultRemedClipboardInfo(info);
+    addClipboardsRemed(info, _defaultClipboard);
 }

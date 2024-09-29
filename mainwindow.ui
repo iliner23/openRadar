@@ -30,15 +30,15 @@
      <x>0</x>
      <y>0</y>
      <width>1164</width>
-     <height>30</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>Файл</string>
     </property>
-    <addaction name="action1"/>
-    <addaction name="action39"/>
+    <addaction name="openRepertory"/>
+    <addaction name="openKeys"/>
     <addaction name="separator"/>
     <addaction name="action2"/>
    </widget>
@@ -51,10 +51,10 @@
     <property name="title">
      <string>Поиск</string>
     </property>
-    <addaction name="action_4"/>
-    <addaction name="action_7"/>
+    <addaction name="findSymptom"/>
+    <addaction name="findFromCurrentSymptom"/>
     <addaction name="separator"/>
-    <addaction name="action_8"/>
+    <addaction name="externalSearch"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -100,16 +100,16 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action1"/>
-   <addaction name="action_4"/>
-   <addaction name="action_7"/>
-   <addaction name="action_8"/>
+   <addaction name="openRepertory"/>
+   <addaction name="findSymptom"/>
+   <addaction name="findFromCurrentSymptom"/>
+   <addaction name="externalSearch"/>
    <addaction name="separator"/>
-   <addaction name="action8"/>
-   <addaction name="action9"/>
-   <addaction name="action10"/>
-   <addaction name="action11"/>
-   <addaction name="action12"/>
+   <addaction name="takeSymptom"/>
+   <addaction name="takeSymptom1"/>
+   <addaction name="takeSymptom2"/>
+   <addaction name="takeSymptom3"/>
+   <addaction name="takeSymptom4"/>
    <addaction name="separator"/>
    <addaction name="action13"/>
   </widget>
@@ -123,25 +123,14 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action29"/>
-   <addaction name="action30"/>
-   <addaction name="action31"/>
-   <addaction name="action32"/>
-   <addaction name="action33"/>
-   <addaction name="action34"/>
-   <addaction name="action35"/>
-   <addaction name="action36"/>
-   <addaction name="action37"/>
-   <addaction name="action38"/>
    <addaction name="separator"/>
-   <addaction name="action39"/>
   </widget>
   <action name="action2">
    <property name="text">
     <string>Выход</string>
    </property>
   </action>
-  <action name="action1">
+  <action name="openRepertory">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -165,7 +154,7 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="action8">
+  <action name="takeSymptom">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -174,10 +163,10 @@
      <normaloff>:/icons/res/Bitmap7.bmp</normaloff>:/icons/res/Bitmap7.bmp</iconset>
    </property>
    <property name="text">
-    <string>8</string>
+    <string>Взять текущий симптом</string>
    </property>
   </action>
-  <action name="action9">
+  <action name="takeSymptom1">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -186,10 +175,10 @@
      <normaloff>:/icons/res/Bitmap8.bmp</normaloff>:/icons/res/Bitmap8.bmp</iconset>
    </property>
    <property name="text">
-    <string>9</string>
+    <string>Взять текущий симптом с интенсивностью 1</string>
    </property>
   </action>
-  <action name="action10">
+  <action name="takeSymptom2">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -198,10 +187,10 @@
      <normaloff>:/icons/res/Bitmap9.bmp</normaloff>:/icons/res/Bitmap9.bmp</iconset>
    </property>
    <property name="text">
-    <string>10</string>
+    <string>Взять текущий симптом с интенсивностью 2</string>
    </property>
   </action>
-  <action name="action11">
+  <action name="takeSymptom3">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -210,10 +199,10 @@
      <normaloff>:/icons/res/Bitmap10.bmp</normaloff>:/icons/res/Bitmap10.bmp</iconset>
    </property>
    <property name="text">
-    <string>11</string>
+    <string>Взять текущий симптом с интенсивностью 3</string>
    </property>
   </action>
-  <action name="action12">
+  <action name="takeSymptom4">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -222,7 +211,7 @@
      <normaloff>:/icons/res/Bitmap11.bmp</normaloff>:/icons/res/Bitmap11.bmp</iconset>
    </property>
    <property name="text">
-    <string>12</string>
+    <string>Взять текущий симптом с интенсивностью 4</string>
    </property>
   </action>
   <action name="action13">
@@ -237,97 +226,7 @@
     <string>13</string>
    </property>
   </action>
-  <action name="action29">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap26.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap26.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>29</string>
-   </property>
-  </action>
-  <action name="action30">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap27.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap27.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>30</string>
-   </property>
-  </action>
-  <action name="action31">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap28.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap28.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>31</string>
-   </property>
-  </action>
-  <action name="action32">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap29.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap29.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>32</string>
-   </property>
-  </action>
-  <action name="action33">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap30.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap30.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>33</string>
-   </property>
-  </action>
-  <action name="action34">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap31.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap31.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>34</string>
-   </property>
-  </action>
-  <action name="action35">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap32.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap32.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>35</string>
-   </property>
-  </action>
-  <action name="action36">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap33.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap33.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>36</string>
-   </property>
-  </action>
-  <action name="action37">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap34.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap34.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>37</string>
-   </property>
-  </action>
-  <action name="action38">
-   <property name="icon">
-    <iconset resource="res.qrc">
-     <normaloff>:/icons/notOpen/empty/res/Bitmap35.bmp</normaloff>:/icons/notOpen/empty/res/Bitmap35.bmp</iconset>
-   </property>
-   <property name="text">
-    <string>38</string>
-   </property>
-  </action>
-  <action name="action39">
+  <action name="openKeys">
    <property name="icon">
     <iconset resource="res.qrc">
      <normaloff>:/icons/res/Bitmap25.bmp</normaloff>:/icons/res/Bitmap25.bmp</iconset>
@@ -362,7 +261,7 @@
     <string>Предыдущее</string>
    </property>
   </action>
-  <action name="action_4">
+  <action name="findSymptom">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -377,7 +276,7 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="action_7">
+  <action name="findFromCurrentSymptom">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -392,7 +291,7 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="action_8">
+  <action name="externalSearch">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -402,6 +301,126 @@
    </property>
    <property name="text">
     <string>Расширенный поиск...</string>
+   </property>
+  </action>
+  <action name="clipboard1">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory1.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory1.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 1</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard2">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory2.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory2.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 2</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard3">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory3.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory3.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 3</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard4">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory4.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory4.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 4</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard5">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory5.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory5.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 5</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard6">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory6.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory6.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 6</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard7">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory7.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory7.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 7</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard8">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory8.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory8.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 8</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard9">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory9.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory9.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 9</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="clipboard10">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory10.bmp</normaloff>:/icons/notOpen/empty/res/notOpenEmptyRepertory10.bmp</iconset>
+   </property>
+   <property name="text">
+    <string>Клипборд 10</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
  </widget>
@@ -506,7 +525,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_4</sender>
+   <sender>findSymptom</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>openChapters()</slot>
@@ -522,7 +541,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_7</sender>
+   <sender>findFromCurrentSymptom</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>openChaptersInCurrentPos()</slot>
@@ -538,7 +557,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>action_8</sender>
+   <sender>externalSearch</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>openVocabulary()</slot>
@@ -554,7 +573,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>action39</sender>
+   <sender>openKeys</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>openKeysChooseWindow()</slot>
@@ -570,10 +589,90 @@
    </hints>
   </connection>
   <connection>
-   <sender>action8</sender>
+   <sender>takeSymptom</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>openTakeRemed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>takeSymptom1</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>addClipboardsRemedIntense1()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>takeSymptom2</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>addClipboardsRemedIntense2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>takeSymptom3</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>addClipboardsRemedIntense3()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>takeSymptom4</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>addClipboardsRemedIntense4()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>367</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>openRepertory</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>openRepertoryWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -593,5 +692,10 @@
   <slot>openVocabulary()</slot>
   <slot>openKeysChooseWindow()</slot>
   <slot>openTakeRemed()</slot>
+  <slot>addClipboardsRemedIntense1()</slot>
+  <slot>addClipboardsRemedIntense2()</slot>
+  <slot>addClipboardsRemedIntense3()</slot>
+  <slot>addClipboardsRemedIntense4()</slot>
+  <slot>openRepertoryWindow()</slot>
  </slots>
 </ui>

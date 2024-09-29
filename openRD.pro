@@ -31,6 +31,7 @@ SOURCES += \
     commonfunction/customscene.cpp \
     commonfunction/repertorydata.cpp \
     commonfunction/repertoryrender.cpp \
+    commonfunction/widgetaction.cpp \
     keys/keychoose.cpp \
     keys/keyreader.cpp \
     keys/keysremedlist.cpp \
@@ -60,6 +61,7 @@ HEADERS += \
     commonfunction/languages.h \
     commonfunction/repertorydata.h \
     commonfunction/repertoryrender.h \
+    commonfunction/widgetaction.h \
     keys/keychoose.h \
     keys/keyreader.h \
     keys/keysremedlist.h \

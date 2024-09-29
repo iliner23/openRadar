@@ -42,7 +42,7 @@ namespace lang {
        case QLocale::Chinese:
            return "GB18030";
        default:
-           return "";
+           return "windows-1252";
        }
     }
     inline QByteArray langToName(quint8 pos){

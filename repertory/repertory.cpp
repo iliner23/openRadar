@@ -35,8 +35,8 @@ repertory::repertory(const QDir filename, const QDir system,
     _cache = ch;
     _remedList = remedList;
 
-    auto vlayout = new QVBoxLayout(this);
-    auto hlayout = new QHBoxLayout(this);
+    auto vlayout = new QVBoxLayout;
+    auto hlayout = new QHBoxLayout;
     _scene = new customScene(this);
 
     _engine.reset(filename.filePath("symptom"), _cache, _codec);
