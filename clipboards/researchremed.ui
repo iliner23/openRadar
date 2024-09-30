@@ -73,7 +73,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="layoutWidget">
+        <widget class="QWidget" name="layoutWidget1">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
            <number>0</number>
@@ -83,7 +83,7 @@
             <item>
              <widget class="QWidget" name="widgetFiller" native="true">
               <property name="autoFillBackground">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -205,7 +205,7 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="property">
+  <action name="propertySymptom">
    <property name="text">
     <string>&quot;Редактировать - Свойства&quot;</string>
    </property>
@@ -219,6 +219,46 @@
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="cutoutSymptom">
+   <property name="text">
+    <string>Вырезать</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="putSymptom">
+   <property name="text">
+    <string>Вставить</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="copySymptomsText">
+   <property name="text">
+    <string>Копировать текст симптома</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="copySymptom">
+   <property name="text">
+    <string>Копировать симптом</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="enabledMeasure">
+   <property name="text">
+    <string>Выделенные степени</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
  </widget>
@@ -321,7 +361,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>property</sender>
+   <sender>propertySymptom</sender>
    <signal>triggered()</signal>
    <receiver>researchRemed</receiver>
    <slot>openProperty()</slot>
@@ -352,6 +392,86 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>cutoutSymptom</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>cutoutSymptom()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>putSymptom</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>putSymptom()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>copySymptomsText</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>copySymptomsText()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>copySymptom</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>copySymptom()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enabledMeasure</sender>
+   <signal>triggered()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>enabledMeasure()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openStrategyMenu()</slot>
@@ -362,5 +482,10 @@
   <slot>vScrollBarMoved(int)</slot>
   <slot>openProperty()</slot>
   <slot>deleteSymptom()</slot>
+  <slot>cutoutSymptom()</slot>
+  <slot>putSymptom()</slot>
+  <slot>copySymptomsText()</slot>
+  <slot>copySymptom()</slot>
+  <slot>enabledMeasure()</slot>
  </slots>
 </ui>

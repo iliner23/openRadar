@@ -48,7 +48,7 @@ void customScene::mouseMoveEvent(QGraphicsSceneMouseEvent * mouseEvent){
     QDrag * drag = new QDrag(this);
     QMimeData * mimeData = new QMimeData;
 
-    mimeData->setData("application/openRD.symptomPostion", ell->data(1).toByteArray());
+    mimeData->setData("application/openRD.dragAndDropSymptomPosition", ell->data(1).toByteArray());
     drag->setMimeData(mimeData);
 
     drag->exec(Qt::CopyAction);

@@ -5,6 +5,7 @@
 #include <memory>
 #include "researchremedrender.h"
 #include "setremedy.h"
+#include "enabledmeasure.h"
 
 namespace Ui {
 class researchRemed;
@@ -32,6 +33,9 @@ private:
     researchRemedRender _render;
     std::shared_ptr<QStringList> _clipNames;
     QGraphicsScene * _scene_header, * _scene_remedies, * _scene_counter;
+
+    QAction * _intenseActions[10];
+    QAction * _qualityActions[2];
 
     QMenu * _strategyMenu, * _showMenu, * _listMenu;
     QList<QAction*> _sympthomAndAnalis;
@@ -63,13 +67,25 @@ private slots:
     void triggeredShow(QAction*);
 
     //symptom contex menu
+    void changeIntenceSymptom(qint8);
+    void setQualitySymptom(bool);
+    //bool argument: false - checked elim
+    //               true  - checked cas
+    void enabledMeasure();
     void openProperty();
     void deleteSymptom();
+    void cutoutSymptom();
+    void putSymptom();
+    void copySymptom();
+    void copySymptomsText() const;
+    static int confirmBox(const QString &);
 
     void splitterMoved(int, int);
 
     void hScrollBarMoved(int);
     void vScrollBarMoved(int);
+signals:
+    void clipboadrsDataChanged();
 };
 
 #endif // RESEARCHREMED_H

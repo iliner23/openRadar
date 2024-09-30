@@ -45,6 +45,7 @@ private slots:
 
     //void setClipboardsName();
     void addClipboardsRemed(func::remedClipboardInfo, quint8);
+    void clipboadrsDataChanged();
     //void openResearchTest(QAction *act);
     void openResearchTest(qint8);
 
@@ -69,6 +70,7 @@ private:
     void keyPressEvent(QKeyEvent *) override;
     void keyReleaseEvent(QKeyEvent *) override;
     void setDefaultRemedClipboardInfo(func::remedClipboardInfo &);
+    inline void changeIcon(qint8 pos, bool opened);
 
     //QVector<QAction*> _pressedClipboard;
     QVector<qint8> _pressedClipboard;

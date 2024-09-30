@@ -13,12 +13,10 @@ RepChose::RepChose(const QStringList repertories, const QVector<QDir> reppos, QV
     _codec = QTextCodec::codecForName(lang::defaultCodec());
 
     for(auto & it : reppos){
-        QDir vw = it;
-        vw.setPath(vw.path() % vw.separator() % "view");
-        view.open(vw.path().toStdString());
+        view.open(it.filePath("view").toStdString());
 
         if(view.size() != 0)
-            _rLevels.push_back(vw.path());
+            _rLevels.push_back(it.filePath("view"));
         else
             _rLevels.push_back("");
 

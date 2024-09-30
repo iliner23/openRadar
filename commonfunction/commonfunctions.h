@@ -4,7 +4,15 @@
 #include <QTextCodec>
 #include "openctree/openctree.h"
 
+#define _DEBUG_
+
 namespace func {
+#ifdef _DEBUG_
+    const QString dataPath = "../";
+#else
+    const QString dataPath = "";
+#endif
+
     QString renderingLabel(openCtree symptom, bool passLastChapter,
                            QTextCodec * codec = QTextCodec::codecForLocale());
 
@@ -53,6 +61,30 @@ namespace func {
         QString group;
         bool measure[4] = { true, true, true, true};
         quint16 remFilter = -1;
+
+        friend QDataStream & operator<< (QDataStream & out, const remedClipboardInfo & obj) {
+            QByteArray measure(reinterpret_cast<const char*>(obj.measure), sizeof(obj.measure));
+
+            out << obj.path.path() << obj.key << reinterpret_cast<uintptr_t>(obj.codec)
+                << obj.intensity << obj.elim
+                << obj.cas << obj.group << measure << obj.remFilter;
+            return out;
+        }
+
+        friend QDataStream & operator>> (QDataStream & in, remedClipboardInfo & obj) {
+            QString path;
+            QByteArray measure("\0", sizeof(obj.measure));
+            uintptr_t codecPtr = 0;
+
+            in >> path >> obj.key >> codecPtr
+                >> obj.intensity >> obj.elim >> obj.cas
+                >> obj.group >> measure >> obj.remFilter;
+
+            obj.path.setPath(path);
+            std::copy(measure.cbegin(), measure.cend(), obj.measure);
+            obj.codec = reinterpret_cast<QTextCodec*>(codecPtr);
+            return in;
+        }
     };
 }
 #endif // COMMONFUNCTIONS_H

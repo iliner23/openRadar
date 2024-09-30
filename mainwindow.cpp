@@ -26,9 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
         _clipboadrs = std::make_shared<std::array<QVector<rci>, 10>>();
     }
 
-    _catalog.open(QDir("../../system").filePath("catalog").toStdString());
-    auto dataDirs = QDir("../../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-    auto keysDirs = QDir("../../data/keynotes").entryInfoList(QDir::Files);
+    _catalog.open(QDir(func::dataPath % "../system").filePath("catalog").toStdString());
+    auto dataDirs = QDir(func::dataPath % "../data").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    auto keysDirs = QDir(func::dataPath % "../data/keynotes").entryInfoList(QDir::Files);
     const QStringList tpCmp = {"view", "word1", "word2", "chapter", "extract", "symptom"};
 
     QTextCodec * cd = QTextCodec::codecForName(lang::defaultCodec());
@@ -42,10 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
 
         if(str.at(4) == 1){
             for(auto & ir : dataDirs){
-                auto st = "../" + str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
+                QString st = func::dataPath % str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
                 //NOTE: work directory for repertory
                 st.chop(2);
-                st.replace('\\', '/');
                 QFileInfo dir(st);
 
                 if(dir == ir){
@@ -111,10 +110,9 @@ MainWindow::MainWindow(QWidget *parent)
         }
         else if(str.at(4) == 2){
             for(auto & ir : keysDirs){
-                auto st = "../" + str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
+                QString st = func::dataPath % str.mid(str.lastIndexOf('\0', str.size() - 2) + 1);
                 //NOTE: work directory for keys
                 st.chop(1);
-                st.replace('\\', '/');
                 QFileInfo dir(st + ".dat");
 
                 if(dir == ir){
@@ -134,8 +132,8 @@ MainWindow::MainWindow(QWidget *parent)
             break;
     }
 
-    openCtree remed(QDir("../../system").filePath("remed").toStdString());
-    openCtree author(QDir("../../system").filePath("author").toStdString());
+    openCtree remed(QDir(func::dataPath % "../system").filePath("remed").toStdString());
+    openCtree author(QDir(func::dataPath % "../system").filePath("author").toStdString());
 
     _cache = std::make_shared<func::cache>();
     _cache->_lenRem = remed.serviceDataLenght();
@@ -177,6 +175,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this, &MainWindow::changeClipboardsRemed, _research, &researchRemed::setClipboardRemed);
     connect(this, &MainWindow::changeClipboardsName, _research, &researchRemed::setClipboardName);
+    connect(_research, &researchRemed::clipboadrsDataChanged, this, &MainWindow::clipboadrsDataChanged);
 
     QAction * researchPtrs[] = {ui->clipboard1, ui->clipboard2, ui->clipboard3, ui->clipboard4,
                                ui->clipboard5, ui->clipboard6, ui->clipboard7, ui->clipboard8,
@@ -204,6 +203,26 @@ void MainWindow::openTakeRemed(){
         _takeRemed->show();
     }
 }
+inline void MainWindow::changeIcon(qint8 pos, bool opened){
+    QAction * researchPtrs[] = {ui->clipboard1, ui->clipboard2, ui->clipboard3, ui->clipboard4,
+                               ui->clipboard5, ui->clipboard6, ui->clipboard7, ui->clipboard8,
+                               ui->clipboard9, ui->clipboard10};
+
+    const QString open[] = {":/icons/open/full/res/openFullRepertory",
+                            ":/icons/open/empty/res/openEmptyRepertory"};
+    const QString notOpen[] = {":/icons/notOpen/full/res/notOpenFullRepertory",
+                               ":/icons/notOpen/empty/res/notOpenEmptyRepertory"};
+
+    researchPtrs[pos]->setData(opened);
+
+    if(!_clipboadrs->at(pos).isEmpty()){
+        researchPtrs[pos]->setIcon(QIcon(
+            ((opened) ? open[0] : notOpen[0]) % QString::number(pos + 1) % ".bmp"));
+    }
+    else
+        researchPtrs[pos]->setIcon(QIcon(
+            ((opened) ? open[1] : notOpen[1]) % QString::number(pos + 1) % ".bmp"));
+}
 void MainWindow::openResearchTest(qint8 pos){
     std::array<bool, 10> val;
 
@@ -211,8 +230,15 @@ void MainWindow::openResearchTest(qint8 pos){
         it = false;
 
     if(_pressed){
-        if(pos != -1 && _pressedClipboard.indexOf(pos) == -1)
+        if(_pressedClipboard.isEmpty()){
+            for(auto it = 0; it != 10; ++it)
+                changeIcon(it, false);
+        }
+
+        if(pos != -1 && _pressedClipboard.indexOf(pos) == -1){
             _pressedClipboard.push_back(pos);
+            changeIcon(pos, true);
+        }
     }
     else if(!_pressedClipboard.isEmpty()){
         for(const auto & it : _pressedClipboard)
@@ -223,6 +249,11 @@ void MainWindow::openResearchTest(qint8 pos){
     }
     else if(pos != -1){
         val.at(pos) = true;
+
+        for(auto it = 0; it != 10; ++it)
+            changeIcon(it, false);
+
+        changeIcon(pos, true);
         _research->show(val);
     }
 }
@@ -242,7 +273,7 @@ MainWindow::~MainWindow(){
 }
 void MainWindow::openRepertory(QModelIndex & item, const quint16 repLevel, std::pair<QLocale, QLocale> lang){
     auto index = item.row();
-    auto rep = new repertory(QDir(_repertsPos.at(index)), QDir("../../system"),
+    auto rep = new repertory(QDir(_repertsPos.at(index)), QDir(func::dataPath % "system"),
                              _cache, lang, _remedList, repLevel, ui->mdiArea);
     rep->setAttribute(Qt::WA_DeleteOnClose);
     rep->setWindowTitle(item.data().toString());
@@ -366,6 +397,14 @@ void MainWindow::setDefaultRemedClipboardInfo(func::remedClipboardInfo & info){
     info.codec = currentRep->textCodec();
     info.path = currentRep->catalog();
     info.key = currentRep->currentPosition();
+}
+void MainWindow::clipboadrsDataChanged(){
+    QAction * researchPtrs[] = {ui->clipboard1, ui->clipboard2, ui->clipboard3, ui->clipboard4,
+                               ui->clipboard5, ui->clipboard6, ui->clipboard7, ui->clipboard8,
+                               ui->clipboard9, ui->clipboard10};
+
+    for(auto it = 0; it != _clipboadrs->size(); ++it)
+        changeIcon(it, researchPtrs[it]->data().toBool());
 }
 void MainWindow::dragAndDropAddRemed(QByteArray pos, qint8 droppedClip){
     func::remedClipboardInfo info;

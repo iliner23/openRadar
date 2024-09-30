@@ -24,6 +24,8 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     _showMenu = new QMenu(ui->show);
     _listMenu = new QMenu(ui->listWidget);
 
+    ui->putSymptom->setEnabled(false);
+
     auto addActions = [](auto * menu, auto & actions, const auto labels, bool checkable = true){
         for(const auto & item : labels){
             auto action = new QAction(item, menu);
@@ -60,17 +62,45 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     }
 
     {//listWidget contex menu
+        auto intenceMenu = new QMenu("Интенсивность", _listMenu);
+        auto qualityMenu = new QMenu("Качество", _listMenu);
+
+        //Create Quality menu
+        _qualityActions[0] = new QAction("Элиминирующий", _listMenu);
+        _qualityActions[1] = new QAction("Казуативный", _listMenu);
+
+        for(auto it = 0; it != 2; ++it){
+            _qualityActions[it]->setCheckable(true);
+            qualityMenu->addAction(_qualityActions[it]);
+            connect(_qualityActions[it] , &QAction::triggered, this, [=](){ setQualitySymptom(it); });
+        }
+
+        //Create Intensive menu
+        for(auto it = 0; it != std::size(_intenseActions); ++it){
+            _intenseActions[it] = new QAction(QString::number(it), intenceMenu);
+            _intenseActions[it]->setCheckable(true);
+            intenceMenu->addAction(_intenseActions[it]);
+
+            connect(_intenseActions[it], &QAction::triggered,
+                    this, [=]() { changeIntenceSymptom(it); } );
+        }
+
+        _listMenu->addMenu(intenceMenu);
+        _listMenu->addMenu(qualityMenu);
+        _listMenu->addAction(ui->enabledMeasure);
+        _listMenu->addSeparator();
+
+        _listMenu->addAction(ui->putSymptom);
+        _listMenu->addAction(ui->cutoutSymptom);
+        _listMenu->addAction(ui->copySymptom);
+        _listMenu->addAction(ui->copySymptomsText);
         _listMenu->addAction(ui->deleteSymptom);
         _listMenu->addSeparator();
-        _listMenu->addAction(ui->property);
+
+        _listMenu->addAction(ui->propertySymptom);
+
         ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     }
-
-    QPalette pal = QPalette();
-    pal.setColor(QPalette::Window, Qt::white);
-
-    ui->widgetFiller->setAutoFillBackground(true);
-    ui->widgetFiller->setPalette(pal);
 
     ui->horizontalScrollBar->hide();
 
@@ -104,7 +134,6 @@ inline void researchRemed::hideAndShowSliders(){
         ui->horizontalScrollBar->setRange(0, data.first - 1);
     }
 
-    //TODO : only for test
     if(ui->splitter->orientation() == Qt::Vertical){
         qsizetype counter = 0;
 
@@ -236,6 +265,8 @@ void researchRemed::setClipboardRemed(){
         drawHeader();
         drawRemedies();
     }
+
+    emit clipboadrsDataChanged();
 }
 void researchRemed::setOrientation(Qt::Orientation orien){
     _render.setOrientation(orien);
@@ -446,13 +477,78 @@ void researchRemed::resizeEvent(QResizeEvent * event){
         drawRemedies(true);
 }
 void researchRemed::openListMenu(const QPoint & point){
-    auto index = ui->listWidget->itemAt(point);//TODO: test functionality
+    auto index = ui->listWidget->itemAt(point);
     auto globalPos = ui->listWidget->mapToGlobal(point);
 
-    if(index != nullptr && ui->listWidget->itemWidget(index) == nullptr)
-        _listMenu->exec(globalPos);
+    if(index != nullptr && ui->listWidget->itemWidget(index) == nullptr){
+        auto mimeData = QApplication::clipboard()->mimeData();
+        ui->putSymptom->setEnabled(mimeData->hasFormat("application/openRD.copySymptom"));
+
+        auto item = ui->listWidget->currentItem();
+        const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+        const auto value = _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+
+        //checked intensity
+        for(auto & it : _intenseActions)
+            it->setChecked(false);
+
+        _intenseActions[value.intensity]->setChecked(true);
+
+        //checked quality
+        _qualityActions[0]->setChecked(value.elim);
+        _qualityActions[1]->setChecked(value.cas);
+
+       _listMenu->exec(globalPos);
+    }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void researchRemed::setQualitySymptom(bool val){
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    auto & remedInfo = _clipRemed->at(std::get<0>(symptomPos))[std::get<1>(symptomPos)];
+
+    if(val)//cas
+        remedInfo.cas = !remedInfo.cas;
+    else//elim
+        remedInfo.elim = !remedInfo.elim;
+
+    if(!isHidden())
+        setClipboardRemed();
+}
+void researchRemed::changeIntenceSymptom(qint8 intence){
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    _clipRemed->at(std::get<0>(symptomPos))[(std::get<1>(symptomPos))].intensity = intence;
+
+    if(!isHidden())
+        setClipboardRemed();
+}
+void researchRemed::enabledMeasure(){
+    auto measureWindow = new class enabledMeasure;
+
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+
+    std::array<bool, 4> values;
+
+    for(auto it = 0; it != 4; ++it)
+        values[it] = _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos)).measure[it];
+
+    measureWindow->setValues(values);
+
+    if(measureWindow->exec() == QDialog::Accepted){
+        values = measureWindow->getValues();
+
+        for(auto it = 0; it != 4; ++it)
+            _clipRemed->at(std::get<0>(symptomPos))
+                [(std::get<1>(symptomPos))].measure[it] = values[it];
+
+        if(!isHidden())
+            setClipboardRemed();
+    }
+
+    delete measureWindow;
+}
 void researchRemed::openProperty(){
     auto item = ui->listWidget->currentItem();
 
@@ -466,10 +562,101 @@ void researchRemed::openProperty(){
 void researchRemed::deleteSymptom(){
     auto item = ui->listWidget->currentItem();
     const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    const auto res = confirmBox("Удалить выделенный симптом?");
+
+    switch (res) {
+    case QMessageBox::Discard:
+    case QMessageBox::Cancel:
+        return;
+    }
+
     _clipRemed->at(std::get<0>(symptomPos)).remove(std::get<1>(symptomPos));
 
     if(!isHidden())
         setClipboardRemed();
+}
+void researchRemed::cutoutSymptom(){
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    const auto res = confirmBox("Вырезать выделенный симптом?");
+
+    switch (res) {
+    case QMessageBox::Discard:
+    case QMessageBox::Cancel:
+        return;
+    }
+
+    auto clipData = _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+    QByteArray rawData;
+    QDataStream stream(&rawData, QIODevice::WriteOnly);
+    stream << _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+
+    auto * mimeData = new QMimeData;
+    mimeData->setData("application/openRD.copySymptom", rawData);
+    QApplication::clipboard()->setMimeData(mimeData);
+
+    _clipRemed->at(std::get<0>(symptomPos)).remove(std::get<1>(symptomPos));
+
+    if(!isHidden())
+        setClipboardRemed();
+}
+void researchRemed::copySymptom(){
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+
+    auto clipData = _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+    QByteArray rawData;
+    QDataStream stream(&rawData, QIODevice::WriteOnly);
+    stream << _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+
+    auto * mimeData = new QMimeData;
+    mimeData->setData("application/openRD.copySymptom", rawData);
+    QApplication::clipboard()->setMimeData(mimeData);
+}
+void researchRemed::putSymptom(){
+    auto mimeData = QApplication::clipboard()->mimeData();
+
+    if(mimeData->hasFormat("application/openRD.copySymptom")){
+        auto item = ui->listWidget->currentItem();
+        const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+        auto & link = _clipRemed->at(std::get<0>(symptomPos));
+        QDataStream stream(mimeData->data("application/openRD.copySymptom"));
+
+        func::remedClipboardInfo rawData;
+        stream >> rawData;
+
+        auto pred = [&](const auto f){
+            if(f.path == rawData.path && f.key == rawData.key)
+                return true;
+
+            return false;
+        };
+
+        auto iter = std::find_if(link.cbegin(), link.cend(), pred);
+        if(iter != link.cend()){
+            QMessageBox error;
+            error.setText("Этот симптом уже занесен в " %
+                          QString::number(std::get<0>(symptomPos) + 1) % " клипборд!");
+            error.setIcon(QMessageBox::Information);
+            error.exec();
+            return;
+        }
+
+        link.push_back(rawData);
+
+        if(!isHidden())
+            setClipboardRemed();
+    }
+}
+void researchRemed::copySymptomsText() const {
+    const auto item = ui->listWidget->currentItem();
+    QApplication::clipboard()->setText(item->text());
+}
+int researchRemed::confirmBox(const QString & text){
+    QMessageBox box;
+    box.setText(text);
+    box.setStandardButtons(QMessageBox::Ok | QMessageBox::Discard | QMessageBox::Cancel);
+    return box.exec();
 }
 researchRemed::~researchRemed(){
     delete ui;

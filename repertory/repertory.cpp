@@ -49,6 +49,7 @@ repertory::repertory(const QDir filename, const QDir system,
     _label = new QLabel(this);
     _label->close();
     _label->setFont(QFont("default", 10));
+    _label->setStyleSheet("QLabel { color : red; }");
 
     openCtree view(filename.filePath("view").toStdString());
 

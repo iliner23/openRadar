@@ -22,6 +22,7 @@ SOURCES += \
     chapters/proxysearchmodel.cpp \
     chapters/searchmodel.cpp \
     chapters/windowchapters.cpp \
+    clipboards/enabledmeasure.cpp \
     clipboards/remediessortclass.cpp \
     clipboards/researchremed.cpp \
     clipboards/researchremedrender.cpp \
@@ -51,6 +52,7 @@ HEADERS += \
     chapters/proxysearchmodel.h \
     chapters/searchmodel.h \
     chapters/windowchapters.h \
+    clipboards/enabledmeasure.h \
     clipboards/remediessortclass.h \
     clipboards/researchremed.h \
     clipboards/researchremedrender.h \
@@ -77,6 +79,7 @@ HEADERS += \
 FORMS += \
     author_info/author.ui \
     chapters/windowchapters.ui \
+    clipboards/enabledmeasure.ui \
     clipboards/researchremed.ui \
     clipboards/setremedy.ui \
     clipboards/takeremed.ui \
