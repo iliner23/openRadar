@@ -4,10 +4,9 @@
 #include <QTextCodec>
 #include "openctree/openctree.h"
 
-#define _DEBUG_
-
 namespace func {
-#ifdef _DEBUG_
+
+#ifdef QT_DEBUG
     const QString dataPath = "../";
 #else
     const QString dataPath = "";

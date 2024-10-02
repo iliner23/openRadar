@@ -199,7 +199,7 @@ void MainWindow::openTakeRemed(){
                     ui->mdiArea->currentSubWindow()->widget());
 
         _takeRemed->setPos(currentRep->catalog(),
-                           currentRep->currentPosition(), currentRep->textCodec());
+                           currentRep->currentPosition(), currentRep->getFilter(), currentRep->textCodec());
         _takeRemed->show();
     }
 }
@@ -217,11 +217,11 @@ inline void MainWindow::changeIcon(qint8 pos, bool opened){
 
     if(!_clipboadrs->at(pos).isEmpty()){
         researchPtrs[pos]->setIcon(QIcon(
-            ((opened) ? open[0] : notOpen[0]) % QString::number(pos + 1) % ".bmp"));
+            ((opened) ? open[0] : notOpen[0]) % QString::number(pos + 1) % ".png"));
     }
     else
         researchPtrs[pos]->setIcon(QIcon(
-            ((opened) ? open[1] : notOpen[1]) % QString::number(pos + 1) % ".bmp"));
+            ((opened) ? open[1] : notOpen[1]) % QString::number(pos + 1) % ".png"));
 }
 void MainWindow::openResearchTest(qint8 pos){
     std::array<bool, 10> val;
@@ -394,6 +394,7 @@ void MainWindow::setDefaultRemedClipboardInfo(func::remedClipboardInfo & info){
     auto currentRep = qobject_cast<repertory*>(
         ui->mdiArea->currentSubWindow()->widget());
 
+    info.remFilter = currentRep->getFilter();
     info.codec = currentRep->textCodec();
     info.path = currentRep->catalog();
     info.key = currentRep->currentPosition();

@@ -23,6 +23,7 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
     _strategyMenu = new QMenu(ui->strategy);
     _showMenu = new QMenu(ui->show);
     _listMenu = new QMenu(ui->listWidget);
+    _repertoryFilterMenu = new QMenu(ui->repertoryFilter);
 
     ui->putSymptom->setEnabled(false);
 
@@ -106,6 +107,7 @@ researchRemed::researchRemed(std::shared_ptr<QStringList> clipNames, std::shared
 
     connect(_strategyMenu, &QMenu::triggered, this, &researchRemed::triggeredStrategy);
     connect(_showMenu, &QMenu::triggered, this, &researchRemed::triggeredShow);
+    connect(_repertoryFilterMenu, &QMenu::triggered, this, &researchRemed::triggeredFilter);
 }
 void researchRemed::renameLabels(){
     for(auto i = 0; i != 10; ++i)
@@ -235,6 +237,15 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
             QVariant var;
             var.setValue(std::make_pair(iter, it));
             item->setData(Qt::UserRole, var);
+
+            if(_clipRemed->at(iter).at(it).cas && _clipRemed->at(iter).at(it).elim)
+                item->setForeground(QBrush(Qt::magenta));
+            else if(_clipRemed->at(iter).at(it).cas)
+                item->setForeground(QBrush(Qt::red));
+            else if(_clipRemed->at(iter).at(it).elim)
+                item->setForeground(QBrush(Qt::gray));
+            else
+                item->setForeground(QBrush());
 
             ui->listWidget->addItem(item);
         }
@@ -500,6 +511,79 @@ void researchRemed::openListMenu(const QPoint & point){
 
        _listMenu->exec(globalPos);
     }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void researchRemed::enableRepertoryFilter(int currentRow){
+    auto item = ui->listWidget->item(currentRow);
+    ui->repertoryFilter->setText("Полный реперторий");
+
+    if(currentRow < 0 || ui->listWidget->itemWidget(item) != nullptr){
+        ui->repertoryFilter->setEnabled(false);
+        return;
+    }
+
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    const auto & link = _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+
+    openCtree view(link.path.filePath("view").toStdString());
+
+    if(view.size() == 0){
+        ui->repertoryFilter->setEnabled(false);
+        return;
+    }
+
+    ui->repertoryFilter->setEnabled(true);
+    quint16 filter = 1;
+
+    for(auto it = 0; it != view.size(); ++it){
+        const auto str = view.next();
+
+        if(filter == link.remFilter)
+            ui->repertoryFilter->setText(link.codec->toUnicode(
+                str.substr(view.serviceDataLenght(), str.find('0', view.serviceDataLenght())).c_str()));
+
+        filter *= 2;
+    }
+}
+void researchRemed::showReperotyFilterMenu(){
+    _repertoryFilterMenu->clear();
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+    const auto & link = _clipRemed->at(std::get<0>(symptomPos)).at(std::get<1>(symptomPos));
+
+    openCtree view(link.path.filePath("view").toStdString());
+    auto full = _repertoryFilterMenu->addAction("Полный реперторий");
+    full->setCheckable(true);
+    full->setData(-1);
+    full->setChecked(link.remFilter == (quint16)-1);
+
+    quint16 mask = 1;
+
+    for(auto it = 0; it != view.size(); ++it){
+        auto str = view.next();
+        auto ps = _repertoryFilterMenu->addAction(link.codec->toUnicode
+            (str.substr(view.serviceDataLenght(), str.find('0', view.serviceDataLenght())).c_str()));
+
+        ps->setCheckable(true);
+        ps->setChecked(link.remFilter == mask);
+        ps->setData(mask);
+
+        mask *= 2;
+    }
+
+    auto pos = ui->repertoryFilter->pos();
+    pos.setY(pos.y() + ui->repertoryFilter->height());
+    _repertoryFilterMenu->popup(QPoint(mapToGlobal(pos)));
+}
+void researchRemed::triggeredFilter(QAction * action){
+    auto item = ui->listWidget->currentItem();
+    const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
+
+    _clipRemed->at(std::get<0>(symptomPos))
+        [std::get<1>(symptomPos)].remFilter = action->data().value<quint16>();
+
+    if(!isHidden())
+        setClipboardRemed();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void researchRemed::setQualitySymptom(bool val){

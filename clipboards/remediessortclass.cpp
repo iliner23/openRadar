@@ -98,6 +98,9 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> remediesSortClass::sortF
                     if((degree == 1 && clip.at(iter).measure[0]) || (degree == 2 && clip.at(iter).measure[1])
                             || (degree == 3 && clip.at(iter).measure[2]) || (degree == 4 && clip.at(iter).measure[3])){
 
+                        if(clip.at(iter).remFilter != (quint16)-1 && (std::get<3>(itrem) & clip.at(iter).remFilter) == 0)
+                            continue;
+
                         if(!remeds.contains(remedName)){
                             std::get<0>(remeds[remedName]).resize(repSize);
                             std::get<1>(remeds[remedName]) = 0;
@@ -105,12 +108,10 @@ QVector<std::tuple<QString, QVector<quint8>, int, int>> remediesSortClass::sortF
 
                         std::get<0>(remeds[remedName])[numrep] = degree;
 
-                        if(clip.at(iter).remFilter == (quint16)-1 || (std::get<3>(itrem) & clip.at(iter).remFilter) != 0){
-                            compute(remeds, remedName, clip.at(iter), itrem);
+                        compute(remeds, remedName, clip.at(iter), itrem);
 
-                            if(clip.at(iter).elim)
-                                notIgnoreRemedies.insert(remedName);
-                        }
+                        if(clip.at(iter).elim)
+                            notIgnoreRemedies.insert(remedName);
                     }
 
                 } catch(...) { qDebug() << "error value" << std::get<0>(itrem); }

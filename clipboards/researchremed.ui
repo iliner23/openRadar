@@ -18,6 +18,16 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
+       <widget class="QPushButton" name="repertoryFilter">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Полный реперторий</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
@@ -106,9 +116,6 @@
               </property>
               <property name="renderHints">
                <set>QPainter::RenderHint::Antialiasing|QPainter::RenderHint::TextAntialiasing</set>
-              </property>
-              <property name="viewportUpdateMode">
-               <enum>QGraphicsView::ViewportUpdateMode::MinimalViewportUpdate</enum>
               </property>
              </widget>
             </item>
@@ -217,13 +224,19 @@
    <property name="text">
     <string>Удалить</string>
    </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="cutoutSymptom">
    <property name="text">
     <string>Вырезать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
@@ -233,6 +246,9 @@
    <property name="text">
     <string>Вставить</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
@@ -241,6 +257,9 @@
    <property name="text">
     <string>Копировать текст симптома</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
+   </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
@@ -248,6 +267,9 @@
   <action name="copySymptom">
    <property name="text">
     <string>Копировать симптом</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
@@ -472,6 +494,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>listWidget</sender>
+   <signal>currentRowChanged(int)</signal>
+   <receiver>researchRemed</receiver>
+   <slot>enableRepertoryFilter(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>212</x>
+     <y>306</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>repertoryFilter</sender>
+   <signal>clicked()</signal>
+   <receiver>researchRemed</receiver>
+   <slot>showReperotyFilterMenu()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>89</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>435</x>
+     <y>277</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openStrategyMenu()</slot>
@@ -487,5 +541,7 @@
   <slot>copySymptomsText()</slot>
   <slot>copySymptom()</slot>
   <slot>enabledMeasure()</slot>
+  <slot>enableRepertoryFilter(int)</slot>
+  <slot>showReperotyFilterMenu()</slot>
  </slots>
 </ui>

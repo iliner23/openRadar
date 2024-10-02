@@ -37,7 +37,7 @@ private:
     QAction * _intenseActions[10];
     QAction * _qualityActions[2];
 
-    QMenu * _strategyMenu, * _showMenu, * _listMenu;
+    QMenu * _strategyMenu, * _showMenu, * _listMenu, * _repertoryFilterMenu;
     QList<QAction*> _sympthomAndAnalis;
     QList<QAction*> _strategy;
     QAction * _intensity;
@@ -65,6 +65,11 @@ private slots:
 
     void triggeredStrategy(QAction*);
     void triggeredShow(QAction*);
+
+    //repertory filter
+    void enableRepertoryFilter(int);
+    void showReperotyFilterMenu();
+    void triggeredFilter(QAction *);
 
     //symptom contex menu
     void changeIntenceSymptom(qint8);

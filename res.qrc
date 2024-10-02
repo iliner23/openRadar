@@ -1,17 +1,12 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>res/Icon1.png</file>
-        <file>res/Bitmap1057.bmp</file>
-        <file>res/Bitmap2.bmp</file>
-        <file>res/Bitmap3.bmp</file>
-        <file>res/Bitmap4.bmp</file>
+        <file>res/openRD.png</file>
+        <file>res/openRepertory.png</file>
+        <file>res/findSymptomHeader.png</file>
+        <file>res/findSymptom.png</file>
+        <file>res/extendedSearch.png</file>
         <file>res/Bitmap5.bmp</file>
         <file>res/Bitmap6.bmp</file>
-        <file>res/Bitmap7.bmp</file>
-        <file>res/Bitmap8.bmp</file>
-        <file>res/Bitmap9.bmp</file>
-        <file>res/Bitmap10.bmp</file>
-        <file>res/Bitmap11.bmp</file>
         <file>res/Bitmap12.bmp</file>
         <file>res/Bitmap13.bmp</file>
         <file>res/Bitmap14.bmp</file>
@@ -25,7 +20,7 @@
         <file>res/Bitmap22.bmp</file>
         <file>res/Bitmap23.bmp</file>
         <file>res/Bitmap24.bmp</file>
-        <file>res/Bitmap25.bmp</file>
+        <file>res/openKeys.png</file>
         <file>res/Bitmap36.bmp</file>
         <file>res/Bitmap37.bmp</file>
         <file>res/Bitmap38.bmp</file>
@@ -37,51 +32,58 @@
         <file>res/Bitmap44.bmp</file>
     </qresource>
     <qresource prefix="/icons/notOpen/empty">
-        <file>res/notOpenEmptyRepertory1.bmp</file>
-        <file>res/notOpenEmptyRepertory2.bmp</file>
-        <file>res/notOpenEmptyRepertory3.bmp</file>
-        <file>res/notOpenEmptyRepertory4.bmp</file>
-        <file>res/notOpenEmptyRepertory5.bmp</file>
-        <file>res/notOpenEmptyRepertory6.bmp</file>
-        <file>res/notOpenEmptyRepertory7.bmp</file>
-        <file>res/notOpenEmptyRepertory8.bmp</file>
-        <file>res/notOpenEmptyRepertory9.bmp</file>
-        <file>res/notOpenEmptyRepertory10.bmp</file>
+        <file>res/notOpenEmptyRepertory1.png</file>
+        <file>res/notOpenEmptyRepertory2.png</file>
+        <file>res/notOpenEmptyRepertory3.png</file>
+        <file>res/notOpenEmptyRepertory4.png</file>
+        <file>res/notOpenEmptyRepertory5.png</file>
+        <file>res/notOpenEmptyRepertory6.png</file>
+        <file>res/notOpenEmptyRepertory7.png</file>
+        <file>res/notOpenEmptyRepertory8.png</file>
+        <file>res/notOpenEmptyRepertory9.png</file>
+        <file>res/notOpenEmptyRepertory10.png</file>
     </qresource>
     <qresource prefix="/icons/notOpen/full">
-        <file>res/notOpenFullRepertory1.bmp</file>
-        <file>res/notOpenFullRepertory2.bmp</file>
-        <file>res/notOpenFullRepertory3.bmp</file>
-        <file>res/notOpenFullRepertory4.bmp</file>
-        <file>res/notOpenFullRepertory5.bmp</file>
-        <file>res/notOpenFullRepertory6.bmp</file>
-        <file>res/notOpenFullRepertory7.bmp</file>
-        <file>res/notOpenFullRepertory8.bmp</file>
-        <file>res/notOpenFullRepertory9.bmp</file>
-        <file>res/notOpenFullRepertory10.bmp</file>
+        <file>res/notOpenFullRepertory1.png</file>
+        <file>res/notOpenFullRepertory2.png</file>
+        <file>res/notOpenFullRepertory3.png</file>
+        <file>res/notOpenFullRepertory4.png</file>
+        <file>res/notOpenFullRepertory5.png</file>
+        <file>res/notOpenFullRepertory6.png</file>
+        <file>res/notOpenFullRepertory7.png</file>
+        <file>res/notOpenFullRepertory8.png</file>
+        <file>res/notOpenFullRepertory9.png</file>
+        <file>res/notOpenFullRepertory10.png</file>
     </qresource>
     <qresource prefix="/icons/open/empty">
-        <file>res/openEmptyRepertory1.bmp</file>
-        <file>res/openEmptyRepertory2.bmp</file>
-        <file>res/openEmptyRepertory3.bmp</file>
-        <file>res/openEmptyRepertory4.bmp</file>
-        <file>res/openEmptyRepertory5.bmp</file>
-        <file>res/openEmptyRepertory6.bmp</file>
-        <file>res/openEmptyRepertory7.bmp</file>
-        <file>res/openEmptyRepertory8.bmp</file>
-        <file>res/openEmptyRepertory9.bmp</file>
-        <file>res/openEmptyRepertory10.bmp</file>
+        <file>res/openEmptyRepertory1.png</file>
+        <file>res/openEmptyRepertory2.png</file>
+        <file>res/openEmptyRepertory3.png</file>
+        <file>res/openEmptyRepertory4.png</file>
+        <file>res/openEmptyRepertory5.png</file>
+        <file>res/openEmptyRepertory6.png</file>
+        <file>res/openEmptyRepertory7.png</file>
+        <file>res/openEmptyRepertory8.png</file>
+        <file>res/openEmptyRepertory9.png</file>
+        <file>res/openEmptyRepertory10.png</file>
     </qresource>
     <qresource prefix="/icons/open/full">
-        <file>res/openFullRepertory1.bmp</file>
-        <file>res/openFullRepertory2.bmp</file>
-        <file>res/openFullRepertory3.bmp</file>
-        <file>res/openFullRepertory4.bmp</file>
-        <file>res/openFullRepertory5.bmp</file>
-        <file>res/openFullRepertory6.bmp</file>
-        <file>res/openFullRepertory7.bmp</file>
-        <file>res/openFullRepertory8.bmp</file>
-        <file>res/openFullRepertory9.bmp</file>
-        <file>res/openFullRepertory10.bmp</file>
+        <file>res/openFullRepertory1.png</file>
+        <file>res/openFullRepertory2.png</file>
+        <file>res/openFullRepertory3.png</file>
+        <file>res/openFullRepertory4.png</file>
+        <file>res/openFullRepertory5.png</file>
+        <file>res/openFullRepertory6.png</file>
+        <file>res/openFullRepertory7.png</file>
+        <file>res/openFullRepertory8.png</file>
+        <file>res/openFullRepertory9.png</file>
+        <file>res/openFullRepertory10.png</file>
+    </qresource>
+    <qresource prefix="/new/addIntoRepertory">
+        <file>res/addSymptom1.png</file>
+        <file>res/addSymptom2.png</file>
+        <file>res/addSymptom3.png</file>
+        <file>res/addSymptom4.png</file>
+        <file>res/addSymptomWindow.png</file>
     </qresource>
 </RCC>

@@ -22,6 +22,7 @@ public:
     QDir catalog() const noexcept { return _filename; }
     QTextCodec * textCodec() const noexcept { return _codec; }
     QByteArray currentPosition() const noexcept { return _pointer; }
+    quint16 getFilter() const { return _engine.chaptersFilter(); };
 private:
     QGraphicsView * _viewLeft;
     QGraphicsView * _viewRight;

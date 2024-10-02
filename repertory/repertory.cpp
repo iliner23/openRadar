@@ -54,10 +54,10 @@ repertory::repertory(const QDir filename, const QDir system,
     openCtree view(filename.filePath("view").toStdString());
 
     auto barm = new QMenuBar(this);
-    _menu = new QMenu("Full remed", barm);
+    _menu = new QMenu("Полный реперторий", barm);
     barm->addMenu(_menu);
 
-    auto frm = _menu->addAction("Full remed");
+    auto frm = _menu->addAction("Полный реперторий");
     frm->setCheckable(true);
     frm->setData(-1);
 
@@ -77,7 +77,7 @@ repertory::repertory(const QDir filename, const QDir system,
             changeFilter(ps);
         }
 
-        mask <<= 1;
+        mask *= 2;
     }
     _bar = new QScrollBar(Qt::Vertical, this);
     _bar->setMinimum(0);

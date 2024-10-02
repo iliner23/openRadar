@@ -88,6 +88,7 @@ void takeRemed::accept(){
     info.codec = _codec;
     info.path = _repertory;
     info.key = _key;
+    info.remFilter = _filter;
 
     std::array<QCheckBox*, 10> array = {
         ui->checkBox_9, ui->checkBox_10, ui->checkBox_11, ui->checkBox_12,
@@ -99,10 +100,11 @@ void takeRemed::accept(){
             emit addedClipboardsRemed(info, it);
     }
 }
-void takeRemed::setPos(QDir repertory, QByteArray key, QTextCodec * codec){
+void takeRemed::setPos(QDir repertory, QByteArray key, quint16 filter, QTextCodec * codec){
     _repertory = repertory;
     _key = key;
     _codec = codec;
+    _filter = filter;
 
     openCtree rep(_repertory.filePath("symptom").toStdString());
     rep.at(_key.toStdString(), false);
