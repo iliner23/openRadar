@@ -59,7 +59,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="keysButton">
            <property name="enabled">
             <bool>true</bool>
            </property>
@@ -93,7 +93,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="puctureButton">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -103,7 +103,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="soundButton">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -152,7 +152,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton</sender>
+   <sender>keysButton</sender>
    <signal>clicked()</signal>
    <receiver>remed_author</receiver>
    <slot>showRemedList()</slot>
@@ -167,9 +167,43 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>puctureButton</sender>
+   <signal>clicked()</signal>
+   <receiver>remed_author</receiver>
+   <slot>openPhotoViewer()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>632</x>
+     <y>93</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>349</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>soundButton</sender>
+   <signal>clicked()</signal>
+   <receiver>remed_author</receiver>
+   <slot>openSoundViewer()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>739</x>
+     <y>93</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>349</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showTextInformation()</slot>
   <slot>showRemedList()</slot>
+  <slot>openPhotoViewer()</slot>
+  <slot>openSoundViewer()</slot>
  </slots>
 </ui>

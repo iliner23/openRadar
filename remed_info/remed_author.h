@@ -7,6 +7,7 @@
 #include "commonfunction/commonfunctions.h"
 #include "keys/keysremedlist.h"
 #include "commonfunction/repertorydata.h"
+#include "photoviewer.h"
 
 namespace Ui {
 class remed_author;
@@ -29,11 +30,15 @@ private:
     QTextCodec * _codec;
 
     keysRemedList * _remedList;
+    QFileInfoList _photoList, _soundList;
 
     void rendering();
 private slots:
     void showTextInformation();
     void showRemedList();
+
+    void openPhotoViewer();
+    void openSoundViewer();
 public:
     explicit remed_author(const QDir, std::shared_ptr<func::cache>,
                           const QByteArray, const quint16, const quint32, keysRemedList * remedList,

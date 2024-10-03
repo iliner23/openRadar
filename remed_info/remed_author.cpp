@@ -80,8 +80,8 @@ void remed_author::rendering(){
         return tmp;
     };
 
-    _sym.at(_pos.toStdString(), false);
-    func::repertoryData symptom(_sym, _codec);
+        _sym.at(_pos.toStdString(), false);
+        func::repertoryData symptom(_sym, _codec);
 
     quint16 prevRem = 0;
     const auto remeds = symptom.remedsList();
@@ -93,22 +93,71 @@ void remed_author::rendering(){
             break;
 
         if(_remFilter == (quint16)-1 || (std::get<3>(rm) & _remFilter) != 0){
-            if((((char *)&std::get<2>(rm))[1] & (char)128) != 0){
+            if((((char *)&std::get<2>(rm))[1] & (char)128) != 0)
                 ((char *)&std::get<2>(rm))[1] ^= (char)128;//remed have * in the end
-            }
 
-            const auto & rmStr = _cache->_cacheRemed.at(std::get<0>(rm));
             const auto & auStr = _cache->_cacheAuthor.at(std::get<2>(rm));
-
-            if(prevRem != std::get<0>(rm))
-                ui->label_2->setText(remedTxt(rmStr));
 
             authorTxt(auStr);
             prevRem = std::get<0>(rm);
         }
     }
 
+    const auto & rm = remeds.at(_localPos);
+    const auto & rmStr = _cache->_cacheRemed.at(std::get<0>(rm));
+    ui->label_2->setText(remedTxt(rmStr));
+
+    auto addPathList = [&](auto dir, auto & list){
+        QDir photo(func::dataPath % dir);
+        auto filesList = photo.entryInfoList(QDir::Files | QDir::NoSymLinks);
+        QFileInfoList photoList;
+        const auto compare = QString("r" % QString::number(std::get<0>(rm)) % "-").toLower();
+        const auto compare2 = QString("r" % QString::number(std::get<0>(rm)) % ".").toLower();
+        const auto compare3 = QString(_remedName % ".").toLower();
+
+        for(auto & it : filesList){
+            if(it.fileName().size() >= compare.size()){
+                if(it.fileName().first(compare.size()).toLower() == compare)
+                    photoList.append(it);
+            }
+            if(it.fileName().size() >= compare2.size()){
+                if(it.fileName().first(compare2.size()).toLower() == compare2)
+                    photoList.append(it);
+            }
+            if(it.fileName().size() >= compare3.size()){
+                if(it.fileName().first(compare3.size()).toLower() == compare3)
+                    photoList.append(it);
+            }
+        }
+
+        list = photoList;
+    };
+
+    //photo view
+    addPathList("../photo", _photoList);
+    ui->puctureButton->setEnabled(!_photoList.isEmpty());
+
+    //sound view
+    addPathList("../sound", _soundList);
+    ui->soundButton->setEnabled(!_soundList.isEmpty());
+
     ui->label->setText(func::renderingLabel(_sym, false, _codec));
+}
+void remed_author::openPhotoViewer(){
+    auto viewer = new photoViewer(this);
+    viewer->setAttribute(Qt::WA_DeleteOnClose);
+
+    QList<QPixmap> photos;
+    for(auto & it : _photoList)
+        photos.push_back(QPixmap(it.filePath()));
+
+    viewer->show(photos);
+    viewer->setWindowTitle(_remedName);
+    viewer->setFixedSize(800, 600);
+}
+void remed_author::openSoundViewer(){
+    for(auto & it : _soundList)
+        QDesktopServices::openUrl(QUrl::fromLocalFile(it.absoluteFilePath()));
 }
 void remed_author::showRemedList(){
     _remedList->setFilterRemed(_remedName);

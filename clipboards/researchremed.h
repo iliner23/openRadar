@@ -48,12 +48,17 @@ private:
     std::shared_ptr<std::array<QVector<rci>, 10>> _clipRemed;
 
     void renameLabels();
-    void drawLabels(std::array<bool, 10> act);
+
+    void drawLabels();
     void drawHeader();
     void drawRemedies(bool partlyRendering = false);
+
     void resizeEvent(QResizeEvent * event) override;
+
     inline qreal horizontalSize() const;
     inline void hideAndShowSliders();
+
+    inline void redrawElemetns();
 private slots:
 
     void setOrientation(Qt::Orientation);

@@ -179,16 +179,17 @@ void researchRemed::drawRemedies(bool partlyRendering){
     }
 }
 void researchRemed::show(std::array<bool, 10> act){
-    drawLabels(act);
+    _render.setShowedClipboards(act);
+    drawLabels();
     setOrientation(_render.orientation());
 
     drawHeader();
     QWidget::show();
     drawRemedies();
 }
-void researchRemed::drawLabels(std::array<bool, 10> act){
+void researchRemed::drawLabels(){
     ui->listWidget->clear();
-    _render.setShowedClipboards(act);
+    auto act = _render.showedClipboards();
 
     for(qsizetype iter = 0; iter != act.size(); ++iter){
         if(!act.at(iter) || _clipRemed->at(iter).isEmpty())
@@ -266,13 +267,13 @@ void researchRemed::drawLabels(std::array<bool, 10> act){
 }
 void researchRemed::setClipboardName(){
     if(!isHidden())
-        drawLabels(_render.showedClipboards());
+        drawLabels();
 }
 void researchRemed::setClipboardRemed(){
     _render.setClipboards(*_clipRemed);
 
     if(!isHidden()){
-        drawLabels(_render.showedClipboards());
+        drawLabels();
         drawHeader();
         drawRemedies();
     }
@@ -513,6 +514,13 @@ void researchRemed::openListMenu(const QPoint & point){
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void researchRemed::redrawElemetns(){
+    if(!isHidden()){
+        setClipboardRemed();
+        vScrollBarMoved(0);
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void researchRemed::enableRepertoryFilter(int currentRow){
     auto item = ui->listWidget->item(currentRow);
     ui->repertoryFilter->setText("Полный реперторий");
@@ -582,8 +590,7 @@ void researchRemed::triggeredFilter(QAction * action){
     _clipRemed->at(std::get<0>(symptomPos))
         [std::get<1>(symptomPos)].remFilter = action->data().value<quint16>();
 
-    if(!isHidden())
-        setClipboardRemed();
+    redrawElemetns();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void researchRemed::setQualitySymptom(bool val){
@@ -596,16 +603,14 @@ void researchRemed::setQualitySymptom(bool val){
     else//elim
         remedInfo.elim = !remedInfo.elim;
 
-    if(!isHidden())
-        setClipboardRemed();
+    redrawElemetns();
 }
 void researchRemed::changeIntenceSymptom(qint8 intence){
     auto item = ui->listWidget->currentItem();
     const auto symptomPos = item->data(Qt::UserRole).value<std::pair<qsizetype, qsizetype>>();
     _clipRemed->at(std::get<0>(symptomPos))[(std::get<1>(symptomPos))].intensity = intence;
 
-    if(!isHidden())
-        setClipboardRemed();
+    redrawElemetns();
 }
 void researchRemed::enabledMeasure(){
     auto measureWindow = new class enabledMeasure;
@@ -627,8 +632,7 @@ void researchRemed::enabledMeasure(){
             _clipRemed->at(std::get<0>(symptomPos))
                 [(std::get<1>(symptomPos))].measure[it] = values[it];
 
-        if(!isHidden())
-            setClipboardRemed();
+        redrawElemetns();
     }
 
     delete measureWindow;
@@ -656,8 +660,7 @@ void researchRemed::deleteSymptom(){
 
     _clipRemed->at(std::get<0>(symptomPos)).remove(std::get<1>(symptomPos));
 
-    if(!isHidden())
-        setClipboardRemed();
+    redrawElemetns();
 }
 void researchRemed::cutoutSymptom(){
     auto item = ui->listWidget->currentItem();
@@ -681,8 +684,7 @@ void researchRemed::cutoutSymptom(){
 
     _clipRemed->at(std::get<0>(symptomPos)).remove(std::get<1>(symptomPos));
 
-    if(!isHidden())
-        setClipboardRemed();
+    redrawElemetns();
 }
 void researchRemed::copySymptom(){
     auto item = ui->listWidget->currentItem();
@@ -728,8 +730,7 @@ void researchRemed::putSymptom(){
 
         link.push_back(rawData);
 
-        if(!isHidden())
-            setClipboardRemed();
+        redrawElemetns();
     }
 }
 void researchRemed::copySymptomsText() const {

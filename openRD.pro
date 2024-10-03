@@ -1,4 +1,4 @@
-QT += core gui
+QT += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 greaterThan(QT_MAJOR_VERSION, 5): QT += core5compat
@@ -39,6 +39,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     openctree/openctree.cpp \
+    remed_info/photoviewer.cpp \
     remed_info/remed_author.cpp \
     repertory/repchose.cpp \
     repertory/repertory.cpp \
@@ -69,6 +70,7 @@ HEADERS += \
     keys/keysremedlist.h \
     mainwindow.h \
     openctree/openctree.h \
+    remed_info/photoviewer.h \
     remed_info/remed_author.h \
     repertory/repchose.h \
     repertory/repertory.h \
@@ -87,6 +89,7 @@ FORMS += \
     keys/keyreader.ui \
     keys/keysremedlist.ui \
     mainwindow.ui \
+    remed_info/photoviewer.ui \
     remed_info/remed_author.ui \
     repertory/repchose.ui \
     symptom_info/label.ui \
