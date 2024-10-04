@@ -2,12 +2,12 @@
 #define COMMONFUNCTIONS_H
 #include <QtCore>
 #include <QTextCodec>
-#include "openctree/openctree.h"
+#include "openctree.h"
 
 namespace func {
 
 #ifdef QT_DEBUG
-    const QString dataPath = "../";
+    const QString dataPath = "../../";
 #else
     const QString dataPath = "";
 #endif

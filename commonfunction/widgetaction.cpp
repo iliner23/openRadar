@@ -5,8 +5,9 @@ widgetAction::widgetAction(QWidget * parent) : QToolButton{parent}{
 }
 void widgetAction::dragEnterEvent(QDragEnterEvent * event){
     if (event->mimeData()->hasFormat("application/openRD.dragAndDropSymptomPosition") ||
-        event->mimeData()->hasFormat("application/openRD.repertoryFilePath"))
+        event->mimeData()->hasFormat("application/openRD.repertoryFilePath")){
         event->acceptProposedAction();
+    }
 }
 void widgetAction::dropEvent(QDropEvent * event){
     QByteArray key = event->mimeData()->data("application/openRD.dragAndDropSymptomPosition");
