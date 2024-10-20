@@ -16,22 +16,37 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 greaterThan(QT_MAJOR_VERSION, 5): DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-Debug{
-    LIBS += -L$$PWD/../build/openCtree/debug -lopenCtree
-    LIBS += -L$$PWD/../build/commonfunction/debug -lcommonfunction
 
-    win32{
+debug {
+    win32 {
+        LIBS += -L$$PWD/../build/openCtree/debug -lopenCtree
+        LIBS += -L$$PWD/../build/commonfunction/debug -lcommonfunction
+
         PRE_TARGETDEPS += $$PWD/../build/openCtree/debug/openCtree.lib
         PRE_TARGETDEPS += $$PWD/../build/commonfunction/debug/commonfunction.lib
     }
-}
-Release{
-    LIBS += -L$$PWD/../build/openCtree/release -lopenCtree
-    LIBS += -L$$PWD/../build/commonfunction/release -lcommonfunction
+    unix:linux {
+        LIBS += -L$$PWD/../build/Debug/openCtree -lopenCtree
+        LIBS += -L$$PWD/../build/Debug/commonfunction -lcommonfunction
 
-    win32{
+        PRE_TARGETDEPS += $$PWD/../build/Debug/openCtree/libopenCtree.a
+        PRE_TARGETDEPS += $$PWD/../build/Debug/commonfunction/libcommonfunction.a
+    }
+}
+Release {
+    win32 {
+        LIBS += -L$$PWD/../build/openCtree/release -lopenCtree
+        LIBS += -L$$PWD/../build/commonfunction/release -lcommonfunction
+
         PRE_TARGETDEPS += $$PWD/../build/openCtree/release/openCtree.lib
         PRE_TARGETDEPS += $$PWD/../build/commonfunction/release/commonfunction.lib
+    }
+    unix:linux {
+        LIBS += -L$$PWD/../build/Release/openCtree -lopenCtree
+        LIBS += -L$$PWD/../build/Release/commonfunction -lcommonfunction
+
+        PRE_TARGETDEPS += $$PWD/../build/Release/openCtree/libopenCtree.a
+        PRE_TARGETDEPS += $$PWD/../build/Release/commonfunction/libcommonfunction.a
     }
 }
 

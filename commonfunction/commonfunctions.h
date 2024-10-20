@@ -64,7 +64,7 @@ namespace func {
         friend QDataStream & operator<< (QDataStream & out, const remedClipboardInfo & obj) {
             QByteArray measure(reinterpret_cast<const char*>(obj.measure), sizeof(obj.measure));
 
-            out << obj.path.path() << obj.key << reinterpret_cast<uintptr_t>(obj.codec)
+            out << obj.path.path() << obj.key << reinterpret_cast<quint64>(obj.codec)
                 << obj.intensity << obj.elim
                 << obj.cas << obj.group << measure << obj.remFilter;
             return out;
@@ -73,7 +73,7 @@ namespace func {
         friend QDataStream & operator>> (QDataStream & in, remedClipboardInfo & obj) {
             QString path;
             QByteArray measure("\0", sizeof(obj.measure));
-            uintptr_t codecPtr = 0;
+            quint64 codecPtr = 0;
 
             in >> path >> obj.key >> codecPtr
                 >> obj.intensity >> obj.elim >> obj.cas

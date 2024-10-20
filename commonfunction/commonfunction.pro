@@ -12,18 +12,24 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-Debug{
-    LIBS += -L$$PWD/../build/openCtree/debug -lopenCtree
-
-    win32{
+Debug {
+    win32 {
+        LIBS += -L$$PWD/../build/openCtree/debug -lopenCtree
         PRE_TARGETDEPS += $$PWD/../build/openCtree/debug/openCtree.lib
     }
+    unix:linux {
+        LIBS += -L$$PWD/../build/Debug/openCtree -lopenCtree
+        PRE_TARGETDEPS += $$PWD/../build/Debug/openCtree/libopenCtree.a
+    }
 }
-Release{
-    LIBS += -L$$PWD/../build/openCtree/release -lopenCtree
-
-    win32{
+Release {
+    win32 {
+        LIBS += -L$$PWD/../build/openCtree/release -lopenCtree
         PRE_TARGETDEPS += $$PWD/../build/openCtree/release/openCtree.lib
+    }
+    unix:linux {
+        LIBS += -L$$PWD/../build/Release/openCtree -lopenCtree
+        PRE_TARGETDEPS += $$PWD/../build/Release/openCtree/libopenCtree.a
     }
 }
 
